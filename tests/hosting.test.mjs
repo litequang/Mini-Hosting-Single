@@ -1,0 +1,42 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import crypto from 'node:crypto';
+const temp=fs.mkdtempSync(path.join(os.tmpdir(),'mhs-hosting-'));process.env.MHS_HOME=path.join(temp,'home');process.env.MHS_DATA=path.join(temp,'data');process.env.PREFIX=path.join(temp,'prefix');
+const config=await import('../panel/src/config.mjs');config.initialize();
+const sites=await import('../panel/src/sites.mjs');const {zip}=await import('./helpers.mjs');
+test('ZIP deploy, SHA/CRC refusal, traversal and old code rollback preserve content',async()=>{
+ const site=await sites.addSite({slug:'static-web',hostname:'static.example.com'}),root=sites.siteRoot(site),old=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const data=zip({'dist/index.html':'<h1>new build</h1>','dist/app.js':'console.log("fixture")'});
+ await assert.rejects(()=>sites.deployZip(site.slug,data,'a'.repeat(64)),/CHECKSUM/);assert.equal(fs.readFileSync(path.join(root,'index.html'),'utf8'),old);
+ const corrupt=Buffer.from(data);corrupt[45]^=1;await assert.rejects(()=>sites.deployZip(site.slug,corrupt),/checksum|size|ZIP/);
+ await assert.rejects(()=>sites.deployZip(site.slug,zip({'../escape.txt':'bad'})),/path rejected/);
+ await assert.rejects(()=>sites.deployZip(site.slug,zip({'index.html':'bad','.config/authority.json':'{}'})),/PRIVATE_OR_CLUSTER/);
+ const result=await sites.deployZip(site.slug,data,crypto.createHash('sha256').update(data).digest('hex'));assert.equal(result.httpVerified,false);assert.equal(fs.readFileSync(path.join(root,'index.html'),'utf8'),'<h1>new build</h1>');
+ await sites.rollbackDeploy(site.slug);assert.equal(fs.readFileSync(path.join(root,'index.html'),'utf8'),old);
+});
+test('PHP/Node vhosts and WordPress use private local credentials, not imported wp-config',async()=>{
+ const {nginxConf}=await import('../panel/src/system.mjs'),{wpConfig,hostingConfigs}=await import('../panel/src/hosting.mjs');
+ const php=await sites.addSite({slug:'php-web',hostname:'php.example.com',type:'php'});assert.match(nginxConf(php),/fastcgi_pass unix:/);assert.match(nginxConf(php),/SCRIPT_FILENAME/);
+ const node=await sites.addSite({slug:'node-web',hostname:'node.example.com',type:'node',entry:'server.mjs'});assert.match(nginxConf(node),/proxy_pass http:\/\/127\.0\.0\.1:3200/);assert.match(fs.readFileSync(path.join(config.SERVICE_DIR,'mhs-site-node-web/run'),'utf8'),/server.mjs/);
+ config.atomicJson(path.join(config.DATA,'databases.json'),{fixture_wp:{user:'fixtureuser',password:'fixture-only-password'}});
+ const wp={managedBy:'MHS',slug:'wordpress-web',hostname:'wp.example.com',type:'wordpress',database:'fixture_wp'};
+ const root=sites.siteRoot(wp);fs.mkdirSync(root,{recursive:true});fs.writeFileSync(path.join(root,'wp-config.php'),wpConfig(wp));fs.writeFileSync(path.join(root,'index.php'),'old');const owned=fs.readFileSync(path.join(root,'wp-config.php'),'utf8');
+ config.saveRegistry({...config.registry(),sites:[...config.registry().sites,wp]});
+ assert.match(owned,/localhost:/);assert.match(owned,/fixtureuser/);assert.doesNotMatch(owned,/authority|lease/i);
+ await assert.rejects(()=>sites.deployZip(wp.slug,zip({'index.php':'new','wp-config.php':'foreign'})),/PRIVATE_OR_CLUSTER/);
+ await sites.deployZip(wp.slug,zip({'wordpress/index.php':'<?php echo "fixture";','wordpress/wp-settings.php':'<?php // synthetic core placeholder'}));
+ assert.equal(fs.readFileSync(path.join(root,'wp-config.php'),'utf8'),owned);
+ hostingConfigs();assert.match(fs.readFileSync(config.NGINX_CONFIG,'utf8'),/default_server/);assert.doesNotMatch(fs.readFileSync(config.NGINX_CONFIG,'utf8'),/worker\.dev|authority/i);
+});
+test('direct connector token private file and Access validation have no account/Worker token',async()=>{
+ const {configureConnector,configureAccess}=await import('../tools/cloudflare.mjs');
+ assert.throws(()=>configureAccess({hostname:'evil;config',teamDomain:'x',audience:'x'}),/INVALID/);
+ const token='fixtureToken'.repeat(15);configureAccess({hostname:'single-panel.example.com',teamDomain:'fixture.cloudflareaccess.com',audience:'a'.repeat(64)});configureConnector(token);
+ const run=fs.readFileSync(path.join(config.SERVICE_DIR,'mhs-tunnel/run'),'utf8');assert.match(run,/--token-file/);assert.ok(!run.includes(token));assert.doesNotMatch(run,/worker|authority/i);
+ assert.equal(fs.readFileSync(path.join(config.DATA,'cloudflare/tunnel-token'),'utf8'),token);
+ const {assertIndependentSql}=await import('../panel/src/databases.mjs');assert.throws(()=>assertIndependentSql('CREATE TRIGGER mhc_p4_gate'),/CLUSTER_SQL/);assert.doesNotThrow(()=>assertIndependentSql('CREATE TABLE content (id INT);'));
+});
+process.on('exit',()=>fs.rmSync(temp,{recursive:true,force:true}));

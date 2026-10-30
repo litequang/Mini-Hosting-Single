@@ -7,3 +7,8 @@
 - Direct Tunnel. Existing MHC phones and Cloudflare remain untouched.
 - No fresh MHS phone available: PC fixtures first, Android/public acceptance NOT RUN.
 - Ship useful S1/S2/S3 commits; do not equate source presence with Android PASS.
+- User requested unauthenticated live LAN Monitor: add a read-only9091 surface,
+  while preserving all authentication on management9090; never publish9091.
+- Cloudflare setup uses a new user-created remotely managed Tunnel and Access app.
+  An interactive local helper stores only its connector token; no account token
+  is required. No existing Cloudflare resources are modified by this task.

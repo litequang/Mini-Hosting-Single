@@ -10,3 +10,10 @@
 - tests/standalone.test.mjs: isolated PC and real loopback HTTP tests.
 
 Runtime belongs outside source. No Cluster runtime or Worker deployment exists.
+
+S2: hosting.mjs owns standalone PHP/Nginx config and private WordPress config;
+databases.mjs restricts import/dump to each MHS schema's own local socket user.
+sites.mjs stages ZIP/CRC/SHA, rejects managed-site/private config imports and keeps
+previous code. tools/cloudflare.mjs uses hidden connector input, token-file and
+original origin JWT adapter; no Cloudflare API/Worker credentials. Tests/hosting
+are PC fixtures, not native PHP/SQL/WordPress acceptance.

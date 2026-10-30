@@ -10,3 +10,10 @@
 - CPU/network/battery unavailable: Android may restrict /proc or Termux:API;
   missing values remain unknown, not zero.
 - Source upgrades must preserve data and credentials; never re-run an MHC installer.
+- ZIP_CHECKSUM_MISMATCH / ZIP checksum: obtain an intact trusted archive, do not
+  bypass checks. MHS_PRIVATE_OR_CLUSTER_IMPORT_REFUSED: no .env/wp-config/MHC
+  config import; use independent source and local credentials.
+- DEPLOY_RECOVERY_REQUIRED: inspect the private deploy journal and use recovery;
+  never delete the journal or recreate the site to bypass a partial operation.
+- WordPress provisioning failure preserves schema/files and failed-create metadata;
+  do not create a replacement by dropping data. Native SQL checks remain NOT RUN.
