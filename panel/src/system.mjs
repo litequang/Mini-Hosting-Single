@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
-import {DATA,LOG_DIR,NGINX,NGINX_CONFIG,SERVICE_DIR,TERMUX,registry,SITES,saveRegistry} from './config.mjs';
+import {HOME,DATA,LOG_DIR,NGINX,NGINX_CONFIG,SERVICE_DIR,TERMUX,registry,SITES,saveRegistry} from './config.mjs';
 import {serviceOK,slugOK,hostOK} from './security.mjs';
 const exec=promisify(execFile);
 export async function cmd(file,args=[],timeout=15000,maxBuffer=1024*1024){
@@ -50,5 +50,5 @@ export async function regenerateNginx(sites){
 export async function integrateNginx(){const r=registry();if(!(await nginxTest()).ok)throw Error('NGINX_CONFIG_FAILED');r.nginxIntegrated=true;saveRegistry(r);return {ok:true};}
 export const quote=s=>"'"+String(s).replaceAll("'","'\\''")+"'";
 export function writeService(name,command){if(!serviceOK(name))throw Error('SERVICE_NOT_ALLOWED');const dir=path.join(SERVICE_DIR,name);if(fs.existsSync(dir)&&!fs.existsSync(path.join(dir,'mhs-owned')))throw Error('FOREIGN_SERVICE_REFUSED');fs.mkdirSync(path.join(dir,'log'),{recursive:true});fs.writeFileSync(path.join(dir,'mhs-owned'),'MHS\n');for(const [f,v] of [['run',`#!${TERMUX}/bin/sh\nexec 2>&1\n${command}\n`],['log/run',`#!${TERMUX}/bin/sh\nmkdir -p ${quote(path.join(LOG_DIR,name))}\nexec ${quote(path.join(TERMUX,'bin/svlogd'))} -tt ${quote(path.join(LOG_DIR,name))}\n`]]){fs.writeFileSync(path.join(dir,f),v,{mode:0o700});fs.chmodSync(path.join(dir,f),0o700);}return dir;}
-export async function createService(site){if(site.type!=='node')return;writeService('mhs-site-'+site.slug,`cd ${quote(path.join(SITES,site.slug,'app'))}\nexport PORT=${site.port}\nexec ${quote(process.execPath)} ${quote(site.entry)}`);}
+export async function createService(site){if(site.type!=='node')return;writeService('mhs-site-'+site.slug,`exec ${quote(process.execPath)} ${quote(path.join(HOME,'.local/share/mhs/current/tools/node-app.mjs'))} ${quote(site.slug)}`);}
 export async function removeService(site){if(site.type!=='node')return;await serviceAction('mhs-site-'+site.slug,'down');fs.writeFileSync(path.join(SERVICE_DIR,'mhs-site-'+site.slug,'down'),'');}

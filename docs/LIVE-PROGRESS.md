@@ -22,4 +22,13 @@ private socket DB users, WordPress own credentials/salts, official core ZIP impo
 SHA/CRC bounded ZIP deployment and code rollback, HTTP probe, direct connector
 wizard/Access configuration. All9 Windows tests PASS; WordPress test uses synthetic
 files, NOT real WordPress. No account/DNS/Tunnel was changed. No phone accessed.
-Next concrete task: file+SQL backup restore, fresh installer and source rollback.
+S2 commit: `ab1f6c3` (pushed main).
+
+V2.0 Website Manager checkpoint: source COMPLETE; targeted5 tests PASS on Windows
+(hosting + website-v2). Edit hostname/Node entry/port/private environment; Panel
+WordPress installer retrieves official version list/core/checksums then invokes
+fresh-install PHP with credentials on stdin. Official endpoints are mocked in
+tests; PHP/SQL installation, Android, public HTTPS all NOT RUN. Current result:
+this checkpoint commit. No V1 archive dependency; reuse table in REUSE-AUDIT.md.
+Next concrete task: verified per-site file+SQL backup/restore, then fresh release
+installer and transactional updater/rollback. Overall V2.0 remains IN PROGRESS.

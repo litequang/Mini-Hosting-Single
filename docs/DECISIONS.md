@@ -12,3 +12,7 @@
 - Cloudflare setup uses a new user-created remotely managed Tunnel and Access app.
   An interactive local helper stores only its connector token; no account token
   is required. No existing Cloudflare resources are modified by this task.
+- V2.0 instruction continues S1/S2 rather than rebuilding. MHC remote HEAD was
+  verified unchanged. V1 archives were not found and are not a dependency.
+- WordPress core installer uses official HTTPS version/checksum/download endpoints;
+  fresh DB only. Node environment is private JSON and passed without a shell.

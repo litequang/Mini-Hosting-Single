@@ -17,3 +17,9 @@ sites.mjs stages ZIP/CRC/SHA, rejects managed-site/private config imports and ke
 previous code. tools/cloudflare.mjs uses hidden connector input, token-file and
 original origin JWT adapter; no Cloudflare API/Worker credentials. Tests/hosting
 are PC fixtures, not native PHP/SQL/WordPress acceptance.
+
+V2 Website Manager: updateSite validates hostname/port/relative Node entry and
+private env; tools/node-app.mjs launches app without shell interpolation.
+wordpress.mjs downloads only official WordPress HTTPS endpoints and verifies core
+checksums; wordpress-install.php accepts fresh admin input on stdin. No WP-CLI
+phar, MHC credentials or hosted controller required. Native acceptance NOT RUN.

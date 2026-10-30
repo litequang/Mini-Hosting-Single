@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {registry,saveRegistry,SITES,TRASH,DATA,atomicJson,readJson} from './config.mjs';
-import {slugOK,hostOK,inside,HttpError} from './security.mjs';
+import {slugOK,hostOK,inside,cleanRel,HttpError} from './security.mjs';
 import {createService,removeService,regenerateNginx,serviceAction} from './system.mjs';
 import {extractZip} from './zip.mjs';
 import {createDatabase} from './databases.mjs';
@@ -10,9 +10,19 @@ import {assertIndependentTree,wpConfig,siteHealth} from './hosting.mjs';
 export function requireSite(slug){const site=registry().sites.find(s=>s.slug===slug);if(!site)throw new HttpError(404,'WEBSITE_NOT_FOUND');if(!slugOK(site.slug))throw Error('INVALID_REGISTRY');return site;}
 export const listSites=()=>registry().sites;
 export const siteRoot=site=>path.join(SITES,site.slug,site.type==='node'?'app':'public');
+export function entryOK(entry){try{cleanRel(entry);return /^[a-zA-Z0-9][a-zA-Z0-9._/-]{0,150}\.(?:mjs|cjs|js)$/.test(entry);}catch{return false;}}
+export function validateEnvironment(values){if(!values||Array.isArray(values)||typeof values!=='object'||Object.keys(values).length>50)throw Error('INVALID_NODE_ENV');for(const [k,v] of Object.entries(values)){if(!/^[A-Z_][A-Z0-9_]{0,63}$/.test(k)||/^(?:PORT|NODE_OPTIONS|NODE_PATH|LD_.*|DYLD_.*|PATH|HOME|PREFIX|MHS_.*)$/.test(k)||typeof v!=='string'||v.length>8192||v.includes('\0'))throw Error('INVALID_NODE_ENV');}return values;}
+export async function updateSite(slug,{hostname,entry,port,environment}){
+ const site=requireSite(slug),r=registry(),next={...site};
+ if(hostname!==undefined){if(!hostOK(hostname)||r.sites.some(s=>s.slug!==slug&&s.hostname===hostname))throw Error('INVALID_OR_DUPLICATE_HOSTNAME');next.hostname=hostname;}
+ if(entry!==undefined||port!==undefined||environment!==undefined){if(site.type!=='node')throw Error('NODE_CONFIG_ONLY');if(entry!==undefined){if(!entryOK(entry)||!fs.existsSync(inside(siteRoot(site),entry)))throw Error('NODE_ENTRY_NOT_FOUND');next.entry=entry;}if(port!==undefined){if(!Number.isSafeInteger(port)||port<1024||port>65535||[8080,9090,9091,8022].includes(port)||r.sites.some(s=>s.slug!==slug&&s.port===port))throw Error('NODE_PORT_INVALID_OR_USED');next.port=port;}if(environment!==undefined)validateEnvironment(environment);}
+ const envFile=path.join(DATA,'node-env-'+slug+'.json'),oldEnv=readJson(envFile,null);
+ try{await regenerateNginx(r.sites.map(s=>s.slug===slug?next:s));if(environment!==undefined)atomicJson(envFile,environment);r.sites=r.sites.map(s=>s.slug===slug?next:s);saveRegistry(r);if(site.type==='node'){await createService(next);if(r.nginxIntegrated)await serviceAction('mhs-site-'+slug,'restart');}return next;}
+ catch(e){saveRegistry({...r,sites:r.sites.map(s=>s.slug===slug?site:s)});if(oldEnv)atomicJson(envFile,oldEnv);else fs.rmSync(envFile,{force:true});await regenerateNginx(registry().sites);throw e;}
+}
 export async function addSite({slug,hostname,type='static',entry='server.mjs'}){
  if(!slugOK(slug)||!hostOK(hostname)||!['static','node','php','wordpress'].includes(type))throw new HttpError(400,'Invalid site config');
- if(!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,100}\.(?:mjs|cjs|js)$/.test(entry))throw new HttpError(400,'Invalid Node entrypoint');
+ if(!entryOK(entry))throw new HttpError(400,'Invalid Node entrypoint');
  const r=registry();if(r.sites.some(s=>s.slug===slug||s.hostname===hostname))throw new HttpError(409,'Site slug or hostname already exists');
  if(fs.existsSync(path.join(SITES,slug)))throw new HttpError(409,'SITE_DIRECTORY_EXISTS');
  const used=new Set(r.sites.map(s=>s.port));let port=3200;while(used.has(port)&&port<=3399)port++;if(port>3399)throw new HttpError(409,'NO_NODE_PORT');
@@ -26,7 +36,7 @@ export async function addSite({slug,hostname,type='static',entry='server.mjs'}){
    fs.writeFileSync(path.join(root,'index.php'),"<?php header('Content-Type: text/plain; charset=utf-8'); echo 'MHS WordPress: upload official WordPress ZIP in Panel, then open /wp-admin/install.php';");
   }else if(type==='php')fs.writeFileSync(path.join(root,'index.php'),"<?php header('Content-Type: text/plain'); echo 'MHS PHP ready';");
   else if(type==='static')fs.writeFileSync(path.join(root,'index.html'),`<!doctype html><meta charset="utf-8"><h1>${hostname}</h1><p>Mini Hosting Single</p>`);
-  else{fs.writeFileSync(path.join(root,entry),`const http=require('node:http');http.createServer((req,res)=>{res.end('MHS Node ready');}).listen(Number(process.env.PORT),'127.0.0.1');\n`.replace("const http=require('node:http');",entry.endsWith('.mjs')?"import http from 'node:http';":"const http=require('node:http');"));await createService(site);}
+  else{fs.mkdirSync(path.dirname(path.join(root,entry)),{recursive:true});fs.writeFileSync(path.join(root,entry),`const http=require('node:http');http.createServer((req,res)=>{res.end('MHS Node ready');}).listen(Number(process.env.PORT),'127.0.0.1');\n`.replace("const http=require('node:http');",entry.endsWith('.mjs')?"import http from 'node:http';":"const http=require('node:http');"));await createService(site);}
   await regenerateNginx([...r.sites,site]);r.sites.push(site);saveRegistry(r);return site;
  }catch(e){
   // Keep a failed WordPress setup and its database for diagnosis; never drop it.

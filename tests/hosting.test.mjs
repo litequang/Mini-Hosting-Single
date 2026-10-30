@@ -20,7 +20,7 @@ test('ZIP deploy, SHA/CRC refusal, traversal and old code rollback preserve cont
 test('PHP/Node vhosts and WordPress use private local credentials, not imported wp-config',async()=>{
  const {nginxConf}=await import('../panel/src/system.mjs'),{wpConfig,hostingConfigs}=await import('../panel/src/hosting.mjs');
  const php=await sites.addSite({slug:'php-web',hostname:'php.example.com',type:'php'});assert.match(nginxConf(php),/fastcgi_pass unix:/);assert.match(nginxConf(php),/SCRIPT_FILENAME/);
- const node=await sites.addSite({slug:'node-web',hostname:'node.example.com',type:'node',entry:'server.mjs'});assert.match(nginxConf(node),/proxy_pass http:\/\/127\.0\.0\.1:3200/);assert.match(fs.readFileSync(path.join(config.SERVICE_DIR,'mhs-site-node-web/run'),'utf8'),/server.mjs/);
+ const node=await sites.addSite({slug:'node-web',hostname:'node.example.com',type:'node',entry:'server.mjs'});assert.match(nginxConf(node),/proxy_pass http:\/\/127\.0\.0\.1:3200/);assert.match(fs.readFileSync(path.join(config.SERVICE_DIR,'mhs-site-node-web/run'),'utf8'),/node-app.mjs/);
  config.atomicJson(path.join(config.DATA,'databases.json'),{fixture_wp:{user:'fixtureuser',password:'fixture-only-password'}});
  const wp={managedBy:'MHS',slug:'wordpress-web',hostname:'wp.example.com',type:'wordpress',database:'fixture_wp'};
  const root=sites.siteRoot(wp);fs.mkdirSync(root,{recursive:true});fs.writeFileSync(path.join(root,'wp-config.php'),wpConfig(wp));fs.writeFileSync(path.join(root,'index.php'),'old');const owned=fs.readFileSync(path.join(root,'wp-config.php'),'utf8');

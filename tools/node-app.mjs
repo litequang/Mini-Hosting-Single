@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {spawn} from 'node:child_process';
+import {DATA,readJson} from '../panel/src/config.mjs';
+import {requireSite,siteRoot} from '../panel/src/sites.mjs';
+const site=requireSite(process.argv[2]);if(site.type!=='node')throw Error('NODE_SITE_REQUIRED');
+const values=readJson(path.join(DATA,'node-env-'+site.slug+'.json'),{});
+const child=spawn(process.execPath,[path.join(siteRoot(site),site.entry)],{cwd:siteRoot(site),stdio:'inherit',env:{...process.env,...values,PORT:String(site.port)}});
+for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>{child.kill(signal);setTimeout(()=>child.kill('SIGKILL'),5000).unref();});
+child.on('error',()=>{console.error('MHS_NODE_APP_START_FAILED');process.exitCode=1;});child.on('exit',code=>{process.exitCode=code??1;});

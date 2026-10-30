@@ -7,8 +7,9 @@ import {authorizeRequest,publicStatus} from './remote-access.mjs';
 import {PORT,ROOT,DATA,ensureDirs,registry,readJson} from './config.mjs';
 import {checkPassword,configured,HttpError,safeText} from './security.mjs';
 import {systemStats,shellStatus,serviceAction,getLog,nginxTest,integrateNginx,regenerateNginx,cmd} from './system.mjs';
-import {listSites,addSite,deleteSite,listFiles,readFileForSite,writeSiteFile,mkdirSite,deleteSiteFile,deployZip,rollbackDeploy,requireSite,siteRoot} from './sites.mjs';
+import {listSites,addSite,updateSite,deleteSite,listFiles,readFileForSite,writeSiteFile,mkdirSite,deleteSiteFile,deployZip,rollbackDeploy,requireSite,siteRoot} from './sites.mjs';
 import {siteHealth} from './hosting.mjs';
+import {wordpressVersions,installWordPress} from './wordpress.mjs';
 import {listDatabases,createDatabase,listTables,backupDatabase,restoreDatabase} from './databases.mjs';
 import {listBackups,backupSiteArchive,backupFile} from './backups.mjs';
 import {createLanMonitor} from './lan-monitor.mjs';
@@ -45,6 +46,7 @@ async function api(req,res,url){
  if(route==='/api/logout'&&method==='POST'){guardOrigin(req);mutual(req,s);sessions.delete(cookie(req,'mhs_session'));res.setHeader('set-cookie','mhs_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'+(allowedHttpsHost(req)?'; Secure':''));return send(res,200,{ok:true});}
  if(method!=='GET'){guardOrigin(req);mutual(req,s);}
  if(route==='/api/remote-access'&&method==='GET')return send(res,200,publicStatus());
+ if(route==='/api/wordpress/versions'&&method==='GET')return send(res,200,await wordpressVersions());
  if(route==='/api/overview'&&method==='GET')return send(res,200,await systemStats());
  if(route==='/api/sites'&&method==='GET')return send(res,200,{sites:listSites()});
  // Direct mutation routes are handled below to guarantee one request body per action.
@@ -60,6 +62,8 @@ async function api(req,res,url){
  const m=route.match(/^\/api\/(sites|files|services|databases)\/([a-zA-Z0-9_-]+)(?:\/(.*))?$/);
  if(m){const [,kind,name,action='']=m;
   if(kind==='sites'){
+   if(!action&&method==='PATCH'){const b=jsonBody(await readBody(req,128*1024));return send(res,200,await queueMutate(()=>updateSite(name,b)));}
+   if(action==='wordpress'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>installWordPress(name,b)));}
    if(!action&&method==='DELETE'){const {confirm}=jsonBody(await readBody(req,4096));if(confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>deleteSite(name)));}
    if(action==='zip'&&method==='POST'){const buf=await readBody(req,64*1024*1024);return send(res,200,await queueMutate(()=>deployZip(name,buf,req.headers['x-content-sha256']||null)));}
    if(action==='rollback'&&method==='POST'){const b=jsonBody(await readBody(req,4096));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>rollbackDeploy(name)));}

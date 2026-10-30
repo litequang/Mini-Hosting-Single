@@ -10,11 +10,18 @@ socket trong điện thoại, không public3306. Nginx chọn site bằng hostna
   native node_modules từ Windows không chạy trên Android. Chuẩn bị dependencies
   phù hợp Android trên thiết bị cho app tin cậy nếu cần.
 - PHP: ZIP chứa index.php. PHP-FPM dùng Unix socket riêng.
-- WordPress: tạo site để cấp schema/user/salts riêng. Tải core ZIP từ wordpress.org,
-  upload nguyên wordpress.zip tại site. Không mang wp-config.php từ máy khác.
-  Trỏ hostname theo docs/CLOUDFLARE.md, bảo vệ site bằng Access lúc chưa cài,
-  mở /wp-admin/install.php để tạo quản trị WordPress riêng. Credentials không
-  được sao chép từ MHC. Đây chưa là import website/DB Cluster.
+- WordPress: tạo site để cấp schema/user/salts riêng, bấm **Cài WordPress** trong
+  Panel, chọn phiên bản và nhập quản trị/email/tên site. MHS tải core trực tiếp
+  từ WordPress.org, kiểm file map MD5 chính thức qua HTTPS rồi cài bằng PHP,
+  credentials đi stdin, không vào argv/log. Trỏ hostname theo docs/CLOUDFLARE.md,
+  bảo vệ site bằng Access lúc chưa cài. Không nhập website/DB managed Cluster.
+  Có thể upload core ZIP thủ công rồi hoàn tất /wp-admin/install.php nếu muốn.
+
+Nút **Sửa cấu hình** đổi hostname; Node còn đổi entrypoint tương đối trong thư mục
+app (ví dụ dist/server.cjs), port và environment JSON. Để trống environment để giữ
+nguyên, `{}` để xóa biến. Các biến điều khiển runtime/PORT/PATH bị từ chối. Biến
+riêng nằm ngoài website/source, không trả trong API danh sách. Đổi hostname không
+tự ghi đè DNS/Tunnel; chỉnh exact route của chính site theo hướng dẫn Cloudflare.
 
 Deploy ZIP giữ code trước và kiểm HTTP khi Nginx đã tích hợp; HTTP lỗi sẽ khôi phục.
 Nút Rollback code không quay ngược database. Không gọi deploy fixture là web đã
