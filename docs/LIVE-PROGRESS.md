@@ -57,7 +57,10 @@ Bundle SHA256 aafe08cbd4b174b62609c8ffecb5bb1555245ccb60ef154545713433bfe85e51.
 Bootstrap SHA256 b014de5b3bc609cf224a8f4723f6e91fb5c64e1d93d178f4305f012d63776a12.
 No runtime/secrets/history imported. MHC still clean at b2f04f9.
 
-Current result: release artifact commit/tag v2.0.0-rc.1 (see Git log/manifest).
+Release artifact commit `2b24bd0ea732dcb5c32de38f00063ab1add4c9d1`, tag
+`v2.0.0-rc.1`, both pushed. Public raw bootstrap and bundle downloaded again:
+HTTP200 + exact SHA256 PASS; bootstrap tag bundle URL HTTP200. Pinned command
+is now in INSTALL.md; code/bundle remain unchanged. Current docs commit: Git HEAD.
 Next concrete task: user overall fresh-Termux acceptance per INSTALL/ACCEPTANCE,
 then fix actual reported failures. No authorized Android or new MHS Cloudflare
 resources are available; native/Internet tests remain NOT RUN, not release-certified.

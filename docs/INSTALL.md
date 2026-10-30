@@ -19,6 +19,31 @@ không dùng node MHC và không xem đây là converter từ V1/Cluster.
    `ssh -N -L 9090:127.0.0.1:9090 -p 8022 USER@PHONE_LAN_IP`.
    MHS không thay khóa hoặc chiếm listener SSH có sẵn. Internet: CLOUDFLARE.md.
 
+## Lệnh cài 2.0.0-rc.1
+
+Copy toàn bộ khối dưới như một lệnh vào **Termux sạch**. Bootstrap ghim artifact
+commit `2b24bd0ea732dcb5c32de38f00063ab1add4c9d1` và SHA256; không theo main.
+
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/2b24bd0ea732dcb5c32de38f00063ab1add4c9d1/releases/install-2.0.0-rc.1.sh' -o "$HOME/mhs-install-2.0.0-rc.1.sh"
+  printf '%s  %s\n' 'b014de5b3bc609cf224a8f4723f6e91fb5c64e1d93d178f4305f012d63776a12' "$HOME/mhs-install-2.0.0-rc.1.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.0.0-rc.1.sh"
+)
+```
+
+[Release manifest](../releases/2.0.0-rc.1.json). Bundle SHA256:
+`aafe08cbd4b174b62609c8ffecb5bb1555245ccb60ef154545713433bfe85e51`.
+Đã tải lại bootstrap/bundle public từ GitHub và đối chiếu SHA256 PASS; URL tag
+mà bootstrap dùng trả HTTP200. Đây là kiểm phân phối source, không là Android PASS.
+
 Không root, cần≥3GiB trống. Node≥22.16, nginx, php/php-fpm(mysqli), mariadb,
 termux-services, termux-api, cloudflared, curl/coreutils/util-linux và openssh.
 Hardware report: CPU/RAM/disk/model/Android/pin khi API cho phép. Máy<2GiB RAM

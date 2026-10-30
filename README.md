@@ -23,8 +23,10 @@ Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVE
 [Cloudflare](docs/CLOUDFLARE.md) · [Backup](docs/BACKUP-RESTORE.md) ·
 [PASS / NOT RUN](docs/ACCEPTANCE.md).
 
-Lệnh cài ghim commit/SHA sẽ có trong mục release sau checkpoint đóng gói.
-Không dùng curl main | bash và không cài lên điện thoại MHC hiện tại.
+[**Lệnh cài cố định 2.0.0-rc.1 trên Termux sạch**](docs/INSTALL.md#lệnh-cài-200-rc1)
+và [manifest SHA256](releases/2.0.0-rc.1.json) đã có. Source `6e49416`, artifact
+`2b24bd0`, tag `v2.0.0-rc.1`. Gói thực tế đã smoke trong PC fixture và tải lại từ
+GitHub kiểm SHA PASS. Không dùng curl main | bash hoặc cài lên node MHC hiện tại.
 
 Dev trên PC (Node ≥22.16, không cần npm dependencies):
 
