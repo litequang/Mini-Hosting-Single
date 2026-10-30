@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import http from 'node:http';
+import os from 'node:os';
 import {SITES,DATA,NGINX,NGINX_CONFIG,TERMUX,SOCKET,registry,atomicJson,readJson} from './config.mjs';
 import {databaseCredentials} from './databases.mjs';
 const php=s=>"'"+s.replaceAll('\\','\\\\').replaceAll("'","\\'")+"'";
@@ -12,8 +13,10 @@ export function assertIndependentTree(dir){
 export function hostingConfigs(){
  fs.mkdirSync(path.dirname(NGINX_CONFIG),{recursive:true});fs.mkdirSync(NGINX,{recursive:true});fs.mkdirSync(path.join(DATA,'run'),{recursive:true});
  const slash=s=>s.replaceAll('\\','/');
- fs.writeFileSync(NGINX_CONFIG,`worker_processes 1;\npid "${slash(path.join(DATA,'run/nginx.pid'))}";\nerror_log stderr warn;\nevents { worker_connections 256; }\nhttp {\ninclude "${slash(path.join(TERMUX,'etc/nginx/mime.types'))}";\ndefault_type application/octet-stream;\naccess_log off;\nclient_body_temp_path "${slash(path.join(DATA,'run/client-body'))}";\nproxy_temp_path "${slash(path.join(DATA,'run/proxy'))}";\nfastcgi_temp_path "${slash(path.join(DATA,'run/fastcgi'))}";\nserver { listen 127.0.0.1:8080 default_server; server_name _; return 404; }\ninclude "${slash(NGINX)}/*.conf";\n}\n`,{mode:0o600});
+ fs.writeFileSync(NGINX_CONFIG,`worker_processes 1;\npid "${slash(path.join(DATA,'run/nginx.pid'))}";\nerror_log stderr warn;\nevents { worker_connections 256; }\nhttp {\ninclude "${slash(path.join(TERMUX,'etc/nginx/mime.types'))}";\ndefault_type application/octet-stream;\naccess_log off;\nclient_body_temp_path "${slash(path.join(DATA,'run/client-body'))}";\nproxy_temp_path "${slash(path.join(DATA,'run/proxy'))}";\nfastcgi_temp_path "${slash(path.join(DATA,'run/fastcgi'))}";\nserver { listen 127.0.0.1:8080 default_server; server_name _; location = /__mhs_php_ready { include "${slash(path.join(TERMUX,'etc/nginx/fastcgi_params'))}"; fastcgi_param SCRIPT_FILENAME "${slash(path.join(DATA,'nginx/php-ready.php'))}"; fastcgi_param HTTP_PROXY ""; fastcgi_pass unix:${slash(path.join(DATA,'run/php.sock'))}; } location / { return 404; } }\ninclude "${slash(NGINX)}/*.conf";\n}\n`,{mode:0o600});
  fs.writeFileSync(path.join(DATA,'php-fpm.conf'),`[global]\ndaemonize = no\nerror_log = /proc/self/fd/2\n[www]\nlisten = ${slash(path.join(DATA,'run/php.sock'))}\npm = ondemand\npm.max_children = 3\npm.process_idle_timeout = 20s\ncatch_workers_output = yes\nclear_env = yes\nphp_admin_value[upload_max_filesize] = 64M\nphp_admin_value[post_max_size] = 64M\n`,{mode:0o600});
+ if(os.totalmem()<2*1024*1024*1024){const file=path.join(DATA,'php-fpm.conf');fs.writeFileSync(file,fs.readFileSync(file,'utf8').replace('pm.max_children = 3','pm.max_children = 1'));}
+ fs.writeFileSync(path.join(DATA,'nginx/php-ready.php'),"<?php echo extension_loaded('mysqli') ? 'MHS_PHP_READY' : 'MHS_MYSQLI_MISSING';",{mode:0o600});
 }
 export async function siteHealth(site){
  const started=Date.now();const r=await new Promise(resolve=>{const q=http.get({hostname:'127.0.0.1',port:8080,path:'/',headers:{host:site.hostname},timeout:4000},r=>{r.resume();resolve({httpStatus:r.statusCode});});q.on('error',()=>resolve({httpStatus:null}));q.on('timeout',()=>{q.destroy();resolve({httpStatus:null});});});return {...r,ok:r.httpStatus>=200&&r.httpStatus<400,checkedAt:new Date().toISOString(),elapsedMs:Date.now()-started};

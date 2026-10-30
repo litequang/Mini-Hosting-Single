@@ -11,7 +11,7 @@ export async function writeArchive(file,header,entries){
  const out=fs.createWriteStream(file,{mode:0o600,flags:'wx'}),gzip=zlib.createGzip();gzip.pipe(out);let error=null;
  out.on('error',e=>{error=e;gzip.destroy(e);});gzip.on('error',e=>{error=e;out.destroy();});
  const put=async text=>{if(error)throw error;if(!gzip.write(text))await once(gzip,'drain');};
- try{await put(JSON.stringify({...header,format:'MHS_SITE_BACKUP',schema:1,files:entries.map(({path,size,sha256})=>({path,size,sha256}))})+'\n');
+ try{await put(JSON.stringify({...header,format:header.format||'MHS_SITE_BACKUP',schema:1,files:entries.map(({path,size,sha256})=>({path,size,sha256}))})+'\n');
   for(const e of entries){const data=fs.readFileSync(e.file);if(data.length!==e.size||digest(data)!==e.sha256)throw Error('BACKUP_SOURCE_CHANGED');await put(JSON.stringify({path:e.path,data:data.toString('base64')})+'\n');}
   const done=once(out,'finish');gzip.end();await done;if(error)throw error;return {sha256:digest(fs.readFileSync(file)),bytes:fs.statSync(file).size};
  }catch(e){gzip.destroy();out.destroy();throw e;}

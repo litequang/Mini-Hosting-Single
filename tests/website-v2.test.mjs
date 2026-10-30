@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
+import net from 'node:net';
+import {spawn} from 'node:child_process';
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'mhs-v2-'));process.env.MHS_HOME=path.join(temp,'home');process.env.MHS_DATA=path.join(temp,'data');process.env.PREFIX=path.join(temp,'prefix');
 const config=await import('../panel/src/config.mjs');config.initialize();const sites=await import('../panel/src/sites.mjs');
 test('Website edit validates hostname/port/entry/environment and preserves files',async()=>{
@@ -27,3 +29,10 @@ test('Panel WordPress download uses allowlisted HTTPS, verifies official file ma
  await assert.rejects(()=>verifiedCore('6.8.3',bad),/CHECKSUM_MISMATCH/);
 });
 process.on('exit',()=>fs.rmSync(temp,{recursive:true,force:true}));
+test('configured Node application actually serves local HTTP with private environment and selected port',async()=>{
+ const listener=net.createServer();await new Promise(r=>listener.listen(0,'127.0.0.1',r));const port=listener.address().port;await new Promise(r=>listener.close(r));
+ const site=sites.requireSite('node-app');fs.writeFileSync(path.join(sites.siteRoot(site),site.entry),"import http from 'node:http'; console.log('MHS_FIXTURE_PID='+process.pid); http.createServer((q,r)=>r.end(process.env.NODE_ENV+':'+process.env.PORT)).listen(Number(process.env.PORT),'127.0.0.1');");
+ await sites.updateSite(site.slug,{port});const child=spawn(process.execPath,[path.resolve(import.meta.dirname,'../tools/node-app.mjs'),site.slug],{env:process.env,stdio:['ignore','pipe','pipe']});let out='';child.stdout.on('data',d=>out+=d);child.stderr.on('data',d=>out+=d);
+ try{let body='';for(let i=0;i<100;i++){try{body=await(await fetch('http://127.0.0.1:'+port,{signal:AbortSignal.timeout(200)})).text();if(body)break;}catch{}await new Promise(r=>setTimeout(r,20));}assert.equal(body,'production:'+port);}
+ finally{const pid=Number(out.match(/MHS_FIXTURE_PID=(\d+)/)?.[1]);if(pid)try{process.kill(pid);}catch{}child.kill();}
+});

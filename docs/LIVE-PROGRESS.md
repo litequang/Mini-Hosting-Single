@@ -6,7 +6,7 @@ Only this file records execution status. Source provenance: b2f04f9 MHC, read-on
 |---|---|---|---|---|
 | S1 standalone original Panel + LAN Monitor | SOURCE COMPLETE | PASS (6 tests) | NOT RUN | physical fresh device acceptance |
 | S2 hosting / direct Tunnel | SOURCE COMPLETE | PASS (9 total tests) | NOT RUN | physical PHP/SQL/WP and HTTPS acceptance |
-| S3 operations / release | NOT STARTED | NOT RUN | NOT RUN | backup restore, installer, upgrade rollback |
+| S3 operations / release | SOURCE COMPLETE, PACKAGING | targeted PASS | NOT RUN | package RC; user Android acceptance |
 
 No authorized fresh MHS device is available. Existing MHC devices/config remain
 unchanged. S1: original Panel real local HTTP login/session/CSRF/Host and sites/files
@@ -37,5 +37,16 @@ archive/Unicode/SHA256/readback/upload/restore and safety backup work in isolati
 SQL adapter fault after mutation rolls back in fixture. Native MariaDB/PHP/Android
 and loss-of-power recovery NOT RUN. Online SQL/files are not one atomic snapshot;
 private configs excluded. Details in BACKUP-RESTORE.md. Current result: this commit.
-Next concrete task: fresh release installer, resume, boot services, transactional
-updater/rollback and final UX/docs. Overall V2.0 remains IN PROGRESS.
+Backup checkpoint: `a6c37c0`, pushed main.
+
+S3 source: fresh manifest/bootstrap, missing platform packages, isolated DB/socket,
+runit/Boot, resume preserving admin, source upgrade/rollback and local operation
+lock shared by original Panel/CLI. Restore recovery uses verified safety archive,
+keeps journal. Monitor/settings/mobile logout improved. Recent focused Windows:
+12 tests PASS (standalone/backup/install-upgrade) then3 website-v2 PASS including
+actual Node HTTP with env/port. JS35 files and boot/bootstrap shell syntax PASS.
+PHP/native services/WP/MariaDB/reboot/cross-device LAN/public Cloudflare NOT RUN.
+See ACCEPTANCE.md; no overall system acceptance claim.
+
+Current result: this S3 source commit. Next: build immutable2.0.0-rc.1, smoke actual
+bundle in PC fixture, push bundle/tag and pinned install command. Android awaits user.

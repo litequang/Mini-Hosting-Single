@@ -23,4 +23,9 @@ test('SQL adapter fault after mutation rolls back files and SQL, preserves safet
  assert.equal(database,'CREATE TABLE current_content (id INT);');assert.equal(fs.readFileSync(path.join(root,'index.php'),'utf8'),'current content');assert.ok(!fs.existsSync(path.join(c.DATA,'maintenance-'+site.slug)));
  assert.equal(c.readJson(path.join(c.DATA,'restore-'+site.slug+'.json')).phase,'ROLLED_BACK');assert.ok(services.some(([n,a])=>n==='mhs-php'&&a==='down'));
 });
+test('interrupted restore with missing live directory recovers original safety archive without deleting journal',async()=>{
+ const site=await sites.addSite({slug:'resume-web',hostname:'resume.example.com'}),root=sites.siteRoot(site),before=fs.readFileSync(path.join(root,'index.html'),'utf8'),shot=await backups.backupSiteArchive(site.slug),previous=path.basename(root)+'-restore-fixture';
+ fs.renameSync(root,path.join(path.dirname(root),previous));c.atomicJson(path.join(c.DATA,'restore-'+site.slug+'.json'),{project:'MHS',phase:'APPLYING',safety:shot.file,previous,sqlBackup:null});fs.writeFileSync(path.join(c.DATA,'maintenance-'+site.slug),'maintenance');
+ await backups.recoverSiteRestore(site.slug,site.slug);assert.equal(fs.readFileSync(path.join(root,'index.html'),'utf8'),before);assert.equal(c.readJson(path.join(c.DATA,'restore-'+site.slug+'.json')).phase,'DONE');assert.ok(!fs.existsSync(path.join(c.DATA,'maintenance-'+site.slug)));
+});
 process.on('exit',()=>fs.rmSync(temp,{recursive:true,force:true}));

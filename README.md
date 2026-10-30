@@ -1,4 +1,4 @@
-# Mini Hosting Single
+# Mini Hosting Single V2.0
 
 Hosting độc lập trên một Android/Termux, phát triển từ original Hosting Panel
 9090 của MHC. Đây là repo riêng; không nâng cấp hay chuyển đổi node Cluster.
@@ -8,9 +8,23 @@ Không Authority, Worker/DO, heartbeat, Primary/Standby hoặc replication.
 Hoạt động thông thường phát sinh **0 request đến MHC Worker/DO**; không nói thay
 cho ứng dụng khác trong tài khoản Cloudflare.
 
-Source và kiểm thử PC đang phát triển theo S1 → S2 → S3.
-Nghiệm thu Android/Internet: **NOT RUN**, cần thiết bị sạch được phép riêng.
+Release candidate **2.0.0-rc.1**: source hosting và kiểm thử PC theo checkpoint đã
+có. Nghiệm thu Android/Internet: **NOT RUN**, cần máy sạch riêng.
 Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVENANCE.md).
+
+- Website Manager: tạo/sửa/xóa static, Node, PHP, WordPress; hostname/entry/port/env.
+- Cài WordPress từ Panel với core/checksum chính thức và credentials riêng.
+- ZIP/prebuilt dist, code rollback, Files và Database Manager.
+- Backup/restore site files+SQL/SHA256, safety backup và recovery journal.
+- Services/runit/Boot, Monitor và màn hình LAN9091 không đăng nhập.
+- Installer có checksum/resume, source upgrade/rollback giữ data.
+
+[Cài / nâng cấp](docs/INSTALL.md) · [Hosting](docs/HOSTING.md) ·
+[Cloudflare](docs/CLOUDFLARE.md) · [Backup](docs/BACKUP-RESTORE.md) ·
+[PASS / NOT RUN](docs/ACCEPTANCE.md).
+
+Lệnh cài ghim commit/SHA sẽ có trong mục release sau checkpoint đóng gói.
+Không dùng curl main | bash và không cài lên điện thoại MHC hiện tại.
 
 Dev trên PC (Node ≥22.16, không cần npm dependencies):
 

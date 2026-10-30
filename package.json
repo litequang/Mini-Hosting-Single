@@ -1,1 +1,17 @@
-{"name":"mini-hosting-single","version":"0.1.0","private":true,"type":"module","description":"Independent Android Termux hosting using the original Panel 9090","engines":{"node":">=22.16"},"scripts":{"start":"node panel/src/server.mjs","setup":"node panel/tools/setup.mjs","test":"node --test tests/*.test.mjs","check":"node tools/check.mjs"},"license":"UNLICENSED"}
+{
+  "name": "mini-hosting-single",
+  "version": "2.0.0-rc.1",
+  "private": true,
+  "type": "module",
+  "description": "Independent Android Termux hosting using the original Panel 9090",
+  "engines": {
+    "node": ">=22.16"
+  },
+  "scripts": {
+    "start": "node panel/src/server.mjs",
+    "setup": "node panel/tools/setup.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node tools/check.mjs"
+  },
+  "license": "UNLICENSED"
+}

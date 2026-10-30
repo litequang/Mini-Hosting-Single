@@ -23,3 +23,10 @@ provision new MHS schemas/users. No database is dropped on failed creation.
 LAN Monitor9091 is a separate GET-only listener within the original Panel process,
 with private-address/Host/Origin restrictions and explicit sanitized fields. It has
 no session, management router, logs, credentials or arbitrary file access.
+
+One committed source release manifest, SHA256 bundle/files, resumable install
+journal and immutable releases/current. No .git/history/runtime is packaged.
+Source upgrade switches current, restarts/verifies Panel, rolls back source on
+failure. Data/SQL are outside its write scope. Platform packages come from Termux
+and are not downgraded by source rollback. Local process lock excludes concurrent
+management/update; it is not a distributed authority/lease.

@@ -22,3 +22,14 @@
   new site or remove guards/journals. Recovery must use verified safety data.
 - Backups exclude private configuration; read BACKUP-RESTORE.md before deleting
   source data. SQL fixture PASS is not native MariaDB restore acceptance.
+- Interrupted restore: Websites → Khôi phục restore, or `mhs recover-restore SLUG`;
+  confirm same slug. Recovery reads original verified safety backup and local
+  config from live/previous files; never remove maintenance/journal to unlock it.
+- MHS_OPERATION_BUSY: wait for current deploy/restore/update. A dead PID can be
+  recovered by the lock code; invalid/unknown lock requires inspection, no blind delete.
+- MHS_RESUME_SAME_RELEASE_OR_USE_UPGRADE: use original bootstrap for unfinished
+  install; use `mhs upgrade` for a different version. Never overwrite immutable releases.
+- MHS_LAN_MONITOR_UNAVAILABLE: port9091 busy; management9090 stays available.
+  No login is needed on9091, but do not publish it through Tunnel/forwarding.
+- MHS_UPGRADE_ROLLBACK_FAILED: keep releases/current/upgrade.json and data. Resume
+  same bundle or `mhs rollback`; do not run fresh install or restore DB for source error.

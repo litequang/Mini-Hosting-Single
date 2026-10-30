@@ -28,3 +28,12 @@ archive.mjs: bounded checksummed MHS gzip archive with path-safe extraction.
 backups.mjs: per-site safety backup, restore/upload/readback, SQL/files rollback,
 maintenance journal. Backup/restore reuses original authenticated Panel endpoints.
 tests/backup.test.mjs: real isolated files + injected SQL adapter failure.
+
+tools/install.mjs: fresh/resume admin/own DB/config/services/Boot/health.
+release.mjs / extract-release.mjs: source manifest/SHA/path bounds.
+upgrade.mjs: current pointer/restart/health/automatic rollback, no SQL changes.
+operation.mjs: local lock shared with Panel mutation queue.
+build-release.mjs: committed Git blobs only → checksummed bundle/bootstrap.
+scripts/bootstrap.sh.in / boot.sh: official Termux packages, MHS-owned runit.
+cli.mjs: status/service/cloudflare/password/monitor/upgrade/rollback/recovery.
+install-upgrade.test / package-smoke.mjs: PC fixtures, not Android acceptance.

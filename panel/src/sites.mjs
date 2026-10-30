@@ -8,7 +8,7 @@ import {extractZip} from './zip.mjs';
 import {createDatabase} from './databases.mjs';
 import {assertIndependentTree,wpConfig,siteHealth} from './hosting.mjs';
 export function requireSite(slug){const site=registry().sites.find(s=>s.slug===slug);if(!site)throw new HttpError(404,'WEBSITE_NOT_FOUND');if(!slugOK(site.slug))throw Error('INVALID_REGISTRY');return site;}
-export const listSites=()=>registry().sites;
+export const listSites=()=>registry().sites.map(s=>({...s,directory:siteRoot(s),deployPhase:readJson(deployFile(s.slug),null)?.phase||null,restorePhase:readJson(path.join(DATA,'restore-'+s.slug+'.json'),null)?.phase||null}));
 export const siteRoot=site=>path.join(SITES,site.slug,site.type==='node'?'app':'public');
 export function entryOK(entry){try{cleanRel(entry);return /^[a-zA-Z0-9][a-zA-Z0-9._/-]{0,150}\.(?:mjs|cjs|js)$/.test(entry);}catch{return false;}}
 export function validateEnvironment(values){if(!values||Array.isArray(values)||typeof values!=='object'||Object.keys(values).length>50)throw Error('INVALID_NODE_ENV');for(const [k,v] of Object.entries(values)){if(!/^[A-Z_][A-Z0-9_]{0,63}$/.test(k)||/^(?:PORT|NODE_OPTIONS|NODE_PATH|LD_.*|DYLD_.*|PATH|HOME|PREFIX|MHS_.*)$/.test(k)||typeof v!=='string'||v.length>8192||v.includes('\0'))throw Error('INVALID_NODE_ENV');}return values;}
