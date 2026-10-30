@@ -1,0 +1,103 @@
+const state={user:null,csrf:'',tab:'dashboard',sites:[],selectedSite:'',dir:'',selectedFile:'',stats:null};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtBytes=n=>{if(!Number.isFinite(+n))return '—';if(n<1024)return n+' B';let i=0;while(n>=1024&&i<4){n/=1024;i++;}return n.toFixed(1)+' '+['B','KB','MB','GB','TB'][i]};
+const qs=o=>new URLSearchParams(o).toString();
+let toastTimer;
+function toast(message,error=false){const node=$('#toast');node.textContent=message;node.className='toast'+(error?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.classList.add('hide'),4200);}
+async function req(route,{method='GET',body,raw=false}={}){
+ const opts={method,credentials:'same-origin',headers:{}};
+ if(method!=='GET')opts.headers['x-csrf-token']=state.csrf;
+ if(body!==undefined){if(raw){opts.body=body;}else{opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}}
+ let res;try{res=await fetch(route,opts);}catch{throw Error('Không kết nối được panel');}
+ if(!res.ok){let msg='HTTP '+res.status;try{msg=(await res.json()).error||msg;}catch{}if(res.status===401)showLogin();throw Error(msg);}
+ return res.json();
+}
+function showLogin(){$('#shell').classList.add('hide');$('#login').classList.remove('hide');}
+function showPanel(){$('#login').classList.add('hide');$('#shell').classList.remove('hide');nav(state.tab);}
+function modal(title,html){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modal').classList.remove('hide');}
+function closeModal(){$('#modal').classList.add('hide');$('#modalBody').innerHTML='';}
+function input(name,label,placeholder='',val='',type='text'){return `<div class="inputgroup"><label>${esc(label)}</label><input name="${esc(name)}" placeholder="${esc(placeholder)}" value="${esc(val)}" type="${esc(type)}" required></div>`;}
+function busy(button,func){if(!button)return func();button.disabled=true;const old=button.textContent;button.textContent='Đang xử lý...';return Promise.resolve().then(func).catch(e=>{toast(e.message,true);throw e;}).finally(()=>{button.disabled=false;button.textContent=old;});}
+function page(title,html){$('#pageTitle').textContent=title;$('#content').innerHTML=html;}
+function btn(s,a,cls='tiny'){return `<button class="${cls}" data-action="${a}">${esc(s)}</button>`;}
+function serviceBadge(out){const running=out?.ok&&String(out.out||'').startsWith('run:');return `<span class="badge ${running?'good':'bad'}">${running?'Running':'Offline'}</span>`;}
+async function dashboard(){const s=await req('/api/overview');state.stats=s;const b=s.battery||{};
+ const batteryPercent=Number.isFinite(b.percentage)?Math.round(b.percentage)+'%':'—';
+ const batteryTemperature=Number.isFinite(b.temperature)?b.temperature.toFixed(1)+'°C':'—';
+ const batteryState=b.status==='CHARGING'?'Đang sạc':b.status==='FULL'?'Đã sạc đầy':b.status==='DISCHARGING'?'Đang xả pin':b.status==='NOT_CHARGING'?'Không sạc':b.plugged==='UNPLUGGED'?'Không cắm sạc':b.plugged||'Chưa xác định';
+ const batteryHealth=b.health==='GOOD'?'Pin bình thường':b.health||'Chưa xác định';
+ const batteryMeta=b.available?esc(batteryState+' · '+batteryHealth):'Termux:API chưa phản hồi';
+ const batteryWarn=Number.isFinite(b.percentage)&&b.percentage<20?' · Pin thấp':'';
+ const heatWarn=Number.isFinite(b.temperature)&&b.temperature>=40?' · Nhiệt độ cao':'';
+ const rows=Object.entries(s.services).map(([name,v])=>`<tr><td class="titlecell">${esc(name)}</td><td>${serviceBadge(v)}</td><td class="muted mini mono">${esc((v.out||v.err||'').slice(0,120))}</td></tr>`).join('');
+ const nodeRows=(s.nodeProcesses?.processes||[]).map(p=>`<tr><td class="titlecell">${esc(p.name)}</td><td class="mono">${p.pid}</td><td>${p.ppid}</td><td>${Number.isFinite(p.cpuPct)?p.cpuPct.toFixed(1)+'%':'—'}</td><td>${fmtBytes(p.rssBytes)}</td></tr>`).join('');
+ page('Tổng quan',`<div class="grid">
+ <div class="card stat"><div class="tag">WEBSITES</div><b>${s.sites}</b><small>Đang quản lý</small></div>
+ <div class="card stat"><div class="tag">RAM ĐANG DÙNG</div><b>${fmtBytes(s.mem.total-s.mem.available)}</b><small>/ ${fmtBytes(s.mem.total)} RAM</small><div class="progress"><div style="width:${Math.round((s.mem.total-s.mem.available)*100/s.mem.total)}%"></div></div></div>
+ <div class="card stat"><div class="tag">BỘ NHỚ TRỐNG</div><b>${fmtBytes(s.disk?.available)}</b><small>Trong ${fmtBytes(s.disk?.total)}</small></div>
+ <div class="card stat"><div class="tag">CPU HIỆN TẠI</div><b>${s.cpuPct===null?'—':s.cpuPct+'%'}</b><small>Android 12 có thể chặn CPU toàn hệ thống</small></div><div class="card stat"><div class="tag">PIN ĐIỆN THOẠI</div><b>${esc(batteryPercent)}</b><small>${batteryMeta}${batteryWarn}</small></div>
+ <div class="card stat"><div class="tag">NHIỆT ĐỘ PIN</div><b>${esc(batteryTemperature)}</b><small>${b.available?'Android Battery API · '+esc(b.health||''):'Không đọc được'}${heatWarn}</small></div>
+ <div class="card stat"><div class="tag">NODE.JS</div><b>${esc(s.node)}</b><small>${esc(s.arch)} • local</small></div><div class="card stat"><div class="tag">UPTIME ANDROID</div><b>${Math.floor(s.uptime/3600)} giờ</b><small>Từ lần khởi động gần nhất</small></div></div>
+ <div class="sectionhead"><h2>Dịch vụ máy chủ</h2>${btn('Xem logs','tab-services')}</div><div class="tablewrap"><table><thead><tr><th>Tên</th><th>Trạng thái</th><th>Chi tiết</th></tr></thead><tbody>${rows}</tbody></table></div>
+ <div class="sectionhead"><h2>Tiến trình Node.js</h2></div>
+ <p class="help">CPU theo từng tiến trình: 1 lõi = 100%; có thể trên 100% nếu dùng nhiều lõi. Cần ít nhất hai lần làm mới để đo biến thiên. Android 12 có thể chặn /proc/PID/stat; lúc đó hiển thị —.</p>
+ <div class="tablewrap"><table><thead><tr><th>Ứng dụng</th><th>PID</th><th>PPID</th><th>CPU</th><th>RAM tiến trình</th></tr></thead><tbody>${nodeRows||'<tr><td colspan="5" class="empty">Không đọc được danh sách tiến trình Node.js</td></tr>'}</tbody></table></div>
+ <div class="sectionhead"><h2>Hành động nhanh</h2></div><div class="btnrow">${btn('+ Tạo website','create-site','primary')}${btn('+ Tạo database','create-database')}${btn('Domain & Nginx','tab-domains')}</div>
+ <p class="help">Panel chạy tại <code>127.0.0.1:9090</code>; truy cập bằng SSH forwarding hoặc Cloudflare Access được bảo vệ. Dịch vụ đang chạy không có nghĩa đã hoạt động ổn định sau reboot — hãy kiểm thử riêng.</p>`);
+}
+
+
+async function loadSites(){state.sites=(await req('/api/sites')).sites;return state.sites;}
+let selectedPath='';
+async function filesPage(){const list=await loadSites();if(!state.selectedSite||!list.some(s=>s.slug===state.selectedSite)){state.selectedSite=list[0]?.slug||'';state.dir='';state.selectedFile='';}
+ if(!state.selectedSite){page('File Manager','<div class="empty">Chưa có website được nhận diện.</div>');return;}
+ const site=list.find(s=>s.slug===state.selectedSite),ro=false,isExisting=false;
+ const result=await req(`/api/files/${state.selectedSite}/list?${qs({path:state.dir})}`);const selector=list.map(s=>`<option value="${esc(s.slug)}" ${s.slug===state.selectedSite?'selected':''}>${esc(s.slug)} — ${esc(s.hostname)}</option>`).join('');
+ page('File Manager',`<div class="sectionhead"><div><h2>Tệp của website</h2><p>${isExisting?'Đọc/ghi dist và storage/sheets; bảo vệ .env, server.cjs, package, node_modules và backup.':'Chỉ hiển thị thư mục thuộc website đã chọn.'}</p></div><select id="fileSite">${selector}</select></div><div class="toolbar">${btn('← Lên một cấp','folder-up')}${btn('+ Thư mục','file-mkdir')}${btn('↑ Upload file','file-upload')}${isExisting?btn('⬆ Deploy ZIP','existing-deploy','primary'):''}<input id="filePicker" type="file" class="hide"/><small class="muted mono">/${esc(state.dir)}</small></div><div class="files-layout"><div class="card file-list">${result.files.map(f=>`<button class="fileitem" data-action="file-open" data-name="${esc(f.name)}" data-dir="${f.dir?'1':'0'}"><span>${f.dir?'📁':'📄'} ${esc(f.name)}</span><span class="muted mini">${f.dir?'':fmtBytes(f.size)}</span></button>`).join('')||'<div class="empty">Thư mục trống</div>'}</div><div class="card" id="editor"><div class="sectionhead" style="margin-top:0"><h2 id="editorTitle">Xem tệp</h2></div><p class="muted">Chọn file văn bản bên trái để xem${ro?' (chỉ đọc)':' hoặc chỉnh sửa'}.</p></div></div>`);
+}
+async function editFile(filename){state.selectedFile=state.dir?state.dir+'/'+filename:filename;const content=await req(`/api/files/${state.selectedSite}/read?${qs({path:state.selectedFile})}`);const ro=state.sites.find(s=>s.slug===state.selectedSite)?.external&&['dist/server.cjs','package.json','package-lock.json'].includes(state.selectedFile);const el=$('#editor');el.innerHTML=`<div class="sectionhead" style="margin-top:0"><h2 class="mono">${esc(state.selectedFile)}</h2></div><textarea id="editText" spellcheck="false" ${ro?'readonly':''}></textarea>${ro?'<p class="help">File hệ thống được bảo vệ; dùng Deploy ZIP để cập nhật backend.</p>':`<div class="btnrow" style="margin-top:10px">${btn('Lưu thay đổi','file-save','primary')}${btn('Xóa file','file-delete','warn')}</div>`}`;$('#editText').value=content.text;}
+async function databases(){const {databases:list}=await req('/api/databases');page('Databases',`<div class="sectionhead"><div><h2>MariaDB</h2><p>Database được quản lý cục bộ, không mở cổng 3306 ra Internet.</p></div>${btn('+ Database mới','create-database','primary')}</div><div class="tablewrap"><table><thead><tr><th>Database</th><th>Hành động</th></tr></thead><tbody>${list.map(name=>`<tr><td class="titlecell mono">${esc(name)}</td><td><div class="btnrow">${btn('Xem tables','db-tables:'+name)}${btn('Backup SQL','db-backup:'+name)}${btn('Restore SQL','db-restore:'+name,'tiny warn')}</div></td></tr>`).join('')||'<tr><td colspan="2" class="empty">Chưa có database ứng dụng</td></tr>'}</tbody></table></div><div class="info" style="margin-top:18px">Khi tạo database mới, tên người dùng và mật khẩu được hiển thị <b>một lần duy nhất</b>. Root MariaDB được dùng qua socket nội bộ cho các tác vụ quản trị.</div>`);}
+async function nav(tab){state.tab=tab;$('#navigation').querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));try{await ({dashboard,sites,files:filesPage,databases,services,monitor:dashboard,backups,domains,settings}[tab]||dashboard)();}catch(e){page('Lỗi',`<div class="info danger">${esc(e.message)}</div>`);}}
+async function sites(){const list=await loadSites();page('Websites',`<div class="sectionhead"><h2>Website trên thiết bị này</h2>${btn('+ Website mới','create-site','primary')}</div><div class="tablewrap"><table><thead><tr><th>Website</th><th>Loại</th><th>Thao tác</th></tr></thead><tbody>${list.map(s=>`<tr><td>${esc(s.hostname)}<br><small>${esc(s.slug)}</small></td><td>${esc(s.type)}</td><td><div class="btnrow">${btn('Upload ZIP / dist','zip:'+s.slug)}${btn('Backup','backup-site:'+s.slug)}${btn('Xóa','delete-site:'+s.slug,'tiny warn')}</div></td></tr>`).join('')||'<tr><td colspan="3">Chưa có website</td></tr>'}</tbody></table></div><p class="help">Site mới chạy cục bộ. Thêm hostname trong Cloudflare để xuất bản. ZIP chỉ từ nguồn bạn tin cậy; không build source trên điện thoại.</p>`);}
+function modalCreateSite(){modal('Tạo website',`<form id="siteForm">${input('slug','Mã website','demo-web')}${input('hostname','Hostname','demo.example.com')}<div class="inputgroup"><label>Loại</label><select name="type"><option value="static">Static / React dist</option><option value="node">Node.js</option></select></div>${input('entry','Node entrypoint','server.mjs','server.mjs')}<button class="primary wide">Tạo website</button></form>`);}
+async function services(){const {services:list}=await req('/api/services');page('Services',`<div class="tablewrap"><table><thead><tr><th>Dịch vụ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>${Object.entries(list).map(([name,s])=>`<tr><td>${esc(name)}</td><td>${serviceBadge(s)}</td><td><div class="btnrow">${btn('Logs','log:'+name)}${name==='mhs-panel'?'':btn('Start','up:'+name)+btn('Restart','restart:'+name)+btn('Stop','down:'+name,'tiny warn')}</div></td></tr>`).join('')}</tbody></table></div><p class="help">Dừng Nginx/SQL/Tunnel làm gián đoạn website. Panel được giữ để khôi phục. Restart khi crash do runit; Android cần cho phép chạy nền.</p>`);}
+async function backups(){const {backups:list}=await req('/api/backups');page('Backup & Restore',`<div class="info">Tạo backup tại Websites hoặc Database. Giữ bản sao ngoài thiết bị. Backup chứa dữ liệu riêng: chỉ tải trên máy tin cậy.</div><div class="tablewrap"><table><thead><tr><th>Bản sao</th><th>Dung lượng</th><th>Thao tác</th></tr></thead><tbody>${list.map(b=>`<tr><td>${esc(b.name)}</td><td>${fmtBytes(b.size)}</td><td>${btn('Tải xuống','download:'+b.name)}</td></tr>`).join('')||'<tr><td colspan="3">Chưa có backup</td></tr>'}</tbody></table></div>`);}
+async function domains(){const d=await req('/api/domains'),a=await req('/api/remote-access');page('Cloudflare',`<div class="info">Cloudflare Tunnel kết nối trực tiếp đến điện thoại. Không Worker/DO. Panel dùng Access JWT + mật khẩu + CSRF.</div><div class="sectionhead"><h2>Hostname / origin</h2></div><pre>${esc(d.sites.map(s=>s.hostname+' → '+s.serviceUrl).join('\n')||'Tạo website trước')}</pre><div class="card"><h3>Panel Internet</h3><p>${esc(a.remoteHostname||'Chưa cấu hình Access tại origin')}</p><p class="help">Trên điện thoại chạy <code>mhs cloudflare</code> để cấu hình Tunnel riêng và Access. Hướng dẫn chi tiết trong docs/CLOUDFLARE.md. Không sử dụng Tunnel hoặc hostname MHC hiện có.</p></div>`);}
+async function settings(){page('Settings',`<div class="card"><h2>Mini Hosting Single</h2><p>Panel gốc 9090 • một điện thoại • không điều phối Cluster.</p><p>Local: <code>http://127.0.0.1:9090</code>. Qua PC dùng SSH forwarding. Không mở Panel/SQL ra Internet.</p><p>Đổi mật khẩu: <code>mhs reset-password</code>. Nâng cấp/rollback: xem docs/INSTALL.md.</p><p>CPU/pin/mạng có thể hiển thị — nếu Android không cấp quyền; không phải giá trị 0.</p></div>`);}
+async function downloadBackup(name){const r=await fetch('/api/backups/download?'+qs({name}));if(!r.ok)throw Error('Tải backup thất bại');const url=URL.createObjectURL(await r.blob()),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+async function action(key,el){const [kind,...parts]=key.split(':'),v=parts.join(':');
+ if(key==='create-site')return modalCreateSite();
+ if(key==='create-database')return modal('Database mới',`<form id="dbForm">${input('name','Tên database','demo_db')}<button class="primary">Tạo</button></form>`);
+ if(kind==='tab-services')return nav('services');if(kind==='tab-domains')return nav('domains');
+ if(kind==='file-open'){if(el.dataset.dir==='1'){state.dir=[state.dir,el.dataset.name].filter(Boolean).join('/');return filesPage();}return editFile(el.dataset.name);}
+ if(key==='folder-up'){state.dir=state.dir.split('/').slice(0,-1).join('/');return filesPage();}
+ if(key==='file-upload')return $('#filePicker').click();
+ if(key==='file-mkdir'){const name=prompt('Tên thư mục');if(name)await req(`/api/files/${state.selectedSite}/mkdir`,{method:'POST',body:{path:[state.dir,name].filter(Boolean).join('/')}});return filesPage();}
+ if(key==='file-save'){await req(`/api/files/${state.selectedSite}/write?${qs({path:state.selectedFile})}`,{method:'PUT',body:$('#editText').value,raw:true});return toast('Đã lưu');}
+ if(key==='file-delete'){if(confirm('Xóa '+state.selectedFile+'?'))await req(`/api/files/${state.selectedSite}/delete`,{method:'POST',body:{path:state.selectedFile,confirm:state.selectedFile}});return filesPage();}
+ if(kind==='zip')return modal('Deploy ZIP / prebuilt dist',`<form id="zipForm" data-site="${esc(v)}"><input name="file" type="file" accept=".zip" required><p class="help">ZIP chứa index.html hoặc Node entrypoint đã khai báo. Bản cũ được giữ để rollback.</p><button class="primary">Triển khai</button></form>`);
+ if(kind==='backup-site'){const d=await req(`/api/sites/${v}/backup`,{method:'POST'});toast('Đã backup '+d.file);return nav('backups');}
+ if(kind==='delete-site'){if(prompt('Nhập '+v+' để chuyển website vào trash')===v)await req('/api/sites/'+v,{method:'DELETE',body:{confirm:v}});return sites();}
+ if(kind==='download')return downloadBackup(v);
+ if(['up','down','restart'].includes(kind)){if(confirm(kind+' '+v+'?'))await req(`/api/services/${v}/action`,{method:'POST',body:{action:kind}});return services();}
+ if(kind==='log'){const d=await req(`/api/services/${v}/log`);return modal('Logs',`<pre>${esc(d.log)}</pre>`);}
+ if(kind==='db-backup'){await req(`/api/databases/${v}/backup`,{method:'POST'});return nav('backups');}
+ if(kind==='db-tables'){const d=await req(`/api/databases/${v}/tables`);return modal('Tables',`<pre>${esc(d.tables.join('\n'))}</pre>`);}
+ if(kind==='db-restore')return modal('Restore SQL',`<form id="restoreForm" data-name="${esc(v)}"><div class="info danger">SQL tin cậy có thể thay dữ liệu. Backup tự tạo trước import. Không nhập DB của MHC Cluster.</div><input name="file" type="file" accept=".sql" required>${input('confirm','Nhập '+v+' để xác nhận')}<button class="primary">Backup rồi restore</button></form>`);
+}
+$('#navigation').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)nav(b.dataset.tab);});
+$('#refreshBtn').addEventListener('click',()=>nav(state.tab));
+let refreshing=false;setInterval(async()=>{if(!state.user||document.hidden||refreshing||!['dashboard','monitor'].includes(state.tab))return;refreshing=true;try{await dashboard();}catch{}finally{refreshing=false;}},30000);
+$('#logoutBtn').addEventListener('click',async()=>{await req('/api/logout',{method:'POST'});state.user=null;showLogin();});
+$('#modalClose').addEventListener('click',closeModal);$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();try{await busy(e.submitter,async()=>{const d=await req('/api/login',{method:'POST',body:{username:$('#username').value,password:$('#password').value}});state.csrf=d.csrf;state.user='admin';$('#password').value='';showPanel();});}catch{}});
+$('#content').addEventListener('click',async e=>{const el=e.target.closest('[data-action]');if(el)try{await busy(el,()=>action(el.dataset.action,el));}catch{}});
+$('#content').addEventListener('change',async e=>{try{if(e.target.id==='fileSite'){state.selectedSite=e.target.value;state.dir='';await filesPage();}if(e.target.id==='filePicker'){const f=e.target.files[0];if(f){await req(`/api/files/${state.selectedSite}/write?${qs({path:[state.dir,f.name].filter(Boolean).join('/')})}`,{method:'PUT',body:f,raw:true});await filesPage();}}}catch(err){toast(err.message,true);}});
+$('#modalBody').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,d=Object.fromEntries(new FormData(f));try{await busy(e.submitter,async()=>{
+ if(f.id==='siteForm'){await req('/api/sites',{method:'POST',body:d});closeModal();return sites();}
+ if(f.id==='dbForm'){const v=await req('/api/databases',{method:'POST',body:d});return modal('Lưu credentials ngay',`<pre>${esc(JSON.stringify(v,null,2))}</pre>`);}
+ if(f.id==='zipForm'){await req(`/api/sites/${f.dataset.site}/zip`,{method:'POST',body:d.file,raw:true});closeModal();return sites();}
+ if(f.id==='restoreForm'){await req(`/api/databases/${f.dataset.name}/restore?${qs({confirm:d.confirm})}`,{method:'POST',body:d.file,raw:true});closeModal();return databases();}
+ });}catch{}});
+(async()=>{try{const s=await req('/api/session');if(s.loggedIn){state.csrf=s.csrf;state.user=s.user;showPanel();}else showLogin();}catch{showLogin();}})();
