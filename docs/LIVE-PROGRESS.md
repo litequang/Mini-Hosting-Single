@@ -30,5 +30,12 @@ WordPress installer retrieves official version list/core/checksums then invokes
 fresh-install PHP with credentials on stdin. Official endpoints are mocked in
 tests; PHP/SQL installation, Android, public HTTPS all NOT RUN. Current result:
 this checkpoint commit. No V1 archive dependency; reuse table in REUSE-AUDIT.md.
-Next concrete task: verified per-site file+SQL backup/restore, then fresh release
-installer and transactional updater/rollback. Overall V2.0 remains IN PROGRESS.
+Website Manager / WordPress checkpoint: `be67c27`, pushed main.
+
+Backup/restore checkpoint: source COMPLETE,2 targeted PC tests PASS. Real file
+archive/Unicode/SHA256/readback/upload/restore and safety backup work in isolation;
+SQL adapter fault after mutation rolls back in fixture. Native MariaDB/PHP/Android
+and loss-of-power recovery NOT RUN. Online SQL/files are not one atomic snapshot;
+private configs excluded. Details in BACKUP-RESTORE.md. Current result: this commit.
+Next concrete task: fresh release installer, resume, boot services, transactional
+updater/rollback and final UX/docs. Overall V2.0 remains IN PROGRESS.

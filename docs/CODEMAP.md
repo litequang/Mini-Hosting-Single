@@ -23,3 +23,8 @@ private env; tools/node-app.mjs launches app without shell interpolation.
 wordpress.mjs downloads only official WordPress HTTPS endpoints and verifies core
 checksums; wordpress-install.php accepts fresh admin input on stdin. No WP-CLI
 phar, MHC credentials or hosted controller required. Native acceptance NOT RUN.
+
+archive.mjs: bounded checksummed MHS gzip archive with path-safe extraction.
+backups.mjs: per-site safety backup, restore/upload/readback, SQL/files rollback,
+maintenance journal. Backup/restore reuses original authenticated Panel endpoints.
+tests/backup.test.mjs: real isolated files + injected SQL adapter failure.

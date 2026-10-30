@@ -2,6 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {once} from 'node:events';
 import {URL} from 'node:url';
 import {authorizeRequest,publicStatus} from './remote-access.mjs';
 import {PORT,ROOT,DATA,ensureDirs,registry,readJson} from './config.mjs';
@@ -11,7 +12,7 @@ import {listSites,addSite,updateSite,deleteSite,listFiles,readFileForSite,writeS
 import {siteHealth} from './hosting.mjs';
 import {wordpressVersions,installWordPress} from './wordpress.mjs';
 import {listDatabases,createDatabase,listTables,backupDatabase,restoreDatabase} from './databases.mjs';
-import {listBackups,backupSiteArchive,backupFile} from './backups.mjs';
+import {listBackups,backupSiteArchive,restoreSiteArchive,backupFile,importBackup} from './backups.mjs';
 import {createLanMonitor} from './lan-monitor.mjs';
 const PUBLIC=path.join(ROOT,'public');
 const sessions=new Map(),attempts=new Map();let mutations=Promise.resolve();
@@ -55,6 +56,10 @@ async function api(req,res,url){
  if(route==='/api/services'&&method==='GET'){const status=await systemStats();return send(res,200,{services:status.services});}
  if(route==='/api/databases'&&method==='GET')return send(res,200,{databases:await listDatabases()});
  if(route==='/api/backups'&&method==='GET')return send(res,200,{backups:listBackups()});
+ if(route==='/api/backups/upload'&&method==='POST'){
+  const file=path.join(DATA,'backup-upload-'+crypto.randomUUID());const out=fs.createWriteStream(file,{mode:0o600,flags:'wx'});let bytes=0;let writeError=null;out.on('error',e=>writeError=e);
+  try{for await(const chunk of req){bytes+=chunk.length;if(bytes>256*1024*1024)throw new HttpError(413,'BACKUP_UPLOAD_LIMIT');if(writeError)throw writeError;if(!out.write(chunk))await once(out,'drain');}const done=once(out,'finish');out.end();await done;return send(res,201,await queueMutate(()=>importBackup(file,url.searchParams.get('sha256'))));}finally{out.destroy();fs.rmSync(file,{force:true});}
+ }
  if(route==='/api/backups/download'&&method==='GET'){
   const file=backupFile(url.searchParams.get('name')||'');res.writeHead(200,{'content-type':'application/octet-stream','content-disposition':`attachment; filename="${path.basename(file)}"`,'cache-control':'no-store'});fs.createReadStream(file).pipe(res);return;
  }
@@ -69,6 +74,7 @@ async function api(req,res,url){
    if(action==='rollback'&&method==='POST'){const b=jsonBody(await readBody(req,4096));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>rollbackDeploy(name)));}
    if(action==='health'&&method==='GET')return send(res,200,await siteHealth(requireSite(name)));
    if(action==='backup'&&method==='POST')return send(res,200,await queueMutate(()=>backupSiteArchive(name)));
+   if(action==='restore'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>restoreSiteArchive(name,b.backup,b)));}
   }
   if(kind==='files'){
    const rel=url.searchParams.get('path')||'';
@@ -87,8 +93,8 @@ async function api(req,res,url){
    if(action==='backup'&&method==='POST')return send(res,200,await backupDatabase(name));
    if(action==='restore'&&method==='POST'){
     const confirm=url.searchParams.get('confirm');if(confirm!==name)throw new HttpError(400,'Explicit database confirmation required');
-    const buf=await readBody(req,10*1024*1024);const filepath=path.join(DATA,'restore-'+crypto.randomUUID()+'.sql');fs.writeFileSync(filepath,buf,{mode:0o600});
-    try{const backup=await backupDatabase(name);const result=await restoreDatabase(name,filepath);return send(res,200,{backup,result});}finally{fs.rmSync(filepath,{force:true});}
+    const buf=await readBody(req,64*1024*1024);const filepath=path.join(DATA,'restore-'+crypto.randomUUID()+'.sql');fs.writeFileSync(filepath,buf,{mode:0o600});
+    try{return send(res,200,await queueMutate(async()=>{const backup=await backupDatabase(name);try{const result=await restoreDatabase(name,filepath);return {backup,result};}catch{try{await restoreDatabase(name,backupFile(backup.file));}catch{throw new HttpError(500,'DATABASE_RECOVERY_REQUIRED');}throw new HttpError(400,'SQL_IMPORT_FAILED_ROLLED_BACK');}}));}finally{fs.rmSync(filepath,{force:true});}
    }
   }
  }

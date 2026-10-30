@@ -33,7 +33,7 @@ async function collectStats(){
 export function nginxConf(site){
  if(!slugOK(site.slug)||!hostOK(site.hostname))throw Error('INVALID_SITE');
  const root=path.join(SITES,site.slug,site.type==='node'?'app':'public').replaceAll('\\','/');
- const common=`listen 127.0.0.1:8080;\nserver_name ${site.hostname};\nclient_max_body_size 64m;\nlocation ~ /\\. { deny all; }\n`;
+ const common=`listen 127.0.0.1:8080;\nserver_name ${site.hostname};\nclient_max_body_size 64m;\nif (-f "${path.join(DATA,'maintenance-'+site.slug).replaceAll('\\','/')}") { return 503; }\nlocation ~ /\\. { deny all; }\n`;
  if(site.type==='node')return `server {\n${common}location / { proxy_pass http://127.0.0.1:${site.port}; proxy_http_version 1.1; proxy_set_header Host $host; proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto; proxy_set_header X-Forwarded-For $remote_addr; }\n}\n`;
  if(['php','wordpress'].includes(site.type))return `server {\n${common}root "${root}";\nindex index.php index.html;\nlocation / { try_files $uri $uri/ /index.php?$args; }\nlocation ~* /(wp-config\\.php|.*\\.sql|.*\\.bak)$ { deny all; }\nlocation ~* /(?:uploads|files)/.*\\.php$ { deny all; }\nlocation ~ \\.php$ { try_files $uri =404; include "${TERMUX}/etc/nginx/fastcgi_params"; fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; fastcgi_param HTTP_PROXY ""; fastcgi_pass unix:${path.join(DATA,'run/php.sock').replaceAll('\\','/')}; }\n}\n`;
  return `server {\n${common}root "${root}";\nindex index.html;\nlocation / { try_files $uri $uri/ /index.html; }\n}\n`;

@@ -17,3 +17,8 @@
   never delete the journal or recreate the site to bypass a partial operation.
 - WordPress provisioning failure preserves schema/files and failed-create metadata;
   do not create a replacement by dropping data. Native SQL checks remain NOT RUN.
+- RESTORE_RECOVERY_REQUIRED / RESTORE_ROLLBACK_FAILED_SITE_IN_MAINTENANCE: keep
+  maintenance503, restore journal, safety archive and SQL backup. Do not create a
+  new site or remove guards/journals. Recovery must use verified safety data.
+- Backups exclude private configuration; read BACKUP-RESTORE.md before deleting
+  source data. SQL fixture PASS is not native MariaDB restore acceptance.
