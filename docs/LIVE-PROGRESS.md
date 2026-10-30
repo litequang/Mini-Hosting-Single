@@ -4,9 +4,9 @@ Only this file records execution status. Source provenance: b2f04f9 MHC, read-on
 
 | Milestone | Source status | PC tests | Android / Internet | Remaining |
 |---|---|---|---|---|
-| S1 standalone original Panel + LAN Monitor | SOURCE COMPLETE | PASS (6 tests) | NOT RUN | physical fresh device acceptance |
-| S2 hosting / direct Tunnel | SOURCE COMPLETE | PASS (9 total tests) | NOT RUN | physical PHP/SQL/WP and HTTPS acceptance |
-| S3 operations / release | SOURCE COMPLETE, PACKAGING | targeted PASS | NOT RUN | package RC; user Android acceptance |
+| S1 standalone original Panel + LAN Monitor | DONE (source/PC) | PASS | NOT RUN | physical fresh device acceptance |
+| S2 hosting / direct Tunnel | DONE (source/PC) | PASS | NOT RUN | physical PHP/SQL/WP and HTTPS acceptance |
+| S3 operations / release | DONE (source/PC RC) | PASS | NOT RUN | user Android acceptance |
 
 No authorized fresh MHS device is available. Existing MHC devices/config remain
 unchanged. S1: original Panel real local HTTP login/session/CSRF/Host and sites/files
@@ -48,5 +48,16 @@ actual Node HTTP with env/port. JS35 files and boot/bootstrap shell syntax PASS.
 PHP/native services/WP/MariaDB/reboot/cross-device LAN/public Cloudflare NOT RUN.
 See ACCEPTANCE.md; no overall system acceptance claim.
 
-Current result: this S3 source commit. Next: build immutable2.0.0-rc.1, smoke actual
-bundle in PC fixture, push bundle/tag and pinned install command. Android awaits user.
+S3 source commit: `6e4941624ac318e5958664d90468d04348ec527f`, pushed main.
+
+RC2.0.0-rc.1 packaged from that exact commit:51 source/docs files + release manifest,
+98234-byte source-only bundle. Actual artifact extraction/manifest/fresh-install
+PC fixture PASS (tools/package-smoke); generated bootstrap bash syntax PASS.
+Bundle SHA256 aafe08cbd4b174b62609c8ffecb5bb1555245ccb60ef154545713433bfe85e51.
+Bootstrap SHA256 b014de5b3bc609cf224a8f4723f6e91fb5c64e1d93d178f4305f012d63776a12.
+No runtime/secrets/history imported. MHC still clean at b2f04f9.
+
+Current result: release artifact commit/tag v2.0.0-rc.1 (see Git log/manifest).
+Next concrete task: user overall fresh-Termux acceptance per INSTALL/ACCEPTANCE,
+then fix actual reported failures. No authorized Android or new MHS Cloudflare
+resources are available; native/Internet tests remain NOT RUN, not release-certified.

@@ -8,3 +8,5 @@ coverage/
 *.pem
 *.key
 releases/*.tar.gz
+*.mhs.gz
+!releases/mhs-[0-9]*.mhs.gz
