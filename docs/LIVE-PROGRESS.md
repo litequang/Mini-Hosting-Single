@@ -2,6 +2,16 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## Issue #2 — V2.1,31 October2026
+
+M0 DONE (PC/source audit): latest main clean at `b63ead8`, read full Issue #2 and
+baseline docs. Pinned pure-JS candidates + integrity lockfile, license/runtime
+table in MODULES-V21.md. npm audit initially3 moderate; minimatch11.0.1 override
+resolves all, final audit0. PC imports of Tus/FileStore/yauzl/Archiver/cron/official
+Cloudflare SDK PASS. Android/Bionic/PHP/restic/Internet NOT RUN. No device/Cloudflare
+configuration touched. Current result: this M0 commit. Next: M1 authenticated Tus
+streaming upload + guarded ZIP/file operations + independent frontend deployment.
+
 ## Issue #1 — 31 October 2026
 
 R1 source COMPLETE: local password9090 and remote SSO9093 are separate loopback

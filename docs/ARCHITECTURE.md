@@ -1,5 +1,9 @@
 # Architecture
 
+V2.1 adds site-scoped adapters within this Panel, using audited pure-JS vendor
+bundles. No second panel, upload bypass, privileged daemon or Cluster runtime.
+See MODULES-V21.md for license/native validation gates; Android remains NOT RUN.
+
 One phone owns its sites and data. Direct Tunnel routes website hostnames to
 loopback Nginx8080; Nginx dispatches static/PHP/Node. Panel9090 is loopback-only.
 Local password Panel9090 and remote SSO Panel9093 are separate loopback listeners.

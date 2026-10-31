@@ -1,5 +1,9 @@
 # Code map
 
+V2.1 Issue #2: MODULES-V21.md records candidate/license/runtime decisions;
+package-lock.json pins dependencies/integrity; deployment will use local vendor
+bundles, no runtime CDN/npm requirement. RC1/RC2 archives remain immutable.
+
 Issue #1 R1: remote-access.mjs adds strict schema2 owner-identity mapping, separate
 local/remote authorizers and bounded JWKS cache. createPanelServer factory keeps
 local password and remote-only SSO sessions separate. tests/panel-sso exercises
