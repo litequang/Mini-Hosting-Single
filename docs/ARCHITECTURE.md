@@ -22,9 +22,12 @@ requires operator action. SQL management connects to a dedicated Unix socket;
 database import/dump use schema-specific users, not root. Root is used only to
 provision new MHS schemas/users. No database is dropped on failed creation.
 
-LAN Monitor9091 is a separate GET-only listener within the original Panel process,
+LAN Monitor9091 is a GET-only listener in an independent mhs-monitor process,
 with private-address/Host/Origin restrictions and explicit sanitized fields. It has
 no session, management router, logs, credentials or arbitrary file access.
+Remote Monitor9092 is loopback-only, uses a separate Access hostname/AUD and
+owner-identity check before every GET, and shares only sanitized telemetry/assets.
+It never requires or accepts Panel sessions. No Monitor route enters Panel APIs.
 
 One committed source release manifest, SHA256 bundle/files, resumable install
 journal and immutable releases/current. No .git/history/runtime is packaged.

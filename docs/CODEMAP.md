@@ -5,6 +5,10 @@ local/remote authorizers and bounded JWKS cache. createPanelServer factory keeps
 local password and remote-only SSO sessions separate. tests/panel-sso exercises
 real loopback HTTP with locally signed JWT/JWKS fixture, not live Cloudflare.
 
+R2: monitor-server.mjs owns separate mhs-monitor service; lan-monitor.mjs provides
+anonymous LAN and verified remote read-only factories with route allowlists.
+remote-monitor.test covers method/Host/AUD/identity/session separation and fields.
+
 - panel/src/server.mjs: original HTTP Panel, loopback, password/session/CSRF/Host.
 - config.mjs: separate MHS data marker and registry, MHC import refusal.
 - security.mjs / zip.mjs: inherited scrypt, path and archive boundaries.

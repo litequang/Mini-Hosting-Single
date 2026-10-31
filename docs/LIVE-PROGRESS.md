@@ -14,6 +14,14 @@ Wrong owner/Host/AUD, forged/expired JWT, missing CSRF/Origin, local-cookie repl
 owner removal, JWKS offline and logout replay rejected. Current result: this R1
 commit. Next: independent remote read-only Monitor9092 (R2).
 
+R1 commit: `fca36cc`, pushed main. R2 source COMPLETE: mhs-monitor independent
+service runs anonymous LAN9091 and JWT/owner-checked loopback Remote Monitor9092.
+Same sanitized GET-only routes, no management/session/password router. Monitor
+has its own hostname/AUD/config; Panel token/cookies cannot authorize it. Panel
+links to configured Remote Monitor; polling pauses on hidden tabs. Tests below
+are PC fixtures; Android/Internet remain NOT RUN. Current result: this R2 commit.
+Next: wizard both Access apps + safe route plan + doctor + install/upgrade (R3).
+
 | Milestone | Source status | PC tests | Android / Internet | Remaining |
 |---|---|---|---|---|
 | S1 standalone original Panel + LAN Monitor | DONE (source/PC) | PASS | NOT RUN | physical fresh device acceptance |
@@ -76,3 +84,4 @@ is now in INSTALL.md; code/bundle remain unchanged. Current docs commit: Git HEA
 Next concrete task: user overall fresh-Termux acceptance per INSTALL/ACCEPTANCE,
 then fix actual reported failures. No authorized Android or new MHS Cloudflare
 resources are available; native/Internet tests remain NOT RUN, not release-certified.
+R2 verification:8 targeted Windows tests PASS (remote-monitor + standalone), boot shell and browser script syntax PASS.

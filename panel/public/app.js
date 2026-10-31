@@ -23,7 +23,7 @@ function busy(button,func){if(!button)return func();button.disabled=true;const o
 function page(title,html){$('#pageTitle').textContent=title;$('#content').innerHTML=html;}
 function btn(s,a,cls='tiny'){return `<button class="${cls}" data-action="${a}">${esc(s)}</button>`;}
 function serviceBadge(out){const running=out?.ok&&String(out.out||'').startsWith('run:');return `<span class="badge ${running?'good':'bad'}">${running?'Running':'Offline'}</span>`;}
-async function dashboard(){const s=await req('/api/overview');state.stats=s;const b=s.battery||{};
+async function dashboard(){const s=await req('/api/overview');const access=await req('/api/remote-access');state.stats=s;const b=s.battery||{};
  const batteryPercent=Number.isFinite(b.percentage)?Math.round(b.percentage)+'%':'—';
  const batteryTemperature=Number.isFinite(b.temperature)?b.temperature.toFixed(1)+'°C':'—';
  const batteryState=b.status==='CHARGING'?'Đang sạc':b.status==='FULL'?'Đã sạc đầy':b.status==='DISCHARGING'?'Đang xả pin':b.status==='NOT_CHARGING'?'Không sạc':b.plugged==='UNPLUGGED'?'Không cắm sạc':b.plugged||'Chưa xác định';

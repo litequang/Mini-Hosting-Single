@@ -14,7 +14,6 @@ import {siteHealth} from './hosting.mjs';
 import {wordpressVersions,installWordPress} from './wordpress.mjs';
 import {listDatabases,createDatabase,listTables,backupDatabase,restoreDatabase} from './databases.mjs';
 import {listBackups,backupSiteArchive,restoreSiteArchive,recoverSiteRestore,backupFile,importBackup} from './backups.mjs';
-import {createLanMonitor} from './lan-monitor.mjs';
 import {withOperation} from './operation.mjs';
 const PUBLIC=path.join(ROOT,'public');
 export function createPanelServer({remote=false,port=PORT,fetcher=fetch,readConfig=config}={}){
@@ -132,6 +131,5 @@ export function start(){
  ensureDirs();if(!configured())throw Error('MHS_PANEL_SETUP_REQUIRED');
  createPanelServer().listen(PORT,'127.0.0.1',()=>console.log('MHS local password Panel ready'));
  createPanelServer({remote:true,port:9093}).listen(Number(process.env.MHS_REMOTE_PANEL_PORT||9093),'127.0.0.1',()=>console.log('MHS remote SSO Panel ready'));
- if(readJson(path.join(DATA,'settings.json'),{}).lanMonitorEnabled===true)createLanMonitor().on('error',()=>console.error('MHS_LAN_MONITOR_UNAVAILABLE')).listen(Number(process.env.MHS_MONITOR_PORT||9091),'0.0.0.0');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href)start();
