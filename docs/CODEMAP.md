@@ -1,5 +1,10 @@
 # Code map
 
+Issue #1 R1: remote-access.mjs adds strict schema2 owner-identity mapping, separate
+local/remote authorizers and bounded JWKS cache. createPanelServer factory keeps
+local password and remote-only SSO sessions separate. tests/panel-sso exercises
+real loopback HTTP with locally signed JWT/JWKS fixture, not live Cloudflare.
+
 - panel/src/server.mjs: original HTTP Panel, loopback, password/session/CSRF/Host.
 - config.mjs: separate MHS data marker and registry, MHC import refusal.
 - security.mjs / zip.mjs: inherited scrypt, path and archive boundaries.

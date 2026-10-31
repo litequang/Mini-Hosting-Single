@@ -2,8 +2,10 @@
 
 One phone owns its sites and data. Direct Tunnel routes website hostnames to
 loopback Nginx8080; Nginx dispatches static/PHP/Node. Panel9090 is loopback-only.
-Remote Panel requires an exact configured hostname, valid Access JWT, local
-password/session, and mutation CSRF/Origin. Local recovery needs only password.
+Local password Panel9090 and remote SSO Panel9093 are separate loopback listeners.
+Remote requires exact hostname, Access JWT and explicit signed owner identity,
+automatic secure session and mutation CSRF/Origin; no second admin password.
+Local recovery9090 rejects proxy/Cloudflare headers and needs the admin password.
 JWKS retrieval for Access is not a Worker/DO request. There is no Cloudflare
 orchestration loop or external authority on website requests.
 

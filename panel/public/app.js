@@ -1,4 +1,5 @@
-const state={user:null,csrf:'',tab:'dashboard',sites:[],selectedSite:'',dir:'',selectedFile:'',stats:null};
+const remoteEntry=document.querySelector('meta[name="mhs-auth-mode"]')?.content==='access-sso';
+const state={authMode:remoteEntry?'access-sso':'local-password',user:null,csrf:'',tab:'dashboard',sites:[],selectedSite:'',dir:'',selectedFile:'',stats:null};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtBytes=n=>{if(!Number.isFinite(+n))return '—';if(n<1024)return n+' B';let i=0;while(n>=1024&&i<4){n/=1024;i++;}return n.toFixed(1)+' '+['B','KB','MB','GB','TB'][i]};
@@ -6,14 +7,14 @@ const qs=o=>new URLSearchParams(o).toString();
 let toastTimer;
 function toast(message,error=false){const node=$('#toast');node.textContent=message;node.className='toast'+(error?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.classList.add('hide'),4200);}
 async function req(route,{method='GET',body,raw=false}={}){
- const opts={method,credentials:'same-origin',headers:{}};
+ const opts={method,credentials:'same-origin',headers:{'x-requested-with':'XMLHttpRequest'}};
  if(method!=='GET')opts.headers['x-csrf-token']=state.csrf;
  if(body!==undefined){if(raw){opts.body=body;}else{opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}}
  let res;try{res=await fetch(route,opts);}catch{throw Error('Không kết nối được panel');}
- if(!res.ok){let msg='HTTP '+res.status;try{msg=(await res.json()).error||msg;}catch{}if(res.status===401)showLogin();throw Error(msg);}
+ if(!res.ok){let msg='HTTP '+res.status;try{msg=(await res.json()).error||msg;}catch{}if(res.status===401||res.status===403&&remoteEntry)showLogin();throw Error(msg);}
  return res.json();
 }
-function showLogin(){$('#shell').classList.add('hide');$('#login').classList.remove('hide');}
+function showLogin(){state.user=null;if(remoteEntry){$('#loginForm').classList.add('hide');let message=$('#remoteDenied');if(!message){message=document.createElement('div');message.id='remoteDenied';message.className='login-card';message.textContent='Phi?n Cloudflare Access ?? h?t hi?u l?c ho?c ch?a ???c ph?p. T?i l?i trang ?? x?c th?c Access; kh?ng d?ng m?t kh?u Admin t?i hostname Internet.';$('#login').append(message);}$('#shell').classList.add('hide');$('#login').classList.remove('hide');return;}$('#shell').classList.add('hide');$('#login').classList.remove('hide');}
 function showPanel(){$('#login').classList.add('hide');$('#shell').classList.remove('hide');nav(state.tab);}
 function modal(title,html){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modal').classList.remove('hide');}
 function closeModal(){$('#modal').classList.add('hide');$('#modalBody').innerHTML='';}
@@ -96,7 +97,7 @@ async function action(key,el){const [kind,...parts]=key.split(':'),v=parts.join(
 $('#navigation').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)nav(b.dataset.tab);});
 $('#refreshBtn').addEventListener('click',()=>nav(state.tab));
 let refreshing=false;setInterval(async()=>{if(!state.user||document.hidden||refreshing||!['dashboard','monitor'].includes(state.tab))return;refreshing=true;try{await dashboard();}catch{}finally{refreshing=false;}},30000);
-$('#logoutBtn').addEventListener('click',async()=>{await req('/api/logout',{method:'POST'});state.user=null;showLogin();});
+$('#logoutBtn').addEventListener('click',async()=>{const d=await req('/api/logout',{method:'POST'});state.user=null;if(d.logoutUrl){window.location.assign(d.logoutUrl);return;}showLogin();});
 $('#modalClose').addEventListener('click',closeModal);$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();try{await busy(e.submitter,async()=>{const d=await req('/api/login',{method:'POST',body:{username:$('#username').value,password:$('#password').value}});state.csrf=d.csrf;state.user='admin';$('#password').value='';showPanel();});}catch{}});
 $('#content').addEventListener('click',async e=>{const el=e.target.closest('[data-action]');if(el)try{await busy(el,()=>action(el.dataset.action,el));}catch{}});
@@ -111,4 +112,4 @@ $('#modalBody').addEventListener('submit',async e=>{e.preventDefault();const f=e
  if(f.id==='zipForm'){await req(`/api/sites/${f.dataset.site}/zip`,{method:'POST',body:d.file,raw:true});closeModal();return sites();}
  if(f.id==='restoreForm'){await req(`/api/databases/${f.dataset.name}/restore?${qs({confirm:d.confirm})}`,{method:'POST',body:d.file,raw:true});closeModal();return databases();}
  });}catch{}});
-(async()=>{try{const s=await req('/api/session');if(s.loggedIn){state.csrf=s.csrf;state.user=s.user;showPanel();}else showLogin();}catch{showLogin();}})();
+(async()=>{try{const s=await req('/api/session');if(s.loggedIn){state.authMode=s.authMode;state.csrf=s.csrf;state.user=s.user;$('#logoutBtn').textContent=s.authMode==='access-sso'?'??ng xu?t Access':'??ng xu?t';showPanel();}else showLogin();}catch{showLogin();}})();

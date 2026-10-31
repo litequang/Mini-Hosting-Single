@@ -5,9 +5,11 @@ import {DATA,TERMUX,assertStandalone,atomicJson} from '../panel/src/config.mjs';
 import {hostOK} from '../panel/src/security.mjs';
 import {writeService,quote} from '../panel/src/system.mjs';
 import {ask} from './input.mjs';
-export function configureAccess({hostname,teamDomain,audience}){
- assertStandalone();if(!hostOK(hostname)||!/^[a-z0-9-]{1,63}\.cloudflareaccess\.com$/.test(teamDomain)||!/^[A-Za-z0-9_-]{32,128}$/.test(audience))throw Error('INVALID_ACCESS_CONFIG');
- atomicJson(path.join(DATA,'remote-access.json'),{schema:1,hostname,teamDomain,audience});return {configured:true,hostname};
+import {validApplication} from '../panel/src/remote-access.mjs';
+export function configureAccess({hostname,teamDomain,audience,ownerEmail}){
+ const panel={hostname,teamDomain,audience,ownerEmail};
+ assertStandalone();if(!validApplication(panel))throw Error('INVALID_ACCESS_CONFIG');
+ atomicJson(path.join(DATA,'remote-access.json'),{schema:2,panel});return {configured:true,hostname};
 }
 export function configureConnector(token){
  assertStandalone();if(typeof token!=='string'||token.length<100||token.length>4096||!/^[A-Za-z0-9_+/=-]+$/.test(token))throw Error('INVALID_CONNECTOR_TOKEN');

@@ -34,7 +34,7 @@ test('PHP/Node vhosts and WordPress use private local credentials, not imported 
 test('direct connector token private file and Access validation have no account/Worker token',async()=>{
  const {configureConnector,configureAccess}=await import('../tools/cloudflare.mjs');
  assert.throws(()=>configureAccess({hostname:'evil;config',teamDomain:'x',audience:'x'}),/INVALID/);
- const token='fixtureToken'.repeat(15);configureAccess({hostname:'single-panel.example.com',teamDomain:'fixture.cloudflareaccess.com',audience:'a'.repeat(64)});configureConnector(token);
+ const token='fixtureToken'.repeat(15);configureAccess({hostname:'single-panel.example.com',teamDomain:'fixture.cloudflareaccess.com',audience:'a'.repeat(64),ownerEmail:'owner@example.com'});configureConnector(token);
  const run=fs.readFileSync(path.join(config.SERVICE_DIR,'mhs-tunnel/run'),'utf8');assert.match(run,/--token-file/);assert.ok(!run.includes(token));assert.doesNotMatch(run,/worker|authority/i);
  assert.equal(fs.readFileSync(path.join(config.DATA,'cloudflare/tunnel-token'),'utf8'),token);
  const {assertIndependentSql}=await import('../panel/src/databases.mjs');assert.throws(()=>assertIndependentSql('CREATE TRIGGER mhc_p4_gate'),/CLUSTER_SQL/);assert.doesNotThrow(()=>assertIndependentSql('CREATE TABLE content (id INT);'));

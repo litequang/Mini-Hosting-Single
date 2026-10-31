@@ -1,5 +1,14 @@
 # Decisions — 30 October 2026
 
+31 October — GitHub Issue #1 supersedes old remote-password/Monitor instructions.
+Remote Panel uses owner-allowlisted Access SSO on9093, never local recovery9090.
+Local listener rejects Cloudflare/proxy headers, remote never trusts localhost
+Host or email headers. Token signature/owner/config/time rechecked every request;
+session is token+identity+Host bound, logout hash persists across process restart.
+Edge Access handles account/session revocation; offline JWT verification cannot
+discover an account-wide revocation immediately. Logout redirects to Access;
+do not promise per-app global logout or perpetual cross-app SSO without prompts.
+
 - User requests an independent Mini-Hosting-Single repo, not an MHC mode.
 - Preserve original Panel9090 UI/auth/hosting foundation; remove Cluster imports,
   background polling and production-specific adapters instead of disabling flags.

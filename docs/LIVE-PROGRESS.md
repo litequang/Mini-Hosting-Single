@@ -2,6 +2,18 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## Issue #1 — 31 October 2026
+
+R1 source COMPLETE: local password9090 and remote SSO9093 are separate loopback
+listeners. Remote checks RS256/issuer/AUD/time/exact Host, one explicit owner email
+and signed subject every request. Automatic secure session binds Host/identity/
+token, mutation requires CSRF+Origin. Logout stores hashes until expiry and sends
+browser to Access logout. Legacy schema1 config fails closed until owner is set.
+Windows8 targeted tests PASS (panel-sso + standalone); Android/Internet NOT RUN.
+Wrong owner/Host/AUD, forged/expired JWT, missing CSRF/Origin, local-cookie replay,
+owner removal, JWKS offline and logout replay rejected. Current result: this R1
+commit. Next: independent remote read-only Monitor9092 (R2).
+
 | Milestone | Source status | PC tests | Android / Internet | Remaining |
 |---|---|---|---|---|
 | S1 standalone original Panel + LAN Monitor | DONE (source/PC) | PASS | NOT RUN | physical fresh device acceptance |
