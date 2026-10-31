@@ -25,9 +25,10 @@ Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVE
 [Cloudflare](docs/CLOUDFLARE.md) · [Backup](docs/BACKUP-RESTORE.md) ·
 [PASS / NOT RUN](docs/ACCEPTANCE.md).
 
-[**Hướng dẫn cài RC2 / nâng từ RC1**](docs/INSTALL.md) và
-[Cloudflare Panel/Monitor](docs/CLOUDFLARE.md). Lệnh ghim commit/SHA của RC2 được
-đính kèm sau bước đóng gói; không dùng curl main | bash hoặc cài lên node MHC.
+[**Lệnh cài RC2 / nâng từ RC1 đã ghim commit và SHA256**](docs/INSTALL.md#lệnh-cài-rc2-ghim-commit-và-sha256)
+và [Cloudflare Panel/Monitor](docs/CLOUDFLARE.md). Release
+[v2.0.0-rc.2](https://github.com/litequang/Mini-Hosting-Single/tree/v2.0.0-rc.2)
+đã kiểm lại download/checksum công khai. Không dùng curl main | bash hoặc cài lên node MHC.
 
 Dev trên PC (Node ≥22.16, không cần npm dependencies):
 

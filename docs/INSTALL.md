@@ -10,8 +10,8 @@ Không root, cần3GiB trống, Node≥22.16; bộ cài tự cài các thành ph
    và API một lần. Android Settings: cho autostart/chạy nền, pin không hạn chế cho
    cả ba ứng dụng. Không force-stop Termux. Doze/OS có thể dừng dịch vụ; điện thoại
    tắt hoặc mất mạng thì website Internet không phục vụ, không có failover.
-2. Copy **một lệnh cài ghim commit+SHA256 ở README / cuối tài liệu bản GitHub hiện
-   hành**, chạy trực tiếp trên Termux. Không curl main | bash. Bootstrap cài missing
+2. Copy **một lệnh cài ghim commit+SHA256 ở cuối tài liệu này**, chạy trực tiếp
+   trên Termux. Không curl main | bash. Bootstrap cài missing
    packages, kiểm bundle và từng source file, tạo identity/config/admin riêng.
    Nếu PC/SSH mất kết nối, script trên điện thoại có thể vẫn chạy. Khi cần retry,
    dùng đúng lệnh release đã bắt đầu; không xóa lock/journal/data hoặc cài đè.
@@ -101,3 +101,33 @@ login lại → Website/WordPress/Node/DB/backup → reboot/crash restart → up
 rollback. Hiện Android/reboot/Internet đều NOT RUN; xem [ACCEPTANCE](ACCEPTANCE.md).
 
 RC1 lịch sử vẫn có tại releases/2.0.0-rc.1.json; dùng RC2 cho Issue #1.
+
+## Lệnh cài RC2 ghim commit và SHA256
+
+Copy toàn bộ khối dưới đây, dán một lần vào **Termux trên thiết bị MHS riêng**.
+Dùng được cho fresh install, resume cùng RC2 và nâng MHS RC1 đã INSTALLED lên RC2.
+Không chạy trên PC, MHC, AMH V1 hoặc hosting khác. Cả bootstrap và bundle được
+kiểm SHA256; URL bootstrap ghim commit artifact `e022684`, không chạy source main.
+Bundle bên trong ghim tag RC2 và checksum; release cũ không bị ghi đè.
+
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr || { echo MHS_STANDARD_TERMUX_REQUIRED; exit 1; }
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/e022684200a169a3c78f7d11d31d1c3bc1165cd5/releases/install-2.0.0-rc.2.sh' -o "$HOME/mhs-install-2.0.0-rc.2.sh"
+  printf '%s  %s\n' '4194e1f22b31256e153f60263406d77492d7e78e45bec8c0cc36ec5c388c795b' "$HOME/mhs-install-2.0.0-rc.2.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.0.0-rc.2.sh"
+)
+```
+
+Đã tải lại bootstrap (5027 bytes) và bundle (116692 bytes) từ GitHub công khai:
+HTTP200/SHA256 PASS; URL bundle qua tag cũng PASS. Đây là kiểm phân phối gói,
+**không phải nghiệm thu cài Android**. Manifest: [2.0.0-rc.2.json](../releases/2.0.0-rc.2.json).
+Sau cài, chạy `mhs doctor`, rồi `mhs cloudflare`. Các bước đăng nhập Cloudflare,
+tạo Tunnel/2 app Access và nhập hostname/AUD/token vẫn do chủ tài khoản thực hiện
+theo [hướng dẫn tiếng Việt](CLOUDFLARE.md); wizard không cần quyền API tài khoản.

@@ -117,3 +117,16 @@ Archive SHA256 `97f847e641e139a4dd14688d37307d9e7bc03644c727a80e656d9f0641a6a22e
 Bootstrap SHA256 `4194e1f22b31256e153f60263406d77492d7e78e45bec8c0cc36ec5c388c795b`.
 RC1 archive/bootstrap hashes unchanged. Current checkpoint: immutable RC2 artifacts;
 next publish tag, verify public bytes and attach exact pinned install command.
+
+R4 DONE (source + PC + distribution scope): artifact commit
+`e022684200a169a3c78f7d11d31d1c3bc1165cd5`, tag `v2.0.0-rc.2`, pushed main/tag.
+Public pinned bootstrap5027 bytes and bundle116692 bytes: HTTP200/exact SHA256
+PASS; tag bundle download/SHA PASS. INSTALL.md now contains exact pinned command,
+fresh/resume/RC1-upgrade and local rollback instructions. All R1–R4 commits pushed;
+physical Android/Internet acceptance remains NOT RUN and Issue #1 is left open.
+Blocker: no authorized fresh MHS Android/Cloudflare test environment. Next task:
+operator follows INSTALL + CLOUDFLARE + ACCEPTANCE on a separate clean phone;
+collect sanitized `mhs doctor` output and fix any actual native failures.
+Final docs command: bash syntax PASS; executing it on PC refused non-Termux
+before package/setup actions PASS. Reference MHC repo remains clean at `b2f04f9`;
+no phone or Cloudflare configuration was accessed or changed.
