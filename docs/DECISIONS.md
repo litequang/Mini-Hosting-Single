@@ -1,5 +1,14 @@
 # Decisions — 30 October 2026
 
+V2.1 Issue #2 M1: use real Uppy/Tus/FileStore/yauzl/Archiver + incremental SHA from
+@noble/hashes2.4.0 MIT. Build local pure-JS bundles; no npm/CDN needed on Android.
+Tus server lacks a checksum extension implementation, so CheckedStore stages and
+verifies each8MiB chunk before append, then final SHA before publication. All Tus
+requests pass the original auth/CSRF gate. HEAD/OPTIONS with no browser Origin
+require CSRF + AJAX/same-origin fetch metadata. Separate ZIP storage/unzip/full-app/
+frontend-only actions. Frontend replacement excludes backend/data and does not
+run npm or SQL migrations. Scope remains one trusted owner sharing a Termux UID.
+
 31 October — GitHub Issue #1 supersedes old remote-password/Monitor instructions.
 Remote Panel uses owner-allowlisted Access SSO on9093, never local recovery9090.
 Local listener rejects Cloudflare/proxy headers, remote never trusts localhost

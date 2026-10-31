@@ -1,5 +1,15 @@
 # Troubleshooting
 
+- V2.1 UPLOAD_CHUNK_CHECKSUM_FAILED: retry chunk; offset unchanged until verified.
+  After refresh reselect the same file/site/directory. Check network/session first.
+- UPLOAD_RECOVERY_REQUIRED / PREPARED: Files → Kiểm tra upload gián đoạn; verify
+  or restore only that journal. Do not delete the journal or files to bypass it.
+- UNZIP_RECOVERY_REQUIRED: Files → Khôi phục unzip gián đoạn, type site slug.
+- FRONTEND_OVERLAPS_BACKEND_OR_DATA: configure a separate frontend directory;
+  dist cannot contain dist/server.cjs backend. Never remove these guards.
+- FRONTEND_RECOVERY_REQUIRED: use Rollback frontend with site confirmation;
+  backend/SQL remain outside that recovery. Keep release files/journal.
+
 - MHS_EXISTING_MHC_REFUSED: use a different clean Termux device; do not delete MHC
   markers/guards or copy its data to bypass this check.
 - MHS_SETUP_REQUIRED: run setup in the isolated MHS data location.

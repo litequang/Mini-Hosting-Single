@@ -4,6 +4,20 @@ Only this file records execution status. Source provenance: b2f04f9 MHC, read-on
 
 ## Issue #2 — V2.1,31 October2026
 
+M0 commit `8a86cc1`, pushed main. M1 DONE (source/PC checkpoint): integrated actual
+Uppy/Tus/FileStore, yauzl/Archiver, local CodeMirror; protected site files, chunk
+and final SHA, copy/move/trash/download, unzip preview/transaction/recovery and
+frontend-only deploy/rollback. Windows4 new tests PASS including actual HTTP
+35/90/150/512MiB uploads and broken connection retry; latest RSS73→111MiB
+(delta38MiB), not512MiB buffered. ZIP traversal/CRC/bomb/collision refused;
+skip/overwrite and failed-apply rollback PASS. Dist-only preserves backend,
+env/storage/SQL fixtures, HTTP failure rollback PASS. Existing11 auth/hosting/
+standalone regressions PASS. Browser UI/native Android/Internet NOT RUN.
+Additional upload recovery and streamed ZIP download/readback PASS; final20
+preservation regressions PASS, JS56 syntax PASS. Latest upload RSS74→111MiB.
+Current result: this M1 commit; installer release still RC2 until M5. Next implement M2
+Adminer site-user auth boundary and per-site operation page, then M3/M4.
+
 M0 DONE (PC/source audit): latest main clean at `b63ead8`, read full Issue #2 and
 baseline docs. Pinned pure-JS candidates + integrity lockfile, license/runtime
 table in MODULES-V21.md. npm audit initially3 moderate; minimatch11.0.1 override

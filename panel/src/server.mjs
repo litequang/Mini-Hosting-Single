@@ -15,6 +15,11 @@ import {wordpressVersions,installWordPress} from './wordpress.mjs';
 import {listDatabases,createDatabase,listTables,backupDatabase,restoreDatabase} from './databases.mjs';
 import {listBackups,backupSiteArchive,restoreSiteArchive,recoverSiteRestore,backupFile,importBackup} from './backups.mjs';
 import {withOperation} from './operation.mjs';
+import {handleUpload,pendingUploads,recoverUpload} from './uploads.mjs';
+import {fileList,searchFiles,listTrash,trashFile,restoreTrash,moveFile,downloadFiles} from './file-manager.mjs';
+import {unzipPreview,unzipApply,recoverUnzip} from './zip-stream.mjs';
+import {configureFrontend,previewFrontend,deployFrontend,rollbackFrontend} from './frontend.mjs';
+import {guarded} from './file-policy.mjs';
 const PUBLIC=path.join(ROOT,'public');
 export function createPanelServer({remote=false,port=PORT,fetcher=fetch,readConfig=config}={}){
 const sessions=new Map(),attempts=new Map();let mutations=Promise.resolve();
@@ -22,7 +27,7 @@ const sessionName=remote?'__Host-mhs_sso':'mhs_session';
 const revokedFile=path.join(DATA,'revoked-access.json');
 function isRevoked(hash){const v=readJson(revokedFile,{});return (v[hash]||0)>Date.now();}
 function revoke(access){const old=readJson(revokedFile,{}),v=Object.fromEntries(Object.entries(old).filter(([,exp])=>Number.isSafeInteger(exp)&&exp>Date.now()));if(Object.keys(v).length>=2000)throw new HttpError(503,'SSO logout capacity reached');v[access.tokenHash]=access.expires;atomicJson(revokedFile,v);}
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.ico':'image/x-icon','.png':'image/png'};
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.ico':'image/x-icon','.png':'image/png'};
 const token=()=>crypto.randomBytes(32).toString('base64url');
 function send(res,status,data){const out=Buffer.from(JSON.stringify(data));res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','content-length':out.length,'x-content-type-options':'nosniff'});res.end(out);}
 function jsonBody(buf){if(!buf.length)return {};try{return JSON.parse(buf.toString('utf8'));}catch{throw new HttpError(400,'Invalid JSON');}}
@@ -58,6 +63,15 @@ async function api(req,res,url){
  if(route==='/api/session'&&method==='GET')return send(res,200,{project:'MHS',version:readJson(path.join(ROOT,'../release.json'),{}).version||'dev',loggedIn:!!s,user:s?'admin':null,authMode:remote?'access-sso':'local-password',csrf:s?.csrf||null});
  if(!s)throw new HttpError(401,'Sign in required');
  if(route==='/api/logout'&&method==='POST'){guardOrigin(req);mutual(req,s);if(remote)revoke(req.mhsAccess);sessions.delete(cookie(req,sessionName));res.setHeader('set-cookie',sessionName+'=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'+(allowedHttpsHost(req)?'; Secure':''));return send(res,200,{ok:true,...(remote?{logoutUrl:req.mhsAccess.logoutUrl}:{})});}
+ const tus=route.match(/^\/api\/uploads\/([a-z][a-z0-9-]{1,30})(?:\/([a-f0-9]{32}))?$/);
+ if(tus){
+  mutual(req,s);
+  // Same-origin HEAD/OPTIONS do not carry Origin in browsers. They still need
+  // the private session CSRF header; no CORS endpoint can obtain it.
+  if(['HEAD','OPTIONS'].includes(method)&&!req.headers.origin){if(req.headers['x-requested-with']!=='XMLHttpRequest'||req.headers['sec-fetch-site']&&req.headers['sec-fetch-site']!=='same-origin')throw new HttpError(403,'Upload origin denied');}
+  else guardOrigin(req);
+  return queueMutate(()=>handleUpload(req,res,tus[1],tus[2],remote?req.mhsAccess.identity:'local-admin'));
+ }
  if(method!=='GET'){guardOrigin(req);mutual(req,s);}
  if(route==='/api/remote-access'&&method==='GET')return send(res,200,publicStatus());
  if(route==='/api/wordpress/versions'&&method==='GET')return send(res,200,await wordpressVersions());
@@ -84,6 +98,11 @@ async function api(req,res,url){
    if(action==='wordpress'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>installWordPress(name,b)));}
    if(!action&&method==='DELETE'){const {confirm}=jsonBody(await readBody(req,4096));if(confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>deleteSite(name)));}
    if(action==='zip'&&method==='POST'){const buf=await readBody(req,64*1024*1024);return send(res,200,await queueMutate(()=>deployZip(name,buf,req.headers['x-content-sha256']||null)));}
+   if(action==='deploy-stored'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name||!/^[a-f0-9]{64}$/.test(b.sha256||''))throw new HttpError(400,'FULL_DEPLOY_CONFIRM_REQUIRED');return send(res,200,await queueMutate(()=>deployZip(name,guarded(siteRoot(requireSite(name)),b.archive),b.sha256)));}
+   if(action==='frontend'&&method==='PUT'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>configureFrontend(name,b.target,b.confirm)));}
+   if(action==='frontend-preview'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>previewFrontend(name,b.archive)));}
+   if(action==='frontend-deploy'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>deployFrontend(name,b)));}
+   if(action==='frontend-rollback'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>rollbackFrontend(name,b.confirm)));}
    if(action==='rollback'&&method==='POST'){const b=jsonBody(await readBody(req,4096));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>rollbackDeploy(name)));}
    if(action==='health'&&method==='GET')return send(res,200,await siteHealth(requireSite(name)));
    if(action==='backup'&&method==='POST')return send(res,200,await queueMutate(()=>backupSiteArchive(name)));
@@ -92,11 +111,21 @@ async function api(req,res,url){
   }
   if(kind==='files'){
    const rel=url.searchParams.get('path')||'';
-   if(action==='list'&&method==='GET')return send(res,200,{files:listFiles(name,rel)});
+   if(action==='list'&&method==='GET')return send(res,200,{files:fileList(name,rel,url.searchParams.get('q')||'')});
+   if(action==='search'&&method==='GET')return send(res,200,searchFiles(name,url.searchParams.get('q')));
+   if(action==='upload-journals'&&method==='GET')return send(res,200,{items:pendingUploads(name,remote?req.mhsAccess.identity:'local-admin')});
+   if(action==='upload-recover'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>recoverUpload(name,b.id,remote?req.mhsAccess.identity:'local-admin',b.confirm)));}
+   if(action==='trash'&&method==='GET')return send(res,200,{items:listTrash(name)});
+   if(action==='trash-restore'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>restoreTrash(name,b.id)));}
+   if(action==='move'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>moveFile(name,b.source,b.dest,{copy:b.copy===true})));}
+   if(action==='download'&&method==='GET')return downloadFiles(name,rel,res,{zip:url.searchParams.get('zip')==='1'});
+   if(action==='unzip-preview'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>unzipPreview(name,b.archive,b.dest,b.mode)));}
+   if(action==='unzip'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>unzipApply(name,b)));}
+   if(action==='unzip-recover'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>recoverUnzip(name,b.confirm)));}
    if(action==='read'&&method==='GET')return send(res,200,{text:readFileForSite(name,rel)});
    if(action==='write'&&method==='PUT'){const buf=await readBody(req,20*1024*1024);return send(res,200,await queueMutate(()=>writeSiteFile(name,rel,buf)));}
    if(action==='mkdir'&&method==='POST'){const {path:dir}=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>mkdirSite(name,dir)));}
-   if(action==='delete'&&method==='POST'){const {path:dest,confirm}=jsonBody(await readBody(req,8192));if(confirm!==dest)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>deleteSiteFile(name,dest)));}
+   if(action==='delete'&&method==='POST'){const {path:dest,confirm}=jsonBody(await readBody(req,8192));if(confirm!==dest)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>trashFile(name,dest)));}
   }
   if(kind==='services'){
    if(action==='log'&&method==='GET')return send(res,200,{log:getLog(name)});
@@ -122,8 +151,8 @@ async function handle(req,res){try{
  if(url.pathname.startsWith('/api/'))return await api(req,res,url);
  if(req.method!=='GET')throw new HttpError(405,'Not allowed');
  const file=url.pathname==='/'?'index.html':url.pathname.slice(1);
- if(!['index.html','style.css','app.js'].includes(file))throw new HttpError(404,'Not found');
- let content=fs.readFileSync(path.join(PUBLIC,file));if(file==='index.html')content=Buffer.from(content.toString('utf8').replace('<head>','<head><meta name="mhs-auth-mode" content="'+(remote?'access-sso':'local-password')+'">'));res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream','content-length':content.length,'cache-control':'no-store','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",'x-frame-options':'DENY','referrer-policy':'no-referrer'});res.end(content);
+ if(!['index.html','style.css','app.js','files-v21.js','vendor/browser.mjs'].includes(file))throw new HttpError(404,'Not found');
+ let content=fs.readFileSync(path.join(PUBLIC,file));if(file==='index.html')content=Buffer.from(content.toString('utf8').replace('<head>','<head><meta name="mhs-auth-mode" content="'+(remote?'access-sso':'local-password')+'">'));res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream','content-length':content.length,'cache-control':'no-store','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",'x-frame-options':'DENY','referrer-policy':'no-referrer'});res.end(content);
  }catch(e){const status=e instanceof HttpError?e.status:500;console.error('MHS_REQUEST_FAILED',status);if(!res.headersSent)send(res,status,{error:status===500?'Operation failed':e.message});else res.destroy();}}
 const server=http.createServer(handle);server.on('close',()=>clearInterval(pruneTimer));server.requestTimeout=120000;server.headersTimeout=15000;return server;
 }

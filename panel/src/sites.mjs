@@ -5,6 +5,9 @@ import {registry,saveRegistry,SITES,TRASH,DATA,atomicJson,readJson} from './conf
 import {slugOK,hostOK,inside,cleanRel,HttpError} from './security.mjs';
 import {createService,removeService,regenerateNginx,serviceAction} from './system.mjs';
 import {extractZip} from './zip.mjs';
+import {guarded,publicPath,safeOpen} from './file-policy.mjs';
+import {extractZipFile} from './zip-stream.mjs';
+import {hashFile} from './uploads.mjs';
 import {createDatabase} from './databases.mjs';
 import {assertIndependentTree,wpConfig,siteHealth} from './hosting.mjs';
 export function requireSite(slug){const site=registry().sites.find(s=>s.slug===slug);if(!site)throw new HttpError(404,'WEBSITE_NOT_FOUND');if(!slugOK(site.slug))throw Error('INVALID_REGISTRY');return site;}
@@ -44,19 +47,19 @@ export async function addSite({slug,hostname,type='static',entry='server.mjs'}){
  }
 }
 export async function deleteSite(slug){const r=registry(),site=requireSite(slug);const remaining=r.sites.filter(s=>s.slug!==slug);if(site.type==='node')await removeService(site);await regenerateNginx(remaining);const dest=path.join(TRASH,`${Date.now()}-${slug}`);fs.mkdirSync(TRASH,{recursive:true});fs.renameSync(path.join(SITES,slug),dest);r.sites=remaining;saveRegistry(r);return {trash:path.basename(dest),databasePreserved:site.database||null};}
-export function listFiles(slug,rel=''){const dir=inside(siteRoot(requireSite(slug)),rel);return fs.readdirSync(dir,{withFileTypes:true}).filter(e=>!e.isSymbolicLink()).map(e=>{const s=fs.statSync(path.join(dir,e.name));return {name:e.name,dir:e.isDirectory(),size:s.size,mtime:s.mtime.toISOString()};}).sort((a,b)=>Number(b.dir)-Number(a.dir)||a.name.localeCompare(b.name));}
-export function readFileForSite(slug,rel){const file=inside(siteRoot(requireSite(slug)),rel);if(!fs.statSync(file).isFile()||fs.statSync(file).size>2*1024*1024)throw new HttpError(413,'EDITOR_LIMIT');return fs.readFileSync(file,'utf8');}
-export function writeSiteFile(slug,rel,bytes){if(!rel||bytes.length>20*1024*1024)throw new HttpError(400,'FILE_SIZE_OR_PATH');const root=siteRoot(requireSite(slug)),dest=inside(root,rel);fs.mkdirSync(path.dirname(dest),{recursive:true});if(fs.existsSync(dest)&&!fs.statSync(dest).isFile())throw new HttpError(400,'NOT_FILE');fs.writeFileSync(dest,bytes,{mode:0o600});return {path:rel,bytes:bytes.length};}
-export function mkdirSite(slug,rel){if(!rel)throw new HttpError(400,'PATH_REQUIRED');fs.mkdirSync(inside(siteRoot(requireSite(slug)),rel),{recursive:true});return {created:rel};}
-export function deleteSiteFile(slug,rel){if(!rel)throw new HttpError(400,'PATH_REQUIRED');const file=inside(siteRoot(requireSite(slug)),rel);if(fs.statSync(file).isDirectory()){if(fs.readdirSync(file).length)throw new HttpError(409,'DIRECTORY_NOT_EMPTY');fs.rmdirSync(file);}else fs.unlinkSync(file);return {deleted:rel};}
+export function listFiles(slug,rel=''){const dir=guarded(siteRoot(requireSite(slug)),rel,{rootAllowed:true});return fs.readdirSync(dir,{withFileTypes:true}).filter(e=>{try{publicPath(e.name);return !e.isSymbolicLink();}catch{return false;}}).map(e=>{const s=fs.statSync(path.join(dir,e.name));return {name:e.name,dir:e.isDirectory(),size:s.size,mtime:s.mtime.toISOString()};}).sort((a,b)=>Number(b.dir)-Number(a.dir)||a.name.localeCompare(b.name));}
+export function readFileForSite(slug,rel){const {fd,stat}=safeOpen(siteRoot(requireSite(slug)),rel);try{if(stat.size>2*1024*1024)throw new HttpError(413,'EDITOR_LIMIT');const b=fs.readFileSync(fd);if(b.includes(0))throw new HttpError(400,'BINARY_FILE_EDITOR_REFUSED');return b.toString('utf8');}finally{fs.closeSync(fd);}}
+export function writeSiteFile(slug,rel,bytes){if(!rel||bytes.length>2*1024*1024)throw new HttpError(400,'EDITOR_SIZE_OR_PATH');const root=siteRoot(requireSite(slug)),dest=guarded(root,rel);fs.mkdirSync(path.dirname(dest),{recursive:true});guarded(root,rel);if(fs.existsSync(dest)&&(!fs.lstatSync(dest).isFile()||fs.lstatSync(dest).nlink!==1))throw new HttpError(400,'NOT_REGULAR_FILE');const fd=fs.openSync(dest,fs.constants.O_WRONLY|fs.constants.O_CREAT|(fs.constants.O_NOFOLLOW||0),0o600);try{if(fs.fstatSync(fd).nlink!==1)throw new HttpError(403,'FILE_LINK_REFUSED');fs.ftruncateSync(fd,0);fs.writeFileSync(fd,bytes);}finally{fs.closeSync(fd);}return {path:rel,bytes:bytes.length};}
+export function mkdirSite(slug,rel){const root=siteRoot(requireSite(slug));fs.mkdirSync(guarded(root,rel),{recursive:true});guarded(root,rel);return {created:rel};}
+export function deleteSiteFile(slug,rel){const file=guarded(siteRoot(requireSite(slug)),rel);if(fs.statSync(file).isDirectory()){if(fs.readdirSync(file).length)throw new HttpError(409,'DIRECTORY_NOT_EMPTY');fs.rmdirSync(file);}else fs.unlinkSync(file);return {deleted:rel};}
 const deployFile=slug=>path.join(DATA,'deploy-'+slug+'.json');
 export async function deployZip(slug,buf,expectedSha=null){
  const site=requireSite(slug),target=siteRoot(site),id=crypto.randomUUID(),stage=path.join(DATA,'staging-'+id),previous=target+'-previous-'+id;
- const sha256=crypto.createHash('sha256').update(buf).digest('hex');if(expectedSha&&expectedSha!==sha256)throw new HttpError(400,'ZIP_CHECKSUM_MISMATCH');
+ const sha256=typeof buf==='string'?await hashFile(buf):crypto.createHash('sha256').update(buf).digest('hex');if(expectedSha&&expectedSha!==sha256)throw new HttpError(400,'ZIP_CHECKSUM_MISMATCH');
  const old=readJson(deployFile(slug),null);if(old&&old.phase!=='DONE'&&old.phase!=='ROLLED_BACK')throw new HttpError(409,'DEPLOY_RECOVERY_REQUIRED');
  let moved=false,installed=false,paused=false;
  try{
-  const stats=extractZip(buf,stage,{maxFiles:12000,maxTotal:256*1024*1024});assertIndependentTree(stage);
+  const stats=typeof buf==='string'?await extractZipFile(buf,stage):extractZip(buf,stage,{maxFiles:12000,maxTotal:256*1024*1024});assertIndependentTree(stage);
   let effective=stage;const expected=site.type==='node'?site.entry:['php','wordpress'].includes(site.type)?'index.php':'index.html';
   const f=fs.readdirSync(stage);if(f.length===1&&fs.statSync(path.join(stage,f[0])).isDirectory()&&fs.existsSync(path.join(stage,f[0],expected)))effective=path.join(stage,f[0]);
   if(!fs.existsSync(path.join(effective,expected)))throw Error('ZIP_ENTRYPOINT_MISSING');

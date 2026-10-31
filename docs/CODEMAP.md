@@ -4,6 +4,16 @@ V2.1 Issue #2: MODULES-V21.md records candidate/license/runtime decisions;
 package-lock.json pins dependencies/integrity; deployment will use local vendor
 bundles, no runtime CDN/npm requirement. RC1/RC2 archives remain immutable.
 
+M1: file-policy.mjs shared site/protected-path/no-follow/link/disk limits;
+uploads.mjs adapts real Tus/FileStore with private chunk checksum staging + final
+SHA256 and ownership journals. zip-stream.mjs uses yauzl lazy entries/CRC/limits
+and per-site transactional unzip recovery. file-manager.mjs owns copy/move/trash/
+search/Archiver downloads. frontend.mjs owns directory-only deploy/health/rollback.
+files-v21.js plugs Uppy/Tus + CodeMirror into original Files; browser bundle is
+lazy local, tools/build-vendor.mjs produces runtime/browser + license notices.
+tests/files-v21 tests actual35/90/150/512MiB HTTP streams, disconnect/resume,
+security boundaries and disk/ZIP/frontend fixtures. No native Android claim.
+
 Issue #1 R1: remote-access.mjs adds strict schema2 owner-identity mapping, separate
 local/remote authorizers and bounded JWKS cache. createPanelServer factory keeps
 local password and remote-only SSO sessions separate. tests/panel-sso exercises

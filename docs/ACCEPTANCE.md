@@ -1,5 +1,13 @@
 # Acceptance — 31 October 2026, Issue #1
 
+V2.1 Issue #2 M1: Windows actual HTTP35/90/150/512MiB Tus uploads, partial request
+disconnect→offset unchanged→retry, chunk/final SHA, HEAD session+CSRF/site boundary,
+private paths/hardlink/traversal, streamed download ZIP readback, trash/restore,
+unzip CRC/bomb metadata/collision/skip/overwrite/error rollback, dist-only safety
+and HTTP-failure rollback:4 targeted tests PASS. RSS74→111MiB (delta37MiB) in latest
+upload run. Existing20 auth/hosting/backup/installer/WordPress/Node regressions PASS;
+JS56 syntax PASS. Browser UX, native Android and Internet NOT RUN.
+
 R1/R2/R3/R4 regressions: Windows Node22.22.2,25 tests PASS trong8 runner liên
 quan auth/Monitor/wizard/doctor/install/updater và hosting preservation;44 JS syntax
 checks PASS, bash -n boot/bootstrap PASS. No Android or Cloudflare mutation run.

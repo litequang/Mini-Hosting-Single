@@ -4,6 +4,16 @@ V2.1 adds site-scoped adapters within this Panel, using audited pure-JS vendor
 bundles. No second panel, upload bypass, privileged daemon or Cluster runtime.
 See MODULES-V21.md for license/native validation gates; Android remains NOT RUN.
 
+M1 upload requests enter the same verified Panel session boundary, including Tus
+HEAD/PATCH. Each verified8MiB chunk stages to private disk before append; final
+SHA must match before publishing a file. ZIP upload, unzip, frontend-only directory
+swap and full-app release are distinct operations. Shared local operation lock
+serializes mutations across local/remote listener; no public chunk service exists.
+Private staging records owner+site and conservative disk reservations. Zip/file
+adapters reject links, protected paths, collision/CRC/expansion limits. Backend
+and SQL remain outside frontend-only write scope. Same Android UID remains the
+trust model; these guards do not sandbox malicious applications.
+
 One phone owns its sites and data. Direct Tunnel routes website hostnames to
 loopback Nginx8080; Nginx dispatches static/PHP/Node. Panel9090 is loopback-only.
 Local password Panel9090 and remote SSO Panel9093 are separate loopback listeners.

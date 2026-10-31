@@ -14,10 +14,13 @@
     "check": "node tools/check.mjs"
   },
   "license": "UNLICENSED",
-  "overrides": { "minimatch": "11.0.1" },
+  "overrides": {
+    "minimatch": "11.0.1"
+  },
   "dependencies": {
     "@codemirror/lang-html": "6.4.12",
     "@codemirror/lang-javascript": "6.2.5",
+    "@noble/hashes": "2.4.0",
     "@tus/file-store": "2.1.1",
     "@tus/server": "2.4.6",
     "@uppy/core": "6.3.0",

@@ -28,8 +28,10 @@ Nút Rollback code không quay ngược database. Không gọi deploy fixture l�
 public. Trước cập nhật app có migration SQL, tạo backup đầy đủ và kế hoạch dữ liệu.
 WP code update giữ uploads cũ, từ chối ZIP uploads gây ghi đè không rõ ràng.
 
-Files: chọn site/thư mục, upload, đọc/sửa text, tạo thư mục, xóa có xác nhận.
-Chỉ chủ thiết bị tin cậy sử dụng; file manager có thể đọc credentials của chính site.
+Files V2.1: chọn site/thư mục, Tus upload512MiB/chunk8MiB, ZIP giải nén riêng,
+frontend-only deploy/rollback, CodeMirror, copy/move/thùng rác/restore. Các file
+private như .env/wp-config/credentials không được đọc qua File Manager.
+Chi tiết: [Files và Deploy](FILES-DEPLOY.md). Chỉ chủ thiết bị tin cậy sử dụng.
 Không dùng thiết bị cho các tenant không tin cậy vì Termux cùng UID.
 
 Tham khảo chính thức:
