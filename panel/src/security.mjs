@@ -12,7 +12,7 @@ export function configured(){return fs.existsSync(ADMIN);}
 export function slugOK(v){return typeof v==='string'&&/^[a-z][a-z0-9-]{1,30}$/.test(v)&&!['panel','admin','api','default','pro'].includes(v);}
 export function hostOK(v){return typeof v==='string'&&v.length<=253&&v.length>=4&&/^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(v)&&!v.includes('..');}
 export function databaseOK(v){return typeof v==='string'&&/^[a-z][a-z0-9_]{2,29}$/.test(v);}
-export function serviceOK(v){return ['mhs-panel','mhs-monitor','mhs-nginx','mhs-php','mhs-db','mhs-tunnel'].includes(v)||/^mhs-site-[a-z][a-z0-9-]{1,30}$/.test(v);}
+export function serviceOK(v){return ['mhs-panel','mhs-monitor','mhs-scheduler','mhs-nginx','mhs-php','mhs-db','mhs-tunnel'].includes(v)||/^mhs-site-[a-z][a-z0-9-]{1,30}$/.test(v);}
 export function cleanRel(input=''){
  if(typeof input!=='string'||input.length>512||input.includes('\0')||input.includes('\\'))throw Error('Invalid path');
  const parts=input.split('/');if(parts.some(p=>p==='..'||p==='.'||p==='')){

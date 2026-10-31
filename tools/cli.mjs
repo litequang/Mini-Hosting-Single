@@ -9,10 +9,12 @@ import {ask} from './input.mjs';
 import {deployZip,requireSite} from '../panel/src/sites.mjs';
 import {recoverSiteRestore} from '../panel/src/backups.mjs';
 import {doctor} from './doctor.mjs';
+import {exportRecoveryKit,importRecoveryKit} from '../panel/src/restic.mjs';
 async function main(){
  const [action,...args]=process.argv.slice(2);
  if(action==='doctor'){const report=await doctor();if(report.summary.FAIL)process.exitCode=1;return report;}
  assertStandalone();
+ if(action==='recovery-kit'){const file=path.resolve(args[1]||'mhs-recovery.encrypted.json');if(!['export','import'].includes(args[0]))throw Error('RECOVERY_KIT_EXPORT_OR_IMPORT');const passphrase=await ask('Mat khau recovery kit (an, it nhat16 ky tu): ',{secret:true});return withOperation(async()=>{if(args[0]==='export'){const kit=exportRecoveryKit(passphrase);fs.writeFileSync(file,JSON.stringify(kit,null,2)+'\n',{mode:0o600,flag:'wx'});return {exported:true,file,encrypted:true};}const stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>65536)throw Error('RECOVERY_KIT_FILE_INVALID');const confirm=await ask('Nhap MHS IMPORT ENCRYPTED RECOVERY (chi config MHS moi): ');return importRecoveryKit(JSON.parse(fs.readFileSync(file,'utf8')),passphrase,confirm);});}
  if(action==='status'||action==='monitor')return systemStats();
  if(action==='service')return withOperation(()=>serviceAction(args[0],args[1]));
  if(action==='cloudflare'||action==='setup'&&args[0]==='remote')return withOperation(()=>wizard());

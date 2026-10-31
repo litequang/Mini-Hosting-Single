@@ -9,7 +9,7 @@ if [ -f "$PREFIX/etc/profile.d/start-services.sh" ]; then
   . "$PREFIX/etc/profile.d/start-services.sh"
 fi
 # Only MHS-owned service directories; stock SSH services remain under user control.
-for name in mhs-db mhs-php mhs-nginx mhs-panel mhs-monitor; do
+for name in mhs-db mhs-php mhs-nginx mhs-panel mhs-monitor mhs-scheduler; do
   test -f "$SVDIR/$name/mhs-owned" || continue
   test "$name" = mhs-panel || test ! -f "$SVDIR/$name/down" || continue
   for attempt in 1 2 3 4 5 6 7 8 9 10; do

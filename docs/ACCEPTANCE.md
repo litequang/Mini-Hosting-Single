@@ -1,5 +1,11 @@
 # Acceptance — 31 October 2026, Issue #1
 
+V2.1 M3:3 targeted tests PASS, including actual restic0.19.1 Windows encrypted
+init/backup/check/restore/forget/prune and kit roundtrip. SQL dump/import adapter
+is a fixture; injected post-mutation SQL failure rolls back SQL/files. Scheduler
+durability/validation/no overlap and busy lock retry PASS.9 related old regressions
+PASS, JS65 syntax PASS. Native SQL/Android/reboot/SFTP/S3/Internet NOT RUN.
+
 V2.1 M2:2 targeted PC tests PASS: site DB binding, pinned Adminer release hash,
 CGI proof and scoped cookie filtering; real HTTP Access/session/Origin/form-CSRF
 then synthetic private FastCGI, response no-store/CSRF insertion, root/foreign

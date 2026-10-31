@@ -21,6 +21,8 @@ import {unzipPreview,unzipApply,recoverUnzip} from './zip-stream.mjs';
 import {configureFrontend,previewFrontend,deployFrontend,rollbackFrontend} from './frontend.mjs';
 import {guarded} from './file-policy.mjs';
 import {proxyAdminer,stageAdminerBody,attachDatabase} from './adminer.mjs';
+import {resticStatus,configureRestic,exportRecoveryKit,restic} from './restic.mjs';
+import {schedules,saveSchedule,backupJobs,enqueueBackupJob,retryBackupJob} from './scheduler.mjs';
 const PUBLIC=path.join(ROOT,'public');
 export function createPanelServer({remote=false,port=PORT,fetcher=fetch,readConfig=config,adminerProxy=proxyAdminer}={}){
 const sessions=new Map(),attempts=new Map();let mutations=Promise.resolve();
@@ -91,6 +93,12 @@ async function api(req,res,url){
  if(route==='/api/services'&&method==='GET'){const status=await systemStats();return send(res,200,{services:status.services});}
  if(route==='/api/databases'&&method==='GET')return send(res,200,{databases:await listDatabases()});
  if(route==='/api/backups'&&method==='GET')return send(res,200,{backups:listBackups()});
+ if(route==='/api/backup-policy'&&method==='GET')return send(res,200,{restic:resticStatus(),schedules:schedules(),jobs:backupJobs()});
+ if(route==='/api/restic/config'&&method==='POST'){const b=jsonBody(await readBody(req,16384));return send(res,200,await queueMutate(()=>configureRestic(b)));}
+ if(route==='/api/backup-jobs'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,202,await queueMutate(()=>enqueueBackupJob(b)));}
+ if(route==='/api/backup-jobs/retry'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,202,await queueMutate(()=>retryBackupJob(b.id,b.confirm)));}
+ if(route==='/api/backup-schedules'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>saveSchedule(b)));}
+ if(route==='/api/restic/recovery-kit'&&method==='POST'){const b=jsonBody(await readBody(req,4096)),kit=await queueMutate(()=>exportRecoveryKit(b.passphrase));res.setHeader('content-disposition','attachment; filename="mhs-recovery.encrypted.json"');return send(res,200,kit);}
  if(route==='/api/backups/upload'&&method==='POST'){
   const file=path.join(DATA,'backup-upload-'+crypto.randomUUID());const out=fs.createWriteStream(file,{mode:0o600,flags:'wx'});let bytes=0;let writeError=null;out.on('error',e=>writeError=e);
   try{for await(const chunk of req){bytes+=chunk.length;if(bytes>256*1024*1024)throw new HttpError(413,'BACKUP_UPLOAD_LIMIT');if(writeError)throw writeError;if(!out.write(chunk))await once(out,'drain');}const done=once(out,'finish');out.end();await done;return send(res,201,await queueMutate(()=>importBackup(file,url.searchParams.get('sha256'))));}finally{out.destroy();fs.rmSync(file,{force:true});}
@@ -115,6 +123,7 @@ async function api(req,res,url){
    if(action==='rollback'&&method==='POST'){const b=jsonBody(await readBody(req,4096));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>rollbackDeploy(name)));}
    if(action==='health'&&method==='GET')return send(res,200,await siteHealth(requireSite(name)));
    if(action==='backup'&&method==='POST')return send(res,200,await queueMutate(()=>backupSiteArchive(name)));
+   if(action==='snapshots'&&method==='GET')return send(res,200,{snapshots:await queueMutate(()=>restic.snapshots(name))});
    if(action==='restore'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>restoreSiteArchive(name,b.backup,b)));}
    if(action==='recover-restore'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>recoverSiteRestore(name,b.confirm)));}
   }
@@ -160,7 +169,7 @@ async function handle(req,res){try{
  if(url.pathname.startsWith('/api/'))return await api(req,res,url);
  if(req.method!=='GET')throw new HttpError(405,'Not allowed');
  const file=url.pathname==='/'?'index.html':url.pathname.slice(1);
- if(!['index.html','style.css','app.js','files-v21.js','vendor/browser.mjs'].includes(file))throw new HttpError(404,'Not found');
+ if(!['index.html','style.css','app.js','files-v21.js','backup-v21.js','vendor/browser.mjs'].includes(file))throw new HttpError(404,'Not found');
  let content=fs.readFileSync(path.join(PUBLIC,file));if(file==='index.html')content=Buffer.from(content.toString('utf8').replace('<head>','<head><meta name="mhs-auth-mode" content="'+(remote?'access-sso':'local-password')+'">'));res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream','content-length':content.length,'cache-control':'no-store','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",'x-frame-options':'DENY','referrer-policy':'no-referrer'});res.end(content);
  }catch(e){const status=e instanceof HttpError?e.status:500;console.error('MHS_REQUEST_FAILED',status);if(!res.headersSent)send(res,status,{error:status===500?'Operation failed':e.message});else res.destroy();}}
 const server=http.createServer(handle);server.on('close',()=>clearInterval(pruneTimer));server.requestTimeout=120000;server.headersTimeout=15000;return server;

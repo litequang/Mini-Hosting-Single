@@ -5,7 +5,7 @@ import http from 'node:http';
 import {DATA,HOME,TERMUX,NGINX_CONFIG,SOCKET,readJson as storedJson,assertStandalone} from '../panel/src/config.mjs';
 import {config} from '../panel/src/remote-access.mjs';
 import {cmd,serviceNames} from '../panel/src/system.mjs';
-const packages=['nginx','php','php-fpm','mariadb','termux-services','termux-api','cloudflared','curl','coreutils','util-linux'];
+const packages=['nginx','php','php-fpm','mariadb','termux-services','termux-api','cloudflared','curl','coreutils','util-linux','restic'];
 export function httpProbe(port,host,route='/'){
  return new Promise(resolve=>{const q=http.get({host:'127.0.0.1',port,path:route,headers:{host},timeout:2000},r=>{let n=0;r.on('data',d=>{n+=d.length;if(n>65536)q.destroy();});r.on('end',()=>resolve({status:r.statusCode}));});q.on('error',()=>resolve({status:null}));q.on('timeout',()=>{q.destroy();resolve({status:null});});});
 }
@@ -29,7 +29,7 @@ export async function doctor({run=cmd,probe=httpProbe,loadConfig=config,platform
  const install=readJson(path.join(DATA,'install.json'),null);add('install-journal',install?.phase==='INSTALLED'?'PASS':install?'FAIL':'NOT RUN',install?.phase==='INSTALLED'?'Installer đã ghi hoàn tất.':install?'Cài đặt đang gián đoạn.':'Không có journal installer.',install&&install.phase!=='INSTALLED'?'Chạy lại cùng bootstrap release để tiếp tục.':'');
  const upgrade=readJson(path.join(DATA,'upgrade.json'),null);if(upgrade&&!['DONE','ROLLED_BACK'].includes(upgrade.phase))add('upgrade-journal','FAIL','Nâng cấp chưa hoàn tất.','Retry cùng bundle+SHA hoặc mhs rollback; giữ journal.');
  if(fs.existsSync(DATA)){const st=fs.lstatSync(DATA);add('private-data-directory',st.isSymbolicLink()||!st.isDirectory()?'FAIL':platform==='win32'?'NOT RUN':(st.mode&0o077)===0?'PASS':'FAIL','Thư mục dữ liệu phải private0700, không symlink.');}
- const files=['mhs.json','admin.json','initial-password','settings.json','databases.json','remote-access.json','remote-access.previous.json','revoked-access.json','cloudflare/tunnel-token',...(fs.existsSync(DATA)?fs.readdirSync(DATA,{withFileTypes:true}):[]).filter(e=>e.isFile()&&/^node-env-.*\.json$/.test(e.name)).map(e=>e.name)];
+ const files=['mhs.json','admin.json','initial-password','adminer-key','restic.json','restic-state.json','schedules.json','backup-jobs.json','settings.json','databases.json','remote-access.json','remote-access.previous.json','revoked-access.json','cloudflare/tunnel-token',...(fs.existsSync(DATA)?fs.readdirSync(DATA,{withFileTypes:true}):[]).filter(e=>e.isFile()&&/^node-env-.*\.json$/.test(e.name)).map(e=>e.name)];
  for(const name of files){const file=path.join(DATA,name);if(!fs.existsSync(file))continue;const st=fs.lstatSync(file);add('private-'+name.replaceAll('/','-'),st.isSymbolicLink()||!st.isFile()?'FAIL':platform==='win32'?'NOT RUN':(st.mode&0o077)===0?'PASS':'FAIL',platform==='win32'?'POSIX0600 không kiểm trên Windows.':'File private phải là regular file0600.',platform!=='win32'&&(st.mode&0o077)!==0?'Sửa quyền file private trên chính thiết bị; không gửi nội dung.':'');}
  const local=await probe(9090,'127.0.0.1:9090','/api/session');add('local-panel',local.status===200?'PASS':'FAIL','Panel local password9090.','Mở Termux; sv restart "$PREFIX/var/service/mhs-panel"');
  for(const [surface,port] of [['panel',9093],['monitor',9092]]){

@@ -22,6 +22,17 @@ Adminer session/CSRF checks apply. Cookie scopes and identities stay separate.
 No Nginx alias to Adminer, no additional listener, no raw SQL credentials in CGI
 headers/URLs. Interactive response8MiB cap keeps legacy FastCGI buffering bounded.
 
+M3 encryption uses official restic, no new backup cryptosystem. Each snapshot has
+owned site/ID tags and files/SQL/private manifest. Secret-bearing config remains
+private on-device and encrypted in repository; recovery kit uses AES-GCM+scrypt.
+Local scheduler service owns only allowlisted jobs, durable journal, noOverlap and
+the same mutation lock as Panel/updater. API returns202; browser does not keep a
+Cloudflare request open for a large job. Old archive backups remain compatible.
+Local cap/disk reserve, single read/CPU and Go memory target bound resource usage;
+online files vs SQL consistency is explicitly separate. Restore is staged, safety
+backed, verified, maintenance gated and rolls back; no automatic cross-device secret
+mapping or replacement of current local credentials. See ENCRYPTED-BACKUP.md.
+
 One phone owns its sites and data. Direct Tunnel routes website hostnames to
 loopback Nginx8080; Nginx dispatches static/PHP/Node. Panel9090 is loopback-only.
 Local password Panel9090 and remote SSO Panel9093 are separate loopback listeners.

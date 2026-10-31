@@ -26,6 +26,7 @@ export async function configureServices(){
  writeService('mhs-nginx',`exec ${quote(path.join(TERMUX,'bin/nginx'))} -p ${quote(path.dirname(NGINX_CONFIG)+'/')} -c ${quote(NGINX_CONFIG)} -g 'daemon off;'`);
  writeService('mhs-panel',`exec ${quote(process.execPath)} ${quote(path.join(source,'panel/src/server.mjs'))}`);
  writeService('mhs-monitor',`exec ${quote(process.execPath)} ${quote(path.join(source,'panel/src/monitor-server.mjs'))}`);
+ writeService('mhs-scheduler',`exec ${quote(process.execPath)} ${quote(path.join(source,'tools/scheduler-service.mjs'))}`);
  const launcher=path.join(TERMUX,'bin/mhs');if(fs.existsSync(launcher)&&!fs.readFileSync(launcher,'utf8').includes('# MHS-owned launcher'))throw Error('MHS_FOREIGN_LAUNCHER_REFUSED');
  fs.writeFileSync(launcher,`#!${TERMUX}/bin/sh\n# MHS-owned launcher\nexec ${quote(process.execPath)} ${quote(path.join(source,'tools/cli.mjs'))} "$@"\n`,{mode:0o700});fs.chmodSync(launcher,0o700);
  const boot=path.join(HOME,'.termux/boot/20-mhs-start');fs.mkdirSync(path.dirname(boot),{recursive:true,mode:0o700});if(fs.existsSync(boot)&&!fs.readFileSync(boot,'utf8').includes('# MHS-owned boot'))throw Error('MHS_FOREIGN_BOOT_REFUSED');

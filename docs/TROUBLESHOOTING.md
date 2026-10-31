@@ -1,5 +1,17 @@
 # Troubleshooting
 
+- RESTIC_UNAVAILABLE: `pkg install restic`, then `mhs doctor` and scheduler up.
+- RESTIC_REPOSITORY_CHANGED: stop backup jobs; verify repo ID/config, do not init
+  over an existing repository or change state to adopt it.
+- RESTIC_LOW_MEMORY / INSUFFICIENT_DISK_SPACE: postpone job, preserve website and
+  reserve. RESTIC_LOCAL_REPOSITORY_LIMIT_RUN_PRUNE: review retention/prune owned repo.
+- BACKUP_JOB_PENDING: inspect job list; Retry FAILED/INTERRUPTED only after typed
+  confirmation. Old process may still be active; do not remove locks to bypass it.
+- RESTIC_RESTORE_RECOVERY_REQUIRED: keep maintenance/journal/safety snapshot;
+  Backups → recovery, typed slug. Never delete a DB or old root to unblock.
+- RECOVERY_KIT_INVALID_OR_WRONG_PASSPHRASE: verify kit/passphrase locally; do not
+  paste secret material into chat. Kit alone cannot replace a lost local repository.
+
 - SITE_DATABASE_NOT_CONFIGURED: Websites → Site → Tạo database cho site. Do not
   bind arbitrary existing/root schemas or change credentials files to bypass.
 - PHP_FPM_UNAVAILABLE: `mhs doctor`, then `mhs service mhs-php up`; no public

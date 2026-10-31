@@ -21,6 +21,14 @@ asset/hash/license in panel/vendor + docs/vendor. websiteWorkspace in app.js kee
 site operations within original Panel. adminer.test uses real HTTP + synthetic
 FastCGI, not native PHP/MariaDB. See DATABASE-ADMIN.md for interactive limits.
 
+M3: restic.mjs: private repository setup/ID pin/tags, bounded child CLI, SQL+files+
+private manifests, verified snapshot/restore/safety rollback, retention/prune,
+AES-GCM/scrypt recovery kit. scheduler.mjs + tools/scheduler-service.mjs own durable
+cron/interval/job state and local operation lock. backup-v21.js extends existing
+Backups; install/boot/management add/stop scheduler across source rollback.
+databases.mjs adds streamed SQL input and guard scan; old archive format retained.
+restic.test runs official PC restic when MHS_RESTIC_TEST_EXE is set; SQL injected.
+
 Issue #1 R1: remote-access.mjs adds strict schema2 owner-identity mapping, separate
 local/remote authorizers and bounded JWKS cache. createPanelServer factory keeps
 local password and remote-only SSO sessions separate. tests/panel-sso exercises

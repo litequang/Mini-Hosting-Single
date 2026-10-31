@@ -4,6 +4,20 @@ Only this file records execution status. Source provenance: b2f04f9 MHC, read-on
 
 ## Issue #2 — V2.1,31 October2026
 
+M2 commit `08c1ad6`, pushed main. M3 DONE (source/PC): encrypted restic backups,
+site/owner tags + repository ID, SQL512MiB streaming, private recovery metadata,
+verified restore/safety rollback, keepLast/prune, AES-GCM recovery kit export/import.
+Durable node-cron/interval schedules + allowlisted async job runner integrated in
+same Backups page, runit/Boot and upgrade/rollback.3 targeted PC tests PASS with
+actual official restic0.19.1 Windows binary (asset digest verified); SQL adapter is
+fixture. Init/backup/check/read-data/restore, injected SQL fault rollback, retention,
+prune and encrypted kit roundtrip PASS. Windows ACL test required unsandboxed test
+execution; no user data involved.9 backup/auth/setup/install regressions PASS,
+JS65 syntax PASS. Android/native SQL/reboot/SFTP/S3/Internet NOT RUN. Existing
+Node env/DB credentials preserved; cross-device config mapping remains manual.
+Current result: this M3 commit. Next: M4 exact domain preview/apply/rollback using
+official SDK, preserving unrelated ingress/DNS and existing SSO/Monitor routes.
+
 M1 checkpoint `b678dd0` pushed main. M2 DONE (source/PC adapter): official Adminer
 6.2.0 MySQL-only293497 bytes, digest/SHA verified; site workspace + site-only DB
 binding/credentials once, private FPM proxy/proof, scoped PHP session and MHS form

@@ -1,5 +1,13 @@
 # Decisions — 30 October 2026
 
+V2.1 M3: use Termux restic + local node-cron service, existing local operation
+lock; no arbitrary shell scheduler or distributed orchestration. Async backup
+jobs return202 and preserve states on reboot. Plain legacy archive format kept;
+larger/config-complete backups use encrypted snapshots. SQL up to512MiB streams
+with managed-marker scan before mutation. Local4GiB repo cap; forget owned IDs,
+prune explicit/bounded repack. Recovery kit never logs secrets or reads SSH keys.
+Restore preserves local credentials/env; cross-device mapping remains manual.
+
 V2.1 M2: pin Adminer6.2.0 MySQL-only official digest, choose Apache-2.0 license.
 Use existing FPM Unix socket through verified MHS route, never Nginx/public alias.
 Site SQL user + fixed schema/socket, private PHP session, MHS CSRF hidden in POST
