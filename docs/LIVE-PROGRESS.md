@@ -11,7 +11,7 @@ Only this file records execution status. Source provenance: b2f04f9 MHC, read-on
 | M2 Adminer/editor | DONE (source/PC adapter) | `08c1ad6`, scoped FCGI/auth PASS | native PHP/DB/Adminer NOT RUN |
 | M3 restic/scheduler | DONE (PC) | `8278258`, real Windows restic PASS | Android/SQL/SFTP/S3/reboot NOT RUN |
 | M4 domain | DONE (SDK mock) | `e9f922a`, preserve/conflict/rollback PASS | live Cloudflare NOT RUN |
-| M5 integration/release | IN PROGRESS | 42 PC integration tests PASS; nearest committed SHA `e9f922a` | source checkpoint, immutable2.1 RC1 + pinned instructions |
+| M5 integration/release | IN PROGRESS | source `4c865fc` pushed;42 PC integration tests PASS; exact package smoke PASS | push artifact/tag, public hash verification + pinned instructions |
 
 M5 current checkpoint work: isolated real Chrome desktop/mobile viewport smoke
 PASS for local login, real Uppy/Tus upload, CodeMirror save, site workspace,
@@ -25,6 +25,15 @@ latest Tus512MiB RSS75→111MiB (reported delta35MiB). Native/Internet still NOT
 77 JavaScript syntax + boot/bootstrap bash syntax PASS. Final doctor change:
 3 targeted regression tests PASS. origin/main fetched,0 ahead/behind at e9f922a;
 reference MHC remains clean at b2f04f9. No remote account/device changed.
+
+M5 source `4c865fc01552cfe58ea07ca0bf895723da486bad` pushed main. Immutable
+2.1.0-rc.1 built from that exact commit:99 source/docs files + release manifest,
+1118432-byte bundle,5034-byte bootstrap. Exact archive SHA/extraction/manifest/
+fresh-install PC fixture and anonymous remote Panel/Monitor403 PASS. Generated
+bootstrap bash syntax PASS. Source/package mode PC_ONLY; native/Internet NOT RUN.
+Archive SHA256 `3450f42ef97de7e68c337864c972e7a42d3f232f4d9d375bd38fbff1071454c9`.
+Bootstrap SHA256 `4bf4e9ac58b5e02f05f8daa181e365e81f659ad08cd4a2caa6b52aa5c79b1698`.
+Next: push tag/artifacts, verify exact public bytes and publish pinned command.
 
 M3 commit `8278258`, pushed main. M4 DONE (source/PC SDK mock): exact domain
 preview/apply/HTTPS/remove, connector/API scope binding, private ownership journals,
