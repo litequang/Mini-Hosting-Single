@@ -17,6 +17,8 @@ Issue #2 là đặc tả hợp nhất. Baseline RC2 `b63ead8`; không sửa MHC/
 | Cloudflare SDK |7.3.0, Apache-2.0 | official pure JS; source npm≈71MiB nên bundle riêng, lazy load; API token giới hạn khác connector; live mutations cần xác nhận |
 | WP-CLI |official phar, MIT | optional, chỉ bật khi native PHP/Termux test đạt; hiện NOT RUN, không chặn ship |
 | esbuild |0.28.2, MIT | công cụ build trên PC; binary không đưa vào gói Android, chỉ ship JS/assets/license |
+| @noble/hashes |2.4.0, MIT | hash incremental browser,8MiB window; không file.arrayBuffer()512MiB |
+| fastcgi-client / busboy |0.2.0 /1.6.0, MIT | private FPM transport + multipart stream; old FastCGI module bounded8MiB response/60s, no public route; native PHP gate NOT RUN |
 
 Nền Node≥22.16 hiện tại đáp ứng engines của các runtime Node. Pure JS không cần
 Linux glibc prebuild; khả năng Android/Bionic thực tế chưa được nghiệm thu. PHP

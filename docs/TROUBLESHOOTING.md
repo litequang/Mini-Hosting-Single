@@ -1,5 +1,14 @@
 # Troubleshooting
 
+- SITE_DATABASE_NOT_CONFIGURED: Websites → Site → Tạo database cho site. Do not
+  bind arbitrary existing/root schemas or change credentials files to bypass.
+- PHP_FPM_UNAVAILABLE: `mhs doctor`, then `mhs service mhs-php up`; no public
+  Adminer port is needed. Native PHP wrapper checks must pass on the test device.
+- ADMINER_RESPONSE_LIMIT_USE_BACKUP_EXPORT: use Backup SQL/site export for large
+  data; do not increase response buffers. Adminer SQL form2MiB/import64MiB.
+- DB iframe403 after session expiry: reload Panel/Access, reopen Database. PHP
+  cookies alone never authorize MHS. Local9090 remains password recovery.
+
 - V2.1 UPLOAD_CHUNK_CHECKSUM_FAILED: retry chunk; offset unchanged until verified.
   After refresh reselect the same file/site/directory. Check network/session first.
 - UPLOAD_RECOVERY_REQUIRED / PREPARED: Files → Kiểm tra upload gián đoạn; verify

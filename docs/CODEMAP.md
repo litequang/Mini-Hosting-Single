@@ -14,6 +14,13 @@ lazy local, tools/build-vendor.mjs produces runtime/browser + license notices.
 tests/files-v21 tests actual35/90/150/512MiB HTTP streams, disconnect/resume,
 security boundaries and disk/ZIP/frontend fixtures. No native Android claim.
 
+M2: adminer.mjs handles per-site DB provisioning/binding, staged form parsing and
+bounded private FastCGI proxy; panel/tools/adminer.php verifies adapter proof and
+pins site-user/socket/schema with separate PHP session. Vendored official Adminer
+asset/hash/license in panel/vendor + docs/vendor. websiteWorkspace in app.js keeps
+site operations within original Panel. adminer.test uses real HTTP + synthetic
+FastCGI, not native PHP/MariaDB. See DATABASE-ADMIN.md for interactive limits.
+
 Issue #1 R1: remote-access.mjs adds strict schema2 owner-identity mapping, separate
 local/remote authorizers and bounded JWKS cache. createPanelServer factory keeps
 local password and remote-only SSO sessions separate. tests/panel-sso exercises

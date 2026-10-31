@@ -20,8 +20,9 @@ import {fileList,searchFiles,listTrash,trashFile,restoreTrash,moveFile,downloadF
 import {unzipPreview,unzipApply,recoverUnzip} from './zip-stream.mjs';
 import {configureFrontend,previewFrontend,deployFrontend,rollbackFrontend} from './frontend.mjs';
 import {guarded} from './file-policy.mjs';
+import {proxyAdminer,stageAdminerBody,attachDatabase} from './adminer.mjs';
 const PUBLIC=path.join(ROOT,'public');
-export function createPanelServer({remote=false,port=PORT,fetcher=fetch,readConfig=config}={}){
+export function createPanelServer({remote=false,port=PORT,fetcher=fetch,readConfig=config,adminerProxy=proxyAdminer}={}){
 const sessions=new Map(),attempts=new Map();let mutations=Promise.resolve();
 const sessionName=remote?'__Host-mhs_sso':'mhs_session';
 const revokedFile=path.join(DATA,'revoked-access.json');
@@ -72,6 +73,13 @@ async function api(req,res,url){
   else guardOrigin(req);
   return queueMutate(()=>handleUpload(req,res,tus[1],tus[2],remote?req.mhsAccess.identity:'local-admin'));
  }
+ const dbAdmin=route.match(/^\/api\/sites\/([a-z][a-z0-9-]{1,30})\/database-admin$/);
+ if(dbAdmin){
+  if(!['GET','POST'].includes(method))throw new HttpError(405,'ADMINER_METHOD_REFUSED');
+  let body=null;
+  try{if(method==='POST'){guardOrigin(req);body=await stageAdminerBody(req);mutual({headers:{...req.headers,'x-csrf-token':req.headers['x-csrf-token']||body.csrf}},s);}return await queueMutate(()=>adminerProxy(req,res,dbAdmin[1],{csrf:s.csrf,principal:remote?req.mhsAccess.identity:'local-admin',body}));}
+  finally{if(body)fs.rmSync(body.file,{force:true});}
+ }
  if(method!=='GET'){guardOrigin(req);mutual(req,s);}
  if(route==='/api/remote-access'&&method==='GET')return send(res,200,publicStatus());
  if(route==='/api/wordpress/versions'&&method==='GET')return send(res,200,await wordpressVersions());
@@ -96,6 +104,7 @@ async function api(req,res,url){
   if(kind==='sites'){
    if(!action&&method==='PATCH'){const b=jsonBody(await readBody(req,128*1024));return send(res,200,await queueMutate(()=>updateSite(name,b)));}
    if(action==='wordpress'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>installWordPress(name,b)));}
+   if(action==='database'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,201,await queueMutate(()=>attachDatabase(name,b)));}
    if(!action&&method==='DELETE'){const {confirm}=jsonBody(await readBody(req,4096));if(confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>deleteSite(name)));}
    if(action==='zip'&&method==='POST'){const buf=await readBody(req,64*1024*1024);return send(res,200,await queueMutate(()=>deployZip(name,buf,req.headers['x-content-sha256']||null)));}
    if(action==='deploy-stored'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name||!/^[a-f0-9]{64}$/.test(b.sha256||''))throw new HttpError(400,'FULL_DEPLOY_CONFIRM_REQUIRED');return send(res,200,await queueMutate(()=>deployZip(name,guarded(siteRoot(requireSite(name)),b.archive),b.sha256)));}

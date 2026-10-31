@@ -14,6 +14,14 @@ adapters reject links, protected paths, collision/CRC/expansion limits. Backend
 and SQL remain outside frontend-only write scope. Same Android UID remains the
 trust model; these guards do not sandbox malicious applications.
 
+M2 SQL explorer is an authenticated Panel route, forwarded only to the existing
+private PHP-FPM Unix socket with a short-lived HMAC adapter proof. It uses the
+site-bound SQL user; PHP cannot select arbitrary remote server/root/other schema.
+POST staged to disk before form-CSRF authorization and forwarding; both MHS and
+Adminer session/CSRF checks apply. Cookie scopes and identities stay separate.
+No Nginx alias to Adminer, no additional listener, no raw SQL credentials in CGI
+headers/URLs. Interactive response8MiB cap keeps legacy FastCGI buffering bounded.
+
 One phone owns its sites and data. Direct Tunnel routes website hostnames to
 loopback Nginx8080; Nginx dispatches static/PHP/Node. Panel9090 is loopback-only.
 Local password Panel9090 and remote SSO Panel9093 are separate loopback listeners.

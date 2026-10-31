@@ -4,6 +4,15 @@ Only this file records execution status. Source provenance: b2f04f9 MHC, read-on
 
 ## Issue #2 — V2.1,31 October2026
 
+M1 checkpoint `b678dd0` pushed main. M2 DONE (source/PC adapter): official Adminer
+6.2.0 MySQL-only293497 bytes, digest/SHA verified; site workspace + site-only DB
+binding/credentials once, private FPM proxy/proof, scoped PHP session and MHS form
+CSRF/Origin checks. Root/foreign schema/server denied, no bare Adminer route.
+CodeMirror integrated in M1.2 targeted PC tests PASS (actual HTTP + synthetic FCGI).
+PHP lint/native Adminer/MariaDB/browser/Android/Internet NOT RUN. Interactive8MiB
+response/64MiB import limits explicit in DATABASE-ADMIN.md. Current result: this M2
+commit. Next: M3 encrypted restic backup/scheduler/recovery, preserving old backups.
+
 M0 commit `8a86cc1`, pushed main. M1 DONE (source/PC checkpoint): integrated actual
 Uppy/Tus/FileStore, yauzl/Archiver, local CodeMirror; protected site files, chunk
 and final SHA, copy/move/trash/download, unzip preview/transaction/recovery and

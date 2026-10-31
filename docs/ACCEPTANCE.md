@@ -1,5 +1,11 @@
 # Acceptance — 31 October 2026, Issue #1
 
+V2.1 M2:2 targeted PC tests PASS: site DB binding, pinned Adminer release hash,
+CGI proof and scoped cookie filtering; real HTTP Access/session/Origin/form-CSRF
+then synthetic private FastCGI, response no-store/CSRF insertion, root/foreign
+schema/server/bare Adminer denial. PHP syntax/Adminer SQL/native MariaDB/browser
+iframe/Android/Internet NOT RUN. These tests validate the adapter, not PHP runtime.
+
 V2.1 Issue #2 M1: Windows actual HTTP35/90/150/512MiB Tus uploads, partial request
 disconnect→offset unchanged→retry, chunk/final SHA, HEAD session+CSRF/site boundary,
 private paths/hardlink/traversal, streamed download ZIP readback, trash/restore,

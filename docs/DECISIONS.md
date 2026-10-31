@@ -1,5 +1,12 @@
 # Decisions — 30 October 2026
 
+V2.1 M2: pin Adminer6.2.0 MySQL-only official digest, choose Apache-2.0 license.
+Use existing FPM Unix socket through verified MHS route, never Nginx/public alias.
+Site SQL user + fixed schema/socket, private PHP session, MHS CSRF hidden in POST
+forms only (not GET URLs). Credentials never pass CGI params/URL or Panel lists.
+Keep old DB APIs and WP installer; old fastcgi-client buffering is bounded8MiB,
+large export uses backup API. Native PHP verification is still required.
+
 V2.1 Issue #2 M1: use real Uppy/Tus/FileStore/yauzl/Archiver + incremental SHA from
 @noble/hashes2.4.0 MIT. Build local pure-JS bundles; no npm/CDN needed on Android.
 Tus server lacks a checksum extension implementation, so CheckedStore stages and
