@@ -4,7 +4,10 @@ import path from 'node:path';
 import {HOME,TERMUX} from '../panel/src/config.mjs';
 import {writeService,quote,cmd} from '../panel/src/system.mjs';
 export async function reconcileManagement({run=cmd,pause=ms=>new Promise(r=>setTimeout(r,ms))}={}){
- const current=path.join(HOME,'.local/share/mhs/current'),monitor=path.join(TERMUX,'var/service/mhs-monitor');
+ // Pin every service to the selected release. Older entry guards compare argv
+ // with import.meta.url and cannot launch through a symlink named "current".
+ const current=fs.realpathSync(path.join(HOME,'.local/share/mhs/current')),monitor=path.join(TERMUX,'var/service/mhs-monitor');
+ writeService('mhs-panel',`exec ${quote(process.execPath)} ${quote(path.join(current,'panel/src/server.mjs'))}`);
  const separate=fs.existsSync(path.join(current,'panel/src/monitor-server.mjs'));
  const scheduler=fs.existsSync(path.join(current,'tools/scheduler-service.mjs')),schedulerDir=path.join(TERMUX,'var/service/mhs-scheduler');
  if(scheduler){writeService('mhs-scheduler',`exec ${quote(process.execPath)} ${quote(path.join(current,'tools/scheduler-service.mjs'))}`);fs.rmSync(path.join(schedulerDir,'down'),{force:true});for(let i=0;i<40&&!fs.existsSync(path.join(schedulerDir,'supervise/ok'));i++)await pause(250);}

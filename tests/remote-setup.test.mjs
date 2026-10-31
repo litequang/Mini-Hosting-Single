@@ -26,8 +26,10 @@ test('doctor actual negative HTTP probes detect unsafe remote surface and emit n
  }finally{await Promise.all(servers.map(close));}
 });
 test('management source upgrade adds independent Monitor and rollback stops it before old Panel',async()=>{
- const {reconcileManagement}=await import('../tools/management.mjs'),current=path.join(c.HOME,'.local/share/mhs/current/panel/src');fs.mkdirSync(current,{recursive:true});const file=path.join(current,'monitor-server.mjs');fs.writeFileSync(file,'// fixture');const calls=[];const run=async(file,args)=>{calls.push(args);return {ok:true};};
+ const {reconcileManagement}=await import('../tools/management.mjs'),base=path.join(c.HOME,'.local/share/mhs'),target=path.join(base,'releases/fixture-selected'),current=path.join(base,'current/panel/src');fs.mkdirSync(path.join(target,'panel/src'),{recursive:true});fs.symlinkSync(target,path.join(base,'current'),process.platform==='win32'?'junction':'dir');const file=path.join(current,'monitor-server.mjs');fs.writeFileSync(file,'// fixture');const calls=[];const run=async(file,args)=>{calls.push(args);return {ok:true};};
  await reconcileManagement({run,pause:async()=>{}});assert.ok(fs.existsSync(path.join(c.SERVICE_DIR,'mhs-monitor/mhs-owned')));assert.deepEqual(calls.map(c=>path.basename(c.at(-1))),['mhs-panel','mhs-monitor']);
+ const selected=fs.realpathSync(path.join(c.HOME,'.local/share/mhs/current'));
+ for(const name of ['mhs-panel','mhs-monitor']){const script=fs.readFileSync(path.join(c.SERVICE_DIR,name,'run'),'utf8');assert.ok(script.includes(selected));assert.ok(!script.includes(path.join('.local','share','mhs','current')+path.sep));}
  fs.unlinkSync(file);calls.length=0;await reconcileManagement({run,pause:async()=>{}});assert.ok(fs.existsSync(path.join(c.SERVICE_DIR,'mhs-monitor/down')));assert.equal(calls[0].at(-2),'down');assert.equal(path.basename(calls[0].at(-1)),'mhs-monitor');assert.ok(calls.every(c=>!c.some(v=>/mhs-db|mhs-nginx|mhs-tunnel/.test(v))));
 });
 process.on('exit',()=>fs.rmSync(temp,{recursive:true,force:true}));

@@ -266,3 +266,9 @@ with19MiB RSS delta in this run. Chrome guided install/bind/start and SQL progre
 PASS;85 JavaScript syntax checks PASS. No native/Internet RC3 claim yet.
 Next: immutable RC3 package/smoke, push source/artifacts, safe11T source upgrade,
 install app dependencies, restore trusted selected SQL and verify public HTTPS.
+
+RC4 fixes a native upgrade failure found on the authorized11T: management
+reconciliation now rewrites the Panel service and pins Panel/Monitor/scheduler
+to the selected release's resolved path. Historical entrypoint guards do not
+start through the current symlink; leaving Panel's old path also fails version
+health. Regression uses a real current symlink/junction. RC3 artifacts immutable.

@@ -45,3 +45,11 @@ production dependencies, private owned database/socket binding and restart/HTTP
 verification. Bounded512MiB SQL uploads,8MiB SHA256 chunks, background backup,
 import progress, rollback and interruption recovery guards. No runtime data or
 credentials in release. See NODE-DEPLOY.md for application requirements.
+
+## 2.1.0-rc.4
+
+Fix native source upgrade management paths: rewrite the Panel run script after
+switching source and resolve current before writing Panel/Monitor/scheduler paths.
+This also makes rollback start historical entrypoints correctly. Data services,
+websites and Tunnel are outside the management restart scope. Use the new pinned
+installer to upgrade older code; do not modify a historical release in place.
