@@ -7,6 +7,7 @@ export function sqlImportUi({req,modal,esc,input,toast}){
  function status(form,job){const text=form.querySelector('[data-sql-status]'),bar=form.querySelector('progress');if(!text)return;text.textContent=labels[job.phase]||job.phase;
   if(job.phase==='UPLOADING'){bar.value=job.size?job.offset/job.size*100:0;text.textContent+=' — '+Math.floor(job.offset/job.size*100)+'%';}else bar.removeAttribute('value');
   if(job.backup)text.textContent+=' · Backup: '+job.backup;
+  if(job.diagnostic)text.textContent+=' · MariaDB '+job.diagnostic.code+(job.diagnostic.line?' tại dòng '+job.diagnostic.line:'');
  }
  async function watch(form,name,job){for(let i=0;i<1200;i++){
   if(!form.isConnected)return job;status(form,job);if(!running.has(job.phase)){if(job.phase==='DONE')toast(labels.DONE);return job;}

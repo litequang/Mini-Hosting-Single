@@ -272,3 +272,10 @@ reconciliation now rewrites the Panel service and pins Panel/Monitor/scheduler
 to the selected release's resolved path. Historical entrypoint guards do not
 start through the current symlink; leaving Panel's old path also fails version
 health. Regression uses a real current symlink/junction. RC3 artifacts immutable.
+
+RC5 native follow-up: original86,427,484-byte SQL has93 tables and17.3MB INSERT
+statements. RC4 transport completed, native import returned2006 at line15834;
+backup rollback restored empty target. Added128MiB packet allowance and safe
+numeric diagnostics. User requested original .env workflow: private file upload
+and launcher parsing now replace any need to manually convert .env into JSON.
+Pending: package/upgrade RC5, successful native import and application/public QA.

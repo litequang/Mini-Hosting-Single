@@ -10,17 +10,17 @@ export function databaseCredentials(name){id(name);const meta=readJson(DBMETA,{}
 function clientFile(name){const c=databaseCredentials(name),file=path.join(DATA,'db-client-'+crypto.randomUUID()+'.cnf');fs.writeFileSync(file,`[client]\nuser=${c.user}\npassword=${c.password}\nsocket=${SOCKET.replaceAll('\\','/')}\nprotocol=socket\n`,{mode:0o600});return file;}
 export async function sqlProcess({name=null,input='',inputFile=null,dump=false,destination=null,maxBytes=256*1024*1024,timeoutMs=120000}){
  const file=name?clientFile(name):null;
- const args=[...(file?['--defaults-file='+file]:['--no-defaults','--protocol=socket','--socket='+SOCKET,'-u','root']),...(dump?['--single-transaction','--quick','--skip-comments','--',id(name)]:['--binary-mode=1','-N','-B',...(name?[id(name)]:[])])];
+ const args=[...(file?['--defaults-file='+file]:['--no-defaults','--protocol=socket','--socket='+SOCKET,'-u','root']),'--max-allowed-packet=128M',...(dump?['--single-transaction','--quick','--skip-comments','--',id(name)]:['--binary-mode=1','-N','-B',...(name?[id(name)]:[])])];
  try{return await new Promise((resolve,reject)=>{
-  const child=spawn(path.join(TERMUX,'bin',dump?'mariadb-dump':'mariadb'),args,{stdio:['pipe','pipe','pipe']});let out='',size=0,settled=false;
+  const child=spawn(path.join(TERMUX,'bin',dump?'mariadb-dump':'mariadb'),args,{stdio:['pipe','pipe','pipe']});let out='',size=0,settled=false,errorTail='';
   const stream=destination?fs.createWriteStream(destination,{mode:0o600,flags:'wx'}):null;
   const finish=(error)=>{if(settled)return;settled=true;clearTimeout(timer);error?reject(Error(error)):resolve(out.trim());};
   const timer=setTimeout(()=>{child.kill();finish('MARIADB_TIMEOUT');},timeoutMs);
-  child.on('error',()=>finish('MARIADB_UNAVAILABLE'));child.stderr.resume();
+  child.on('error',()=>finish('MARIADB_UNAVAILABLE'));child.stderr.on('data',d=>{errorTail=(errorTail+d).slice(-4096);});
   child.stdout.on('data',d=>{size+=d.length;if(size>maxBytes){child.kill();finish('MARIADB_OUTPUT_LIMIT');}if(!stream){out+=d;if(out.length>1024*1024){child.kill();finish('MARIADB_RESULT_LIMIT');}}});
   if(stream){stream.on('error',()=>{child.kill();finish('BACKUP_WRITE_FAILED');});child.stdout.pipe(stream);}
   child.stdin.on('error',()=>{});if(inputFile){const source=fs.createReadStream(inputFile);source.on('error',()=>{child.kill();finish('MARIADB_INPUT_FAILED');});source.pipe(child.stdin);}else child.stdin.end(input);
-  child.on('close',code=>{if(code!==0){stream?.destroy();finish('MARIADB_OPERATION_FAILED');}else if(stream){if(stream.writableFinished)finish();else stream.once('finish',()=>finish());}else finish();});
+  child.on('close',code=>{if(code!==0){stream?.destroy();const m=errorTail.match(/ERROR (\d{1,5})(?: \(([A-Z0-9]{5})\))?(?: at line (\d{1,10}))?/);finish(m?'MARIADB_SQL_ERROR_'+m[1]+(m[3]?'_LINE_'+m[3]:''):'MARIADB_OPERATION_FAILED');}else if(stream){if(stream.writableFinished)finish();else stream.once('finish',()=>finish());}else finish();});
  });}finally{if(file)fs.rmSync(file,{force:true});}
 }
 export async function listDatabases(){return Object.keys(readJson(DBMETA,{}));}
@@ -36,4 +36,5 @@ export async function listTables(name){databaseCredentials(name);const out=await
 export async function backupDatabase(name){databaseCredentials(name);const file=`db-${name}-${new Date().toISOString().replace(/[:.]/g,'-')}.sql`,dest=path.join(BACKUPS,file);try{await sqlProcess({name,dump:true,destination:dest});}catch(e){fs.rmSync(dest,{force:true});throw e;}const hash=crypto.createHash('sha256');for await(const part of fs.createReadStream(dest))hash.update(part);return {file,bytes:fs.statSync(dest).size,sha256:hash.digest('hex')};}
 export function assertIndependentSql(text){if(/MHC_MANAGED_WORDPRESS_LAB|MHC_P4_LEASE_REQUIRED|mhc_p33_lab|mhc_p4_/i.test(text))throw new HttpError(400,'MHS_CLUSTER_SQL_REFUSED');}
 export async function validateSqlFile(file,maxBytes=512*1024*1024){const stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>maxBytes)throw new HttpError(413,'SQL_FILE_LIMIT_512MIB');let tail='';for await(const part of fs.createReadStream(file,{encoding:'utf8',highWaterMark:128*1024})){const text=tail+part;assertIndependentSql(text);tail=text.slice(-256);}return stat.size;}
-export async function restoreDatabase(name,file){databaseCredentials(name);await validateSqlFile(file);const tables=await listTables(name);if(tables.some(t=>!/^\w{1,64}$/.test(t)))throw Error('SQL_TABLE_NAME_REFUSED');if(tables.length)await sqlProcess({name,input:'SET FOREIGN_KEY_CHECKS=0;\n'+tables.map(t=>'DROP TABLE `'+t+'`;').join('\n')+'\nSET FOREIGN_KEY_CHECKS=1;'});await sqlProcess({name,inputFile:file,timeoutMs:600000});return {restored:name};}
+export async function withSqlPacketBudget(action,{query=sqlProcess}={}){const before=Number(await query({input:'SELECT @@GLOBAL.max_allowed_packet;'})),wanted=128*1024*1024;if(!Number.isSafeInteger(before)||before<1024)throw Error('MARIADB_PACKET_LIMIT_INVALID');const raised=before<wanted;if(raised)await query({input:'SET GLOBAL max_allowed_packet='+wanted+';'});try{return await action();}finally{if(raised)await query({input:'SET GLOBAL max_allowed_packet='+before+';'});}}
+export async function restoreDatabase(name,file){databaseCredentials(name);await validateSqlFile(file);return withSqlPacketBudget(async()=>{const tables=await listTables(name);if(tables.some(t=>!/^\w{1,64}$/.test(t)))throw Error('SQL_TABLE_NAME_REFUSED');if(tables.length)await sqlProcess({name,input:'SET FOREIGN_KEY_CHECKS=0;\n'+tables.map(t=>'DROP TABLE `'+t+'`;').join('\n')+'\nSET FOREIGN_KEY_CHECKS=1;'});await sqlProcess({name,inputFile:file,timeoutMs:600000});return {restored:name};});}

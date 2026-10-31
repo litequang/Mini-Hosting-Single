@@ -53,3 +53,11 @@ switching source and resolve current before writing Panel/Monitor/scheduler path
 This also makes rollback start historical entrypoints correctly. Data services,
 websites and Tunnel are outside the management restart scope. Use the new pinned
 installer to upgrade older code; do not modify a historical release in place.
+
+RC5: direct .env file upload in guided Node deployment, private64KiB file storage,
+Node built-in dotenv parsing before child launch; managed DB/URL overrides and
+site-owned PORT retain precedence. No plaintext file/API value echo. SQL native
+failure on a17.3MB INSERT exceeded the existing16MiB packet: client128MiB budget,
+temporary scoped root-socket server allowance with finally restoration, fresh
+service128MiB default. SQL diagnostics expose numeric code/line only. Fresh
+service paths are also resolved before launch. Earlier artifacts unchanged.

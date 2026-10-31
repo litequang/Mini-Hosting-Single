@@ -20,8 +20,8 @@ export function preflight(){
  return {project:'MHS',arch:os.arch(),cpuCores:os.availableParallelism(),model:prop('ro.product.model'),android:prop('ro.build.version.release'),battery,memoryMiB:Math.floor(os.totalmem()/1048576),freeMiB:Math.floor(stats.bavail*stats.bsize/1048576),data:DATA,androidPermissionsVerified:false};
 }
 export async function configureServices(){
- const source=path.join(BASE,'current');
- writeService('mhs-db',`exec ${quote(path.join(TERMUX,'bin/mariadbd'))} --no-defaults --basedir=${quote(TERMUX)} --datadir=${quote(path.join(DATA,'mysql'))} --socket=${quote(SOCKET)} --skip-networking --skip-name-resolve --pid-file=${quote(path.join(DATA,'run/mariadb.pid'))} --innodb-buffer-pool-size=64M --max-connections=30 --performance-schema=OFF`);
+ const source=fs.realpathSync(path.join(BASE,'current'));
+ writeService('mhs-db',`exec ${quote(path.join(TERMUX,'bin/mariadbd'))} --no-defaults --basedir=${quote(TERMUX)} --datadir=${quote(path.join(DATA,'mysql'))} --socket=${quote(SOCKET)} --skip-networking --skip-name-resolve --pid-file=${quote(path.join(DATA,'run/mariadb.pid'))} --innodb-buffer-pool-size=64M --max-connections=30 --max-allowed-packet=128M --performance-schema=OFF`);
  writeService('mhs-php',`exec ${quote(path.join(TERMUX,'bin/php-fpm'))} -F -y ${quote(path.join(DATA,'php-fpm.conf'))}`);
  writeService('mhs-nginx',`exec ${quote(path.join(TERMUX,'bin/nginx'))} -p ${quote(path.dirname(NGINX_CONFIG)+'/')} -c ${quote(NGINX_CONFIG)} -g 'daemon off;'`);
  writeService('mhs-panel',`exec ${quote(process.execPath)} ${quote(path.join(source,'panel/src/server.mjs'))}`);

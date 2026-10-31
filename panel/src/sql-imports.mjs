@@ -25,7 +25,7 @@ export function sqlImportOperations({base=path.join(DATA,'sql-imports'),credenti
  }
  function all(){if(!fs.existsSync(base))return [];safeDir(base);return fs.readdirSync(base).filter(n=>/^[a-f0-9]{32}$/.test(n)).map(read);}
  function owned(name,id,owner){credentials(name);const r=read(id);if(r.database!==name||r.owner!==owner)throw new HttpError(404,'SQL_IMPORT_NOT_FOUND');return r;}
- function view(r){return {id:r.id,database:r.database,size:r.size,offset:r.offset,phase:r.phase,updatedAt:r.updatedAt,error:r.error||null,backup:r.backup||null,chunkSize:SQL_CHUNK,maxSize:SQL_LIMIT};}
+ function view(r){return {id:r.id,database:r.database,size:r.size,offset:r.offset,phase:r.phase,updatedAt:r.updatedAt,error:r.error||null,diagnostic:r.diagnostic||null,backup:r.backup||null,chunkSize:SQL_CHUNK,maxSize:SQL_LIMIT};}
  function cleanFiles(r){for(const n of fs.readdirSync(folder(r.id)))if(n==='upload.sql'||/^chunk-[a-f0-9]{32}$/.test(n)){const f=path.join(folder(r.id),n);regular(f);fs.unlinkSync(f);}}
  function prune(){const now=Date.now();for(const r of all()){
   if(r.phase==='UPLOADING'&&r.updatedAt<now-86400000){cleanFiles(r);save({...r,phase:'CANCELLED'});}
@@ -77,7 +77,8 @@ export function sqlImportOperations({base=path.join(DATA,'sql-imports'),credenti
    r=save({...r,phase:'BACKING_UP'});const safety=await backup(name);
    r=save({...r,backup:safety.file,phase:'IMPORTING'});changed=true;await restore(name,upload(id));
    r=save({...r,phase:'DONE'});
-  }catch{
+  }catch(e){
+   const m=String(e.message).match(/^MARIADB_SQL_ERROR_(\d{1,5})(?:_LINE_(\d{1,10}))?$/);if(m)r=save({...r,diagnostic:{code:+m[1],line:m[2]?+m[2]:null}});
    if(changed){r=save({...r,phase:'ROLLING_BACK'});try{await restore(name,backupPath(r.backup));r=save({...r,phase:'ROLLED_BACK',error:'SQL_IMPORT_FAILED_ROLLED_BACK'});}catch{r=save({...r,phase:'RECOVERY_REQUIRED',error:'DATABASE_RECOVERY_REQUIRED'});}}
    else r=save({...r,phase:'FAILED',error:'SQL_VALIDATION_OR_BACKUP_FAILED_NO_DATABASE_WRITE'});
   }finally{if(terminal.has(r.phase))cleanFiles(r);}

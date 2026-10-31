@@ -9,6 +9,7 @@ import {HttpError} from './security.mjs';
 import {requireSpace} from './file-policy.mjs';
 import {databaseCredentials,listDatabases} from './databases.mjs';
 import {serviceAction,siteHttpHealth} from './system.mjs';
+import {hasNodeEnv,saveNodeEnv} from './node-env.mjs';
 export async function installLockedDependencies(stage){
  const cache=path.join(DATA,'npm-cache');fs.mkdirSync(cache,{recursive:true,mode:0o700});
  await new Promise((resolve,reject)=>{
@@ -30,7 +31,7 @@ export function nodeSetupOperations({install=installLockedDependencies,space=req
   const names=Object.keys(pkg?.dependencies||{}).filter(n=>/^(?:@[a-z0-9._-]+\/)?[a-z0-9][a-z0-9._-]*$/i.test(n)&&!n.includes('..'));
   const missing=names.filter(n=>!fs.existsSync(path.join(root,'node_modules',n,'package.json')));
   let job=readJson(file(slug),null);if(job&&['QUEUED','INSTALLING','APPLYING'].includes(job.phase)&&!live.has(slug)){job={...job,phase:job.phase==='APPLYING'?'RECOVERY_REQUIRED':'FAILED',error:'NODE_SETUP_PROCESS_INTERRUPTED'};atomicJson(file(slug),job);}
-  return {slug,hostname:s.hostname,url:'https://'+s.hostname,database:s.database||null,entry:s.entry,entryExists:fs.existsSync(path.join(root,s.entry)),package:!!pkg,lock:fs.existsSync(path.join(root,'package-lock.json')),dependencies:names.length,missingDependencies:missing,job:job?{id:job.id,phase:job.phase,error:job.error||null}:null};
+  return {slug,hostname:s.hostname,url:'https://'+s.hostname,database:s.database||null,envFile:hasNodeEnv(slug),entry:s.entry,entryExists:fs.existsSync(path.join(root,s.entry)),package:!!pkg,lock:fs.existsSync(path.join(root,'package-lock.json')),dependencies:names.length,missingDependencies:missing,job:job?{id:job.id,phase:job.phase,error:job.error||null}:null};
  }
  function prepare(slug,confirm){if(confirm!==slug)throw new HttpError(400,'NODE_SETUP_CONFIRM_REQUIRED');const s=site(slug),old=status(slug);
   if(old.job&&['QUEUED','INSTALLING','APPLYING','RECOVERY_REQUIRED'].includes(old.job.phase))throw new HttpError(409,'NODE_SETUP_PENDING_OR_RECOVERY_REQUIRED');
@@ -72,6 +73,7 @@ export function nodeSetupOperations({install=installLockedDependencies,space=req
   for(let n=0;n<20;n++){health=await probe(s);if(health.ok&&!health.placeholder)return {started:true,health};await new Promise(r=>setTimeout(r,500));}
   return {started:false,health,error:health?.placeholder?'NODE_PLACEHOLDER_NOT_DEPLOYED':'NODE_APPLICATION_HTTP_NOT_READY'};
  }
- return {status,prepare,launch,configuration,configure,start};
+ function environmentFile(slug,text,confirm){site(slug);if(confirm!==slug)throw new HttpError(400,'NODE_SETUP_CONFIRM_REQUIRED');return saveNodeEnv(slug,text);}
+ return {status,prepare,launch,configuration,configure,start,environmentFile};
 }
 export const nodeSetup=nodeSetupOperations();
