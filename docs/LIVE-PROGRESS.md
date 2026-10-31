@@ -98,3 +98,12 @@ web/DB/Tunnel stay outside this restart scope. Windows9 targeted tests PASS
 (remote-setup + install-upgrade + hosting), JS44/shell syntax PASS. Android/Internet
 still NOT RUN. Current result: this R3 commit. Next: R4 regressions, immutable RC2,
 exact pinned one-command install and current instructions.
+
+R3 commit: `630d509`, pushed main. R4 source ready: RC2 version and current SSO/
+Monitor/install/rollback instructions; corrected inherited Vietnamese UI labels and
+actual Panel→Remote Monitor links. Windows regression25 tests PASS across8 runners
+for modified auth/Monitor/installer plus preserved hosting/WordPress/Node/DB/backup
+paths.44 JS syntax checks PASS, boot/bootstrap bash syntax PASS. Browser UI,
+Android/reboot/native PHP/SQL/WP/public Access/Internet NOT RUN.
+Current result: this R4 source commit. Next: create immutable RC2 from this commit,
+smoke exact bundle/remote denial, push tag/artifacts and publish pinned install.

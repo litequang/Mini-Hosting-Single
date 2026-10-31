@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import http from 'node:http';
-import {DATA,HOME,TERMUX,NGINX_CONFIG,SOCKET,readJson,assertStandalone} from '../panel/src/config.mjs';
+import {DATA,HOME,TERMUX,NGINX_CONFIG,SOCKET,readJson as storedJson,assertStandalone} from '../panel/src/config.mjs';
 import {config} from '../panel/src/remote-access.mjs';
 import {cmd,serviceNames} from '../panel/src/system.mjs';
 const packages=['nginx','php','php-fpm','mariadb','termux-services','termux-api','cloudflared','curl','coreutils','util-linux'];
@@ -11,11 +11,12 @@ export function httpProbe(port,host,route='/'){
 }
 export async function doctor({run=cmd,probe=httpProbe,loadConfig=config,platform=process.platform}={}){
  const checks=[],add=(id,status,message,action='')=>checks.push({id,status,message,...(action?{action}:{})});
- try{assertStandalone();add('mhs-data','PASS','Dữ liệu/marker MHS độc lập hợp lệ.');}catch{add('mhs-data','FAIL','Chưa có MHS hoặc marker/site không hợp lệ.','Dùng bộ cài MHS trên Termux sạch; không xóa dữ liệu hosting cũ.');}
+ const readJson=(file,fallback)=>{try{return storedJson(file,fallback);}catch{add('local-json','FAIL','Một file cấu hình/journal local không đọc được; giữ nguyên để kiểm tra.','Không xóa journal/dữ liệu; dùng bản source và backup hợp lệ.');return fallback;}};
+ let validData=false;try{assertStandalone();validData=true;add('mhs-data','PASS','Dữ liệu/marker MHS độc lập hợp lệ.');}catch{add('mhs-data','FAIL','Chưa có MHS hoặc marker/site không hợp lệ.','Dùng bộ cài MHS trên Termux sạch; không xóa dữ liệu hosting cũ.');}
  const native=TERMUX==='/data/data/com.termux/files/usr'&&['android','linux'].includes(platform);
  add('termux',native?'PASS':'NOT RUN',native?'Termux prefix hợp lệ.':'Môi trường PC/fixture; không chứng nhận Android.');
  const node=process.versions.node.split('.').map(Number);add('node',node[0]>22||node[0]===22&&node[1]>=16?'PASS':'FAIL','Node.js cần từ22.16.','pkg install nodejs-lts');
- if(native){
+ if(native&&validData){
   for(const name of packages){const r=await run('dpkg-query',['-W','-f=${Status}',name],2500,4096);add('package-'+name,r.ok&&r.out==='install ok installed'?'PASS':'FAIL',name,r.ok?'':'Chạy lại bootstrap đúng release để cài thành phần thiếu.');}
   for(const name of serviceNames()){const r=await run(path.join(TERMUX,'bin/sv'),['status',path.join(TERMUX,'var/service',name)],2000,4096),installed=fs.existsSync(path.join(TERMUX,'var/service',name,'mhs-owned'));const optional=name==='mhs-tunnel';add('service-'+name,r.ok&&/^run:/.test(r.out)?'PASS':optional&&!installed?'NOT RUN':'FAIL',r.ok&&/^run:/.test(r.out)?'Dịch vụ đang chạy.':optional&&!installed?'Tunnel chưa cấu hình.':'Dịch vụ chưa chạy hoặc chưa được giám sát.',optional&&!installed?'mhs cloudflare':'Mở lại Termux; kiểm quyền chạy nền; mhs service '+name+' up');}
   const sql=await run(path.join(TERMUX,'bin/mariadb'),['--no-defaults','--protocol=socket','--socket='+SOCKET,'-uroot','-N','-e','SELECT 1'],3000,4096);add('sql-socket',sql.ok&&sql.out==='1'?'PASS':'FAIL','MariaDB Unix socket / SELECT1.','mhs service mhs-db up');

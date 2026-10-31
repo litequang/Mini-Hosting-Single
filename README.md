@@ -8,7 +8,7 @@ Không Authority, Worker/DO, heartbeat, Primary/Standby hoặc replication.
 Hoạt động thông thường phát sinh **0 request đến MHC Worker/DO**; không nói thay
 cho ứng dụng khác trong tài khoản Cloudflare.
 
-Release candidate **2.0.0-rc.1**: source hosting và kiểm thử PC theo checkpoint đã
+Release candidate **2.0.0-rc.2**: source hosting và kiểm thử PC theo checkpoint đã
 có. Nghiệm thu Android/Internet: **NOT RUN**, cần máy sạch riêng.
 Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVENANCE.md).
 
@@ -17,16 +17,17 @@ Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVE
 - ZIP/prebuilt dist, code rollback, Files và Database Manager.
 - Backup/restore site files+SQL/SHA256, safety backup và recovery journal.
 - Services/runit/Boot, Monitor và màn hình LAN9091 không đăng nhập.
+- Panel Internet Access SSO: không nhập Admin lần2; local9090 vẫn có password.
+- Remote Monitor riêng qua Access9092, độc lập Panel; wizard tiếng Việt + doctor.
 - Installer có checksum/resume, source upgrade/rollback giữ data.
 
 [Cài / nâng cấp](docs/INSTALL.md) · [Hosting](docs/HOSTING.md) ·
 [Cloudflare](docs/CLOUDFLARE.md) · [Backup](docs/BACKUP-RESTORE.md) ·
 [PASS / NOT RUN](docs/ACCEPTANCE.md).
 
-[**Lệnh cài cố định 2.0.0-rc.1 trên Termux sạch**](docs/INSTALL.md#lệnh-cài-200-rc1)
-và [manifest SHA256](releases/2.0.0-rc.1.json) đã có. Source `6e49416`, artifact
-`2b24bd0`, tag `v2.0.0-rc.1`. Gói thực tế đã smoke trong PC fixture và tải lại từ
-GitHub kiểm SHA PASS. Không dùng curl main | bash hoặc cài lên node MHC hiện tại.
+[**Hướng dẫn cài RC2 / nâng từ RC1**](docs/INSTALL.md) và
+[Cloudflare Panel/Monitor](docs/CLOUDFLARE.md). Lệnh ghim commit/SHA của RC2 được
+đính kèm sau bước đóng gói; không dùng curl main | bash hoặc cài lên node MHC.
 
 Dev trên PC (Node ≥22.16, không cần npm dependencies):
 
@@ -37,6 +38,7 @@ npm test
 
 Để mở Panel thử, đặt MHS_HOME và MHS_DATA vào thư mục cách ly ngoài source,
 chạy `npm run setup`, đọc private `initial-password` tại đó rồi `npm start`.
+Monitor độc lập: `node panel/src/monitor-server.mjs` trong cùng môi trường cách ly.
 Mở http://127.0.0.1:9090, user admin. Hosting services cần Termux/Linux;
 PC không có Nginx/PHP/MariaDB không phải nghiệm thu hosting Android.
 

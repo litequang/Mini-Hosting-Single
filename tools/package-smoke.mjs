@@ -12,5 +12,9 @@ try{
  const {installSource}=await import(pathToFileURL(path.join(source,'tools/install.mjs')));
  const result=await installSource(source,{fixture:true,database:async()=>{},start:async()=>{},health:async()=>({fixture:true})});
  if(result.phase!=='INSTALLED'||result.sourceCommit!==manifest.commit)throw Error('PACKAGE_FIXTURE_INSTALL_FAILED');
+ if(fs.existsSync(path.join(source,'panel/src/monitor-server.mjs'))){
+  const {createPanelServer}=await import(pathToFileURL(path.join(source,'panel/src/server.mjs'))),{createRemoteMonitor}=await import(pathToFileURL(path.join(source,'panel/src/lan-monitor.mjs')));
+  for(const server of [createPanelServer({remote:true,readConfig:()=>null}),createRemoteMonitor({readConfig:()=>null})]){await new Promise(r=>server.listen(0,'127.0.0.1',r));try{const response=await fetch('http://127.0.0.1:'+server.address().port+'/api/session');if(response.status!==403)throw Error('PACKAGE_REMOTE_ANONYMOUS_NOT_DENIED');}finally{server.closeAllConnections();await new Promise(r=>server.close(r));}}
+ }
  console.log(JSON.stringify({result:'PASS',mode:'PC_FIXTURE_ONLY',sourceCommit:manifest.commit,version:manifest.version,files:manifest.files.length,physical:'NOT_RUN'},null,2));
 }finally{fs.rmSync(temp,{recursive:true,force:true});}

@@ -17,6 +17,7 @@ test('remote-only SSO validates identity every request, binds session/CSRF, revo
   for(const token of [f.sign(f.panel,{email:'viewer@example.com'}),f.sign(f.panel,{sub:''}),f.sign(f.monitor),f.sign(f.panel,{iss:'https://evil.cloudflareaccess.com'}),f.sign(f.panel,{exp:1}),f.sign(f.panel,{nbf:Math.floor(Date.now()/1000)+100}),f.sign(f.panel,{}, {alg:'none'}),'unsigned',jwt.slice(0,-5)+'AAAAA'])assert.equal((await call('/api/session',{headers:{...base,'cf-access-jwt-assertion':token}})).status,403);
   assert.equal((await call('/api/sites',{headers:base})).status,401);
   const session=await call('/api/session',{headers:base});assert.equal(session.status,200);assert.equal(session.data.loggedIn,true);assert.equal(session.data.authMode,'access-sso');assert.doesNotMatch(JSON.stringify(session.data),/owner@example|signed-owner|tokenHash|eyJ/);
+  const page=await call('/',{headers:base});assert.match(page.data,/name="mhs-auth-mode" content="access-sso"/);assert.equal(page.headers['cache-control'],'no-store');
   const cookie=session.headers['set-cookie'][0];assert.match(cookie,/__Host-mhs_sso=/);assert.match(cookie,/Secure/);assert.match(cookie,/HttpOnly/);assert.match(cookie,/SameSite=Strict/);assert.doesNotMatch(cookie,/Domain=/);
   const h={...base,cookie:cookie.split(';')[0],'x-csrf-token':session.data.csrf,origin:'https://'+f.panel.hostname};
   assert.equal((await call('/api/login',{method:'POST',headers:h,body:{username:'admin',password:'local-fixture-password-123456'}})).status,403);
@@ -29,6 +30,7 @@ test('remote-only SSO validates identity every request, binds session/CSRF, revo
   allowed=false;assert.equal((await call('/api/sites',{headers:h})).status,403);allowed=true;
   for(const headers of [{...localHeaders,'cf-ray':'forged-tunnel'},{...localHeaders,'cf-access-jwt-assertion':jwt},{...localHeaders,'x-forwarded-host':f.panel.hostname},{host:f.panel.hostname}])assert.equal((await localCall('/api/session',{headers})).status,403);
   const localLogin=await localCall('/api/login',{method:'POST',headers:localHeaders,body:{username:'admin',password:'local-fixture-password-123456'}});assert.equal(localLogin.status,200);
+  assert.match((await localCall('/',{headers:localHeaders})).data,/name="mhs-auth-mode" content="local-password"/);
   assert.equal((await call('/api/sites',{headers:{...base,cookie:localLogin.headers['set-cookie'][0].split(';')[0]}})).status,401);
   const logout=await call('/api/logout',{method:'POST',headers:h});assert.equal(logout.status,200);assert.equal(logout.data.logoutUrl,'https://panel.example.com/cdn-cgi/access/logout');
   assert.equal((await call('/api/session',{headers:base})).status,403);assert.equal((await call('/api/sites',{headers:h})).status,403);

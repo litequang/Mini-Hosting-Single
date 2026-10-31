@@ -1,79 +1,103 @@
-# Cài MHS V2.0 trên Termux sạch
+# Cài Mini Hosting Single V2.0 — RC2
 
-RC2.0.0-rc.1: source/PC đã kiểm; Android thật **NOT RUN**. Dùng điện thoại riêng,
-không dùng node MHC và không xem đây là converter từ V1/Cluster.
+Chỉ điện thoại riêng/Termux sạch; không cài lên các node MHC/AMH V1 hoặc hosting
+cũ. Bản2.0.0-rc.2 có source và PC tests PASS; Android/Internet thật **NOT RUN**.
+Không root, cần3GiB trống, Node≥22.16; bộ cài tự cài các thành phần còn thiếu.
 
-1. Cài Termux, Termux:Boot, Termux:API cùng nguồn/chữ ký tương thích; mở Boot/API
-   ít nhất một lần. Android Settings: pin không hạn chế và cho chạy nền/autostart.
-2. Copy lệnh ghim commit+SHA256 từ README/release vào Termux. Bootstrap kiểm
-   footprints, cài missing packages chính thức, tải/check bundle và từng file.
-3. Mất PC/SSH không có nghĩa script đã dừng. Nếu cần retry, chạy **đúng lệnh cũ**
-   để resume, giữ journal và credentials; không xóa lock/data hoặc đổi release.
-4. `mhs status`; mở http://127.0.0.1:9090 trên điện thoại, user admin. `mhs password`
-   in mật khẩu vào terminal tương tác của chính máy. Không gửi lên chat/log.
-   Đổi: `mhs reset-password`; các session cũ mất hiệu lực khi hash admin thay đổi.
-5. Máy cùng LAN: `http://IP-điện-thoại:9091`, Monitor chỉ đọc không đăng nhập.
-   IP xem trong chi tiết Wi-Fi Android. Tắt: `mhs lan-monitor off` rồi
-   `sv restart "$PREFIX/var/service/mhs-panel"`.
-6. Panel trên PC qua SSH nếu bạn đã cấu hình key/sshd của Termux:
-   `ssh -N -L 9090:127.0.0.1:9090 -p 8022 USER@PHONE_LAN_IP`.
-   MHS không thay khóa hoặc chiếm listener SSH có sẵn. Internet: CLOUDFLARE.md.
+## Ba bước dùng trên điện thoại
 
-## Lệnh cài 2.0.0-rc.1
+1. Cài **Termux, Termux:Boot, Termux:API** cùng nguồn/chữ ký tương thích. Mở Boot
+   và API một lần. Android Settings: cho autostart/chạy nền, pin không hạn chế cho
+   cả ba ứng dụng. Không force-stop Termux. Doze/OS có thể dừng dịch vụ; điện thoại
+   tắt hoặc mất mạng thì website Internet không phục vụ, không có failover.
+2. Copy **một lệnh cài ghim commit+SHA256 ở README / cuối tài liệu bản GitHub hiện
+   hành**, chạy trực tiếp trên Termux. Không curl main | bash. Bootstrap cài missing
+   packages, kiểm bundle và từng source file, tạo identity/config/admin riêng.
+   Nếu PC/SSH mất kết nối, script trên điện thoại có thể vẫn chạy. Khi cần retry,
+   dùng đúng lệnh release đã bắt đầu; không xóa lock/journal/data hoặc cài đè.
+3. Sau cài: `mhs doctor`. Local Panel: http://127.0.0.1:9090, user admin;
+   `mhs password` chỉ hiện mật khẩu trên terminal tương tác của chính thiết bị.
+   Internet: `mhs cloudflare` rồi theo [hướng dẫn Cloudflare](CLOUDFLARE.md).
 
-Copy toàn bộ khối dưới như một lệnh vào **Termux sạch**. Bootstrap ghim artifact
-commit `2b24bd0ea732dcb5c32de38f00063ab1add4c9d1` và SHA256; không theo main.
+## Cách truy cập
+
+| Giao diện | Địa chỉ / origin | Xác thực |
+|---|---|---|
+| Panel trên điện thoại/SSH | http://127.0.0.1:9090 | Admin password, cứu hộ offline |
+| Panel Internet | hostname riêng → 127.0.0.1:9093 | Access SSO, không hỏi Admin lần2 |
+| Monitor cùng LAN | http://IP-điện-thoại:9091 | Không đăng nhập, chỉ đọc |
+| Monitor Internet | hostname riêng → 127.0.0.1:9092 | Access app/AUD riêng, không cần phiên Panel |
+| Website | hostname của site → 127.0.0.1:8080 | Theo ứng dụng |
+
+Không publish9090/9091/3306/8022. Cấu hình cần làm trên Cloudflare: một Tunnel
+MHS riêng, hai app Access Allow exact email chủ máy, hai route Panel/Monitor đúng
+port/AUD/hostname. Wizard lưu private config/token và in plan; **không giả vờ đã
+tạo DNS/Access/route** khi không có account API token. Không cần Codex SSH cài máy.
+
+Trên PC cùng LAN, nếu bạn đã cấu hình SSH key/sshd:
+`ssh -N -L 9090:127.0.0.1:9090 -p 8022 USER@PHONE_LAN_IP`. MHS không chiếm listener
+hoặc thay khóa SSH có sẵn. IP xem trong chi tiết Wi-Fi Android.
+
+## Lệnh thường dùng
 
 ```sh
-(
-  set -eu
-  test "${PREFIX:-}" = /data/data/com.termux/files/usr
-  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
-    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
-  done
-  command -v curl >/dev/null || pkg install -y curl
-  command -v sha256sum >/dev/null || pkg install -y coreutils
-  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/2b24bd0ea732dcb5c32de38f00063ab1add4c9d1/releases/install-2.0.0-rc.1.sh' -o "$HOME/mhs-install-2.0.0-rc.1.sh"
-  printf '%s  %s\n' 'b014de5b3bc609cf224a8f4723f6e91fb5c64e1d93d178f4305f012d63776a12' "$HOME/mhs-install-2.0.0-rc.1.sh" | sha256sum -c -
-  bash "$HOME/mhs-install-2.0.0-rc.1.sh"
-)
+mhs doctor
+mhs cloudflare
+mhs setup remote
+mhs service mhs-tunnel up
+mhs service mhs-monitor restart
+mhs lan-monitor off
+mhs reset-password
 ```
 
-[Release manifest](../releases/2.0.0-rc.1.json). Bundle SHA256:
-`aafe08cbd4b174b62609c8ffecb5bb1555245ccb60ef154545713433bfe85e51`.
-Đã tải lại bootstrap/bundle public từ GitHub và đối chiếu SHA256 PASS; URL tag
-mà bootstrap dùng trả HTTP200. Đây là kiểm phân phối source, không là Android PASS.
+`doctor` xuất JSON đã lọc: PASS/FAIL/NOT RUN và bước khắc phục, không secrets.
+FAIL trả exit1. Kiểm local anonymous403 không chứng minh Access Internet PASS.
+`lan-monitor off|on` cần restart **mhs-monitor**, không phải Panel.
+Đổi admin password chỉ áp dụng local; Internet sử dụng danh tính owner Access.
 
-Không root, cần≥3GiB trống. Node≥22.16, nginx, php/php-fpm(mysqli), mariadb,
-termux-services, termux-api, cloudflared, curl/coreutils/util-linux và openssh.
-Hardware report: CPU/RAM/disk/model/Android/pin khi API cho phép. Máy<2GiB RAM
-giới hạn PHP một child, máy lớn tối đa3. MariaDB buffer64MiB, chỉ Unix socket.
+## Dữ liệu và resume
 
-Source: ~/.local/share/mhs/releases/<version>-<commit>, symlink current.
-Data: ~/.local/share/mhs/data (0700), private configs0600. Nginx8080/Panel9090
-loopback;9091 LAN chỉ đọc. Runit restart mhs-db/php/nginx/panel khi crash; Boot
-gọi entry riêng. Stop qua Services được giữ qua reboot; Panel giữ để khôi phục.
-SSH không tự bật. Tunnel mới cấu hình bằng `mhs cloudflare`, không cần PC.
-Android force-stop/Doze có thể dừng Termux; Boot/source marker không thay reboot
-test. Các quyền Android cần người dùng cấp trên giao diện thiết bị.
+Source bất biến: ~/.local/share/mhs/releases/<version>-<commit>, current symlink.
+Data/site/SQL/credentials riêng: ~/.local/share/mhs/data (0700), files private0600.
+MariaDB Unix socket, Nginx8080/Panel9090/SSO9093/Remote Monitor9092 loopback.
+Runit quản lý mhs-db/php/nginx/panel/monitor/tunnel và Node site. Boot giữ local
+recovery; marker/invocation receipt không chứng nhận đã test Android reboot.
 
-## Upgrade / rollback
+Bootstrap từ chối footprint hosting cũ/schema SQL riêng/Cluster. Không bỏ guard,
+xóa thư mục hoặc chỉnh marker để ép cài. Packages lấy repo chính thức Termux.
+Máy<2GiB RAM giới hạn PHP một child; default3. SQL buffer64MiB.
 
-Chỉ dành MHS đã cài, không đổi website/DB/environment/credentials/Tunnel:
+## Nâng từ RC1 và rollback
+
+**Từ RC1 lên RC2:** dùng chính lệnh bootstrap RC2 đã kiểm SHA. Nó nhận MHS đã
+INSTALLED và gọi updater mới, không fresh-install đè dữ liệu. Updater tạo dịch vụ
+Monitor riêng và restart management; web/DB/Tunnel không thuộc scope restart.
+Sau đó `mhs cloudflare`: khai báo owner +2 AUD. Đổi **route Panel MHS** từ9090
+sang9093, thêm Monitor9092. Config schema1 cũ fail-closed, không đoán danh tính.
+Không đổi route MHC/production. Native upgrade này vẫn cần user nghiệm thu.
+
+Từ RC2 trở đi, hoặc dùng updater mới được ghim:
 
 ```sh
 mhs upgrade /path/mhs-next-version.mhs.gz SHA256_FROM_RELEASE_MANIFEST
 mhs rollback
 ```
 
-Updater kiểm bundle/source manifest, giữ release cũ, ghi journal, đổi current,
-restart riêng Panel và health. Lỗi tự quay pointer cũ/restart/verify. Gián đoạn:
-retry cùng bundle+SHA. Local lock chặn update khi đang backup/restore/deploy.
-Không rollback database hoặc downgrade platform packages của Termux. Backup site
-và credentials riêng trước thay đổi lớn. Giữ release cũ bất biến.
+Updater kiểm SHA/manifest, lưu journal, giữ source trước, đổi current, restart và
+health; lỗi tự rollback. Gián đoạn: retry cùng bundle+SHA. Local operation lock
+chặn upgrade trong lúc backup/restore/deploy. Rollback source không restore SQL,
+không đổi website/admin/Tunnel và không downgrade packages Termux.
 
-## Kiểm tổng thể của người vận hành
+Rollback về RC1 dừng Monitor service riêng trước khi Panel cũ nhận lại LAN9091.
+**Chỉ local/SSH9090 để cứu hộ**, không public9090; route SSO9093/Monitor9092 nên
+không phục vụ cho đến khi quay lại RC2. Config schema2 vẫn giữ, không hạ bảo mật.
+Các release cũ giữ bất biến. Tạo backup website và credentials riêng trước update.
 
-Máy sạch: install/resume → login/CSRF → static/Node/PHP/WP thật → env/deploy →
-backup/restore SQL+files → services/crash restart → reboot → LAN từ máy khác →
-Tunnel/Access/HTTPS → upgrade/rollback. Hiện native/Internet đều NOT RUN.
+## Nghiệm thu của người vận hành
+
+Fresh install/resume → doctor → local login → Panel Access SSO → Monitor qua
+hostname riêng không có cookie Panel → LAN9091 → sai email/AUD bị chặn → logout/
+login lại → Website/WordPress/Node/DB/backup → reboot/crash restart → upgrade/
+rollback. Hiện Android/reboot/Internet đều NOT RUN; xem [ACCEPTANCE](ACCEPTANCE.md).
+
+RC1 lịch sử vẫn có tại releases/2.0.0-rc.1.json; dùng RC2 cho Issue #1.
