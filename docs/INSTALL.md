@@ -1,8 +1,48 @@
-# Cài Mini Hosting Single V2.1 — RC1
+# C?i Mini Hosting Single V2.1 ? RC2
 
 Chỉ điện thoại riêng/Termux sạch; không cài lên các node MHC/AMH V1 hoặc hosting
 cũ. Bản2.1.0-rc.1 có source và PC tests PASS; Android/Internet thật **NOT RUN**.
 Không root, cần3GiB trống, Node≥22.16; bộ cài tự cài các thành phần còn thiếu.
+
+
+## Install 2.1 RC2
+
+**L?nh hi?n h?nh cho m?y m?i**, s?a c?c l?i ?? g?p tr?n Xiaomi 11T: thi?u php-gd,
+nh?n nh?m th? m?c m? ngu?n SecretStream, thi?u LOGDIR khi ch?y kh?ng qua login,
+v? d?ch v? stock ch?a th?c s? d?ng khi ?? t?o marker down. Kh?a SSH c? s?n ???c
+gi? nguy?n; n?u mu?n SSH, ch? m?y t? b?t `sv-enable sshd` v? c?p public key.
+
+C?i Termux/Boot/API t??ng th?ch v? c?p quy?n ch?y n?n nh? h??ng d?n b?n d??i.
+D?n nguy?n kh?i n?y v?o **Termux c?a m?y MHS ri?ng**. H? tr? c?i m?i, resume c?ng
+RC2 v? n?ng MHS ?? INSTALLED; kh?ng d?ng cho node Cluster/hosting kh?c.
+
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr || { echo MHS_STANDARD_TERMUX_REQUIRED; exit 1; }
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/8a18a185c4fe3349c7adaea25d82f501010363ad/releases/install-2.1.0-rc.2.sh' -o "$HOME/mhs-install-2.1.0-rc.2.sh"
+  printf '%s  %s\n' 'a9c9aeac130053c85cc92c2af08d55ca3bbbe3ab993c90d0461590f932e77c15' "$HOME/mhs-install-2.1.0-rc.2.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.2.sh"
+)
+```
+
+Source `3ada7928ae2802faf8049edfd10f451e4f602013`; artifact
+`8a18a185c4fe3349c7adaea25d82f501010363ad`; tag `v2.1.0-rc.2`.
+Manifest: [2.1.0-rc.2.json](../releases/2.1.0-rc.2.json).
+Bundle SHA256 `0477f13b57ccd7ed0f130fc659ff6c1de83217f6f18085ddb3ca294f8857f0b6`.
+Sau c?i: `mhs doctor`, r?i `mhs cloudflare`. M?i m?y d?ng Tunnel/token/Access owner
+ri?ng; b? c?i kh?ng ??a c?u h?nh ri?ng hay th?ng tin t?i kho?n 11T v?o GitHub.
+
+12 ki?m th? li?n quan, 78 ki?m tra c? ph?p JS, shell syntax, g?i th?c t?/fixture
+c?i m?i v? anonymous remote denial PASS. ZIP WordPress 7.1.4 ch?nh th?c ?? gi?i
+n?n 4.250 m?c v? ??i chi?u 3.338 checksum core. ??y kh?ng ph?i ch?ng nh?n c?i m?i
+RC2 tr?n Android hay reboot th?t. C?c l?nh RC1/V2.0 ph?a d??i l? l?ch s?.
+
 
 ## Ba bước dùng trên điện thoại
 

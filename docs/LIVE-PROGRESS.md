@@ -19,9 +19,16 @@ confirmed; Android phantom-process killing was not established. Existing SSH key
 and enabled/disabled choices remain owner-controlled. Historical NOT RUN rows below
 record the earlier pre-device release checkpoints.
 
-Current source result: this RC2 fix commit; packaging/pinned command follows.
-Next: publish immutable RC2 artifacts and exact command, then fresh-device/reboot
-acceptance when an independent empty test device is available.
+RC2 source `3ada7928ae2802faf8049edfd10f451e4f602013`, artifact
+`8a18a185c4fe3349c7adaea25d82f501010363ad` and tag `v2.1.0-rc.2` pushed.
+78 JavaScript syntax checks, boot/bootstrap shell syntax, exact package checksum/
+manifest/extraction, fresh-install PC fixture, anonymous remote denial and refusal
+on non-Termux PASS. New pinned command is first in INSTALL.md and linked by README.
+All older release bytes are unchanged. Public pinned bootstrap (5,041 bytes),
+pinned bundle and tag bundle (1,123,841 bytes) each returned HTTP200 and exact
+SHA256. Distribution verification PASS; fresh Android/reboot remains NOT RUN.
+Next: fresh RC2 device/reboot acceptance when an independent empty test device is
+available; do not reset the currently serving 11T to substitute for that test.
 
 ## Issue #2 — V2.1,31 October2026
 

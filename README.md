@@ -1,5 +1,10 @@
 # Mini Hosting Single V2.1
 
+**Latest installer: 2.1.0-rc.2** ? fixes from the independent Xiaomi 11T setup.
+Use the [new pinned command](docs/INSTALL.md#install-21-rc2). Earlier pinned
+commands keep installing their historical releases. Fresh RC2 Android/reboot
+acceptance is still pending; targeted fixes/package checks passed.
+
 Hosting độc lập trên một Android/Termux, phát triển từ original Hosting Panel
 9090 của MHC. Đây là repo riêng; không nâng cấp hay chuyển đổi node Cluster.
 
@@ -8,7 +13,7 @@ Không Authority, Worker/DO, heartbeat, Primary/Standby hoặc replication.
 Hoạt động thông thường phát sinh **0 request đến MHC Worker/DO**; không nói thay
 cho ứng dụng khác trong tài khoản Cloudflare.
 
-Release candidate **2.1.0-rc.1**: tiếp tục original Panel, có kiểm thử PC theo
+Release candidate **2.1.0-rc.2**: tiếp tục original Panel, có kiểm thử PC theo
 checkpoint. Nghiệm thu Android/Internet: **NOT RUN**, cần máy MHS riêng.
 Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVENANCE.md).
 
@@ -32,7 +37,7 @@ Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVE
 [Cloudflare](docs/CLOUDFLARE.md) · [Backup](docs/BACKUP-RESTORE.md) ·
 [PASS / NOT RUN](docs/ACCEPTANCE.md) · [Thay đổi V2.1](docs/CHANGELOG.md).
 
-[**Lệnh cài / nâng cấp V2.1 ghim commit + SHA256**](docs/INSTALL.md#lệnh-cài-v21-ghim-commit-và-sha256),
+[**Lệnh cài / nâng cấp V2.1 ghim commit + SHA256**](docs/INSTALL.md#install-21-rc2),
 [Cloudflare Panel/Monitor](docs/CLOUDFLARE.md),
 [domain automation](docs/DOMAIN-AUTOMATION.md),
 [backup mã hóa](docs/ENCRYPTED-BACKUP.md). Các gói RC1/RC2 cũ giữ bất biến.
