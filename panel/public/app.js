@@ -1,3 +1,5 @@
+import {sqlImportUi} from './sql-import.js';
+import {nodeSetupUi} from './node-setup.js';
 const remoteEntry=document.querySelector('meta[name="mhs-auth-mode"]')?.content==='access-sso';
 const state={authMode:remoteEntry?'access-sso':'local-password',user:null,csrf:'',tab:'dashboard',sites:[],selectedSite:'',dir:'',selectedFile:'',stats:null};
 const $=s=>document.querySelector(s);
@@ -6,8 +8,8 @@ const fmtBytes=n=>{if(!Number.isFinite(+n))return '—';if(n<1024)return n+' B';
 const qs=o=>new URLSearchParams(o).toString();
 let toastTimer;
 function toast(message,error=false){const node=$('#toast');node.textContent=message;node.className='toast'+(error?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.classList.add('hide'),4200);}
-async function req(route,{method='GET',body,raw=false}={}){
- const opts={method,credentials:'same-origin',headers:{'x-requested-with':'XMLHttpRequest'}};
+async function req(route,{method='GET',body,raw=false,headers={}}={}){
+ const opts={method,credentials:'same-origin',headers:{'x-requested-with':'XMLHttpRequest',...headers}};
  if(method!=='GET')opts.headers['x-csrf-token']=state.csrf;
  if(body!==undefined){if(raw){opts.body=body;}else{opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}}
  let res;try{res=await fetch(route,opts);}catch{throw Error('Không kết nối được panel');}
@@ -19,6 +21,8 @@ function showPanel(){$('#login').classList.add('hide');$('#shell').classList.rem
 function modal(title,html){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modal').classList.remove('hide');}
 function closeModal(){$('#modal').classList.add('hide');$('#modalBody').innerHTML='';}
 function input(name,label,placeholder='',val='',type='text'){return `<div class="inputgroup"><label>${esc(label)}</label><input name="${esc(name)}" placeholder="${esc(placeholder)}" value="${esc(val)}" type="${esc(type)}" required></div>`;}
+const sqlUi=sqlImportUi({req,modal,esc,input,toast});
+const nodeUi=nodeSetupUi({req,modal,esc,input,toast});
 function busy(button,func){if(!button)return func();button.disabled=true;const old=button.textContent;button.textContent='Đang xử lý...';return Promise.resolve().then(func).catch(e=>{toast(e.message,true);throw e;}).finally(()=>{button.disabled=false;button.textContent=old;});}
 function page(title,html){$('#pageTitle').textContent=title;$('#content').innerHTML=html;}
 function btn(s,a,cls='tiny'){return `<button class="${cls}" data-action="${a}">${esc(s)}</button>`;}
@@ -55,6 +59,7 @@ async function filesPage(){const list=await loadSites();if(!state.selectedSite||
  page('File Manager','<p>Đang tải File Manager...</p>');
  const {renderFiles}=await import('/files-v21.js');
  await renderFiles({container:$('#content'),sites:list,slug:state.selectedSite,dir:state.dir,request:req,getCsrf:()=>state.csrf,notify:toast,onLocation:async(slug,dir)=>{state.selectedSite=slug;state.dir=dir;await filesPage();}});
+ if(list.find(s=>s.slug===state.selectedSite)?.type==='node')$('#content').insertAdjacentHTML('afterbegin',`<div class="toolbar">${btn('Triển khai Node.js: thư viện · database · khởi động','node-setup:'+state.selectedSite,'primary')}</div>`);
 }
 async function editFile(filename){state.selectedFile=state.dir?state.dir+'/'+filename:filename;const content=await req(`/api/files/${state.selectedSite}/read?${qs({path:state.selectedFile})}`);const ro=state.sites.find(s=>s.slug===state.selectedSite)?.external&&['dist/server.cjs','package.json','package-lock.json'].includes(state.selectedFile);const el=$('#editor');el.innerHTML=`<div class="sectionhead" style="margin-top:0"><h2 class="mono">${esc(state.selectedFile)}</h2></div><textarea id="editText" spellcheck="false" ${ro?'readonly':''}></textarea>${ro?'<p class="help">File hệ thống được bảo vệ; dùng Deploy ZIP để cập nhật backend.</p>':`<div class="btnrow" style="margin-top:10px">${btn('Lưu thay đổi','file-save','primary')}${btn('Xóa file','file-delete','warn')}</div>`}`;$('#editText').value=content.text;}
 async function databases(){const {databases:list}=await req('/api/databases');page('Databases',`<div class="sectionhead"><div><h2>MariaDB</h2><p>Database được quản lý cục bộ, không mở cổng 3306 ra Internet.</p></div>${btn('+ Database mới','create-database','primary')}</div><div class="tablewrap"><table><thead><tr><th>Database</th><th>Hành động</th></tr></thead><tbody>${list.map(name=>`<tr><td class="titlecell mono">${esc(name)}</td><td><div class="btnrow">${btn('Xem tables','db-tables:'+name)}${btn('Backup SQL','db-backup:'+name)}${btn('Restore SQL','db-restore:'+name,'tiny warn')}</div></td></tr>`).join('')||'<tr><td colspan="2" class="empty">Chưa có database ứng dụng</td></tr>'}</tbody></table></div><div class="info" style="margin-top:18px">Khi tạo database mới, tên người dùng và mật khẩu được hiển thị <b>một lần duy nhất</b>. Root MariaDB được dùng qua socket nội bộ cho các tác vụ quản trị.</div>`);}
@@ -63,7 +68,7 @@ async function sites(){const list=await loadSites();page('Websites',`<div class=
 function modalCreateSite(){modal('Tạo website',`<form id="siteForm">${input('slug','Mã website','demo-web')}${input('hostname','Hostname','demo.example.com')}<div class="inputgroup"><label>Loại</label><select name="type"><option value="static">Static / React dist</option><option value="node">Node.js</option><option value="php">PHP</option><option value="wordpress">WordPress (core chính thức)</option></select></div>${input('entry','Node entrypoint','server.mjs','server.mjs')}<button class="primary wide">Tạo website</button></form>`);}
 async function websiteWorkspace(slug,view='home'){
  const list=await loadSites(),s=list.find(s=>s.slug===slug);if(!s)throw Error('Không tìm thấy website');state.selectedSite=slug;
- page('Website · '+s.hostname,`<div class="card"><h2>${esc(s.hostname)}</h2><p>${esc(s.type)} · ${esc(s.slug)} · ${s.database?'DB: '+esc(s.database):'Chưa gắn database'}</p><div class="btnrow">${btn('Files / Deploy','site-files:'+slug)}${s.database?btn('Database · Adminer','site-db:'+slug):btn('Tạo database cho site','site-create-db:'+slug)}${btn('Domain','tab-domains')}${btn('Backup site','backup-site:'+slug)}${btn('Bản sao / Restore','tab-backups')}${btn('Logs','log:'+(s.type==='node'?'mhs-site-'+slug:'mhs-nginx'))}${btn('HTTP / Monitor','health:'+slug)}${btn('Settings','edit-site:'+slug)}${s.type==='node'?btn('Restart','restart:mhs-site-'+slug):''}</div><p class="help">Adminer dùng user database của site, không phải root. Dữ liệu SQL thay đổi không rollback bằng code; backup trước thao tác lớn.</p></div>${view==='database'?`<iframe title="Database ${esc(slug)}" src="/api/sites/${esc(slug)}/database-admin" referrerpolicy="no-referrer" style="width:100%;height:75vh;border:0;margin-top:14px;background:white"></iframe>`:''}`);
+ page('Website · '+s.hostname,`<div class="card"><h2>${esc(s.hostname)}</h2><p>${esc(s.type)} · ${esc(s.slug)} · ${s.database?'DB: '+esc(s.database):'Chưa gắn database'}</p><div class="btnrow">${btn('Files / Deploy','site-files:'+slug)}${s.database?btn('Database · Adminer','site-db:'+slug):btn('Tạo database cho site','site-create-db:'+slug)}${btn('Domain','tab-domains')}${btn('Backup site','backup-site:'+slug)}${btn('Bản sao / Restore','tab-backups')}${btn('Logs','log:'+(s.type==='node'?'mhs-site-'+slug:'mhs-nginx'))}${btn('HTTP / Monitor','health:'+slug)}${btn('Settings','edit-site:'+slug)}${s.type==='node'?btn('Triển khai Node.js','node-setup:'+slug)+btn('Restart','restart:mhs-site-'+slug):''}</div><p class="help">Adminer dùng user database của site, không phải root. Dữ liệu SQL thay đổi không rollback bằng code; backup trước thao tác lớn.</p></div>${view==='database'?`<iframe title="Database ${esc(slug)}" src="/api/sites/${esc(slug)}/database-admin" referrerpolicy="no-referrer" style="width:100%;height:75vh;border:0;margin-top:14px;background:white"></iframe>`:''}`);
 }
 async function services(){const {services:list}=await req('/api/services');page('Services',`<div class="tablewrap"><table><thead><tr><th>Dịch vụ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>${Object.entries(list).map(([name,s])=>`<tr><td>${esc(name)}</td><td>${serviceBadge(s)}</td><td><div class="btnrow">${btn('Logs','log:'+name)}${name==='mhs-panel'?'':btn('Start','up:'+name)+btn('Restart','restart:'+name)+btn('Stop','down:'+name,'tiny warn')}</div></td></tr>`).join('')}</tbody></table></div><p class="help">Dừng Nginx/SQL/Tunnel làm gián đoạn website. Panel được giữ để khôi phục. Restart khi crash do runit; Android cần cho phép chạy nền.</p>`);}
 async function backups(){const {backups:list}=await req('/api/backups');state.backups=list;page('Backup & Restore',`<div class="info">Backup theo site gồm files + SQL nếu có DB, kèm checksum. Không chứa wp-config / .env / Node environment. SQL transaction và files lấy riêng: tạm dừng ghi nếu cần snapshot đồng nhất tuyệt đối. Restore tạo safety backup; PHP site sẽ tạm dừng PHP-FPM chung trong lúc apply.</div><div class="toolbar">${btn('Upload backup MHS','upload-backup','primary')}</div><div class="tablewrap"><table><thead><tr><th>Bản sao</th><th>Dung lượng</th><th>Thao tác</th></tr></thead><tbody>${list.map(b=>`<tr><td>${esc(b.name)}<br><small>${b.verified?'Checksum verified':'SQL export'}</small></td><td>${fmtBytes(b.size)}</td><td>${btn('Tải xuống','download:'+b.name)}${b.verified?btn('Restore site','restore-site:'+b.name,'tiny warn'):''}</td></tr>`).join('')||'<tr><td colspan="3">Chưa có backup</td></tr>'}</tbody></table></div>`);const {mountBackup}=await import('/backup-v21.js');await mountBackup({container:$('#content'),request:req,sites:await loadSites(),notify:toast});}
@@ -98,9 +103,10 @@ async function action(key,el){const [kind,...parts]=key.split(':'),v=parts.join(
  if(kind==='download')return downloadBackup(v);
  if(['up','down','restart'].includes(kind)){if(confirm(kind+' '+v+'?'))await req(`/api/services/${v}/action`,{method:'POST',body:{action:kind}});return services();}
  if(kind==='log'){const d=await req(`/api/services/${v}/log`);return modal('Logs',`<pre>${esc(d.log)}</pre>`);}
+ if(kind==='node-setup')return nodeUi.open(v);
  if(kind==='db-backup'){await req(`/api/databases/${v}/backup`,{method:'POST'});return nav('backups');}
  if(kind==='db-tables'){const d=await req(`/api/databases/${v}/tables`);return modal('Tables',`<pre>${esc(d.tables.join('\n'))}</pre>`);}
- if(kind==='db-restore')return modal('Restore SQL',`<form id="restoreForm" data-name="${esc(v)}"><div class="info danger">SQL tin cậy có thể thay dữ liệu. Backup tự tạo trước import. Không nhập DB của MHC Cluster.</div><input name="file" type="file" accept=".sql" required>${input('confirm','Nhập '+v+' để xác nhận')}<button class="primary">Backup rồi restore</button></form>`);
+ if(kind==='db-restore')return sqlUi.open(v);
 }
 $('#navigation').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)nav(b.dataset.tab);});
 $('#refreshBtn').addEventListener('click',()=>nav(state.tab));
@@ -118,6 +124,7 @@ $('#modalBody').addEventListener('submit',async e=>{e.preventDefault();const f=e
  if(f.id==='siteForm'){await req('/api/sites',{method:'POST',body:d});closeModal();return sites();}
  if(f.id==='dbForm'){const v=await req('/api/databases',{method:'POST',body:d});return modal('Lưu credentials ngay',`<pre>${esc(JSON.stringify(v,null,2))}</pre>`);}
  if(f.id==='zipForm'){await req(`/api/sites/${f.dataset.site}/zip`,{method:'POST',body:d.file,raw:true});closeModal();return sites();}
- if(f.id==='restoreForm'){await req(`/api/databases/${f.dataset.name}/restore?${qs({confirm:d.confirm})}`,{method:'POST',body:d.file,raw:true});closeModal();return databases();}
+ if(f.id==='restoreForm')return sqlUi.submit(f,d.file,d.confirm);
+ if(f.id==='nodeSetupForm')return nodeUi.submit(f,d,e.submitter?.value);
  });}catch{}});
 (async()=>{try{const s=await req('/api/session');if(s.loggedIn){state.authMode=s.authMode;state.csrf=s.csrf;state.user=s.user;$('#logoutBtn').textContent=s.authMode==='access-sso'?'Đăng xuất Access':'Đăng xuất';showPanel();}else showLogin();}catch{showLogin();}})();

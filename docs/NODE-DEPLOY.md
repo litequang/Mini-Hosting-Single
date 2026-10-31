@@ -1,0 +1,40 @@
+# Deploy a Node.js website
+
+Create a Node website with its hostname and actual backend entrypoint, for
+example `dist/server.cjs`. Upload the production build plus `package.json` and
+`package-lock.json` to the application root. A frontend-only `dist` and SQL
+dump do not provide a Node backend or runtime dependencies. Build on a PC;
+do not upload Windows `node_modules` to Android.
+
+Open **Files → Triển khai Node.js** (also in the site workspace):
+
+1. Type the site slug and install/update libraries. MHS runs locked production
+   `npm ci --omit=dev --ignore-scripts` in private staging, checks that manifests
+   are unchanged, then replaces `node_modules`. Previous modules survive until
+   the next preparation attempt. Native packages or packages requiring install
+   scripts need an Android-compatible build prepared separately.
+2. Select an existing MHS database and save configuration. Databases bound to
+   other sites are excluded. MHS privately supplies `MYSQL_SOCKET`, `MYSQL_USER`,
+   `MYSQL_PASSWORD`, `MYSQL_DATABASE`, a small pool, production mode and HTTPS
+   URL. The application must support these variables and Unix sockets. Other
+   frameworks need their own adapter. API/OAuth keys remain private Settings.
+   Previous configuration is saved privately.
+3. Use **Databases → Restore SQL** for a trusted dump if needed. Maximum512MiB;
+   transfer uses8MiB checksummed chunks. Watch upload, backup and import phases.
+   Import starts after validation and a successful backup. Failed imports restore
+   that backup; interrupted mutation/failed recovery blocks further imports for
+   operator inspection. Keep the safety backup until the application is verified.
+4. Start the application and check HTTP. MHS restarts only the site's owned
+   service and refuses to label the default `MHS Node ready` placeholder ready.
+   View site Logs if startup fails. This action does not run SQL migrations.
+5. Point the exact Cloudflare Tunnel hostname to `http://127.0.0.1:8080` and test
+   public HTTPS, assets and application APIs. Import does not supply media or keys.
+
+Closing the dialog does not stop background jobs. Reopen to inspect progress.
+Uploads abandoned before import can be cancelled. Interrupted database mutation
+requires manual safety-backup review; it is never retried blindly. Private jobs,
+configuration and backups are not public files or Git data.
+
+Validation: authenticated90MiB HTTP upload, rollback/interruption tests and guided
+Chrome install/config/start/SQL progress PASS on PC. Android and Internet results
+are recorded separately in LIVE-PROGRESS.md.

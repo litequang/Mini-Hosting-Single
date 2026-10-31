@@ -84,3 +84,11 @@ Source upgrade switches current, restarts/verifies Panel, rolls back source on
 failure. Data/SQL are outside its write scope. Platform packages come from Termux
 and are not downgraded by source rollback. Local process lock excludes concurrent
 management/update; it is not a distributed authority/lease.
+
+RC3: first-use Node dependencies run in private staging, never in the public app
+until lockfile/fingerprint checks pass. Configuration reuses only MHS-owned
+unbound DB credentials through the private Unix socket. No arbitrary application
+build/install scripts or migrations execute. SQL uses bounded checksummed chunks
+and background validation/backup/import/rollback; interrupted mutation requires
+operator recovery rather than automatic retries. APIs preserve session/CSRF,
+Origin, operation serialization and MHC import guards.

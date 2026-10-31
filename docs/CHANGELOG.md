@@ -37,3 +37,11 @@ Runtime JS/assets vendor cục bộ, không CDN/npm trên máy đích. Legacy we
 WordPress/Node/SQL/backup và Access/Monitor được giữ. RC1/RC2 V2.0 bất biến.
 PC tests không chứng nhận Android/PHP/MariaDB/Adminer/Internet; xem ACCEPTANCE.
 WP-CLI/wildcard automation chưa bật. Chuyển config/URL WordPress độc lập thủ công.
+
+## 2.1.0-rc.3
+
+Guided Node deployment in original Panel Files/site workspace: locked first-use
+production dependencies, private owned database/socket binding and restart/HTTP
+verification. Bounded512MiB SQL uploads,8MiB SHA256 chunks, background backup,
+import progress, rollback and interruption recovery guards. No runtime data or
+credentials in release. See NODE-DEPLOY.md for application requirements.

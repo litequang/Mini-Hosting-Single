@@ -258,3 +258,11 @@ collect sanitized `mhs doctor` output and fix any actual native failures.
 Final docs command: bash syntax PASS; executing it on PC refused non-Termux
 before package/setup actions PASS. Reference MHC repo remains clean at `b2f04f9`;
 no phone or Cloudflare configuration was accessed or changed.
+
+2026-10-31 RC3 source: guided Node dependency/config/start flow and512MiB SQL
+restore transport/background jobs.21 targeted tests PASS (hosting, upgrade,
+remote auth, Node, SQL, website edits); actual90MiB authenticated HTTP upload PASS
+with19MiB RSS delta in this run. Chrome guided install/bind/start and SQL progress
+PASS;85 JavaScript syntax checks PASS. No native/Internet RC3 claim yet.
+Next: immutable RC3 package/smoke, push source/artifacts, safe11T source upgrade,
+install app dependencies, restore trusted selected SQL and verify public HTTPS.

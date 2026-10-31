@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
+import http from 'node:http';
 import {HOME,DATA,LOG_DIR,NGINX,NGINX_CONFIG,SERVICE_DIR,TERMUX,registry,SITES,saveRegistry} from './config.mjs';
 import {serviceOK,slugOK,hostOK} from './security.mjs';
 const exec=promisify(execFile);
@@ -12,6 +13,10 @@ export async function cmd(file,args=[],timeout=15000,maxBuffer=1024*1024){
  catch(e){return {ok:false,out:String(e.stdout||'').slice(-2000),err:e.code==='ENOENT'?'NOT_INSTALLED':String(e.stderr||'COMMAND_FAILED').slice(-1000)};}
 }
 export const serviceNames=()=>['mhs-panel','mhs-monitor','mhs-scheduler','mhs-nginx','mhs-php','mhs-db','mhs-tunnel',...registry().sites.filter(s=>s.type==='node').map(s=>'mhs-site-'+s.slug)];
+export function siteHttpHealth(site){return new Promise(resolve=>{
+ const req=http.get({host:'127.0.0.1',port:site.port,path:'/',headers:{host:site.hostname},timeout:1000},res=>{let text='',bytes=0;res.on('data',b=>{bytes+=b.length;if(bytes<=128)text+=b;});res.on('end',()=>resolve({ok:res.statusCode>=200&&res.statusCode<400,status:res.statusCode,placeholder:bytes<=128&&text.trim()==='MHS Node ready'}));res.on('error',()=>resolve({ok:false,status:null}));});
+ req.on('error',()=>resolve({ok:false,status:null}));req.on('timeout',()=>{req.destroy();resolve({ok:false,status:null});});
+});}
 export async function shellStatus(name){if(!serviceOK(name))throw Error('SERVICE_NOT_ALLOWED');return cmd(path.join(TERMUX,'bin/sv'),['status',path.join(SERVICE_DIR,name)],2500);}
 export async function serviceAction(name,action){if(!serviceNames().includes(name)||name==='mhs-panel'||!['up','down','restart'].includes(action)||!fs.existsSync(path.join(SERVICE_DIR,name,'mhs-owned')))throw Error('SERVICE_ACTION_REFUSED');const down=path.join(SERVICE_DIR,name,'down');if(action==='down')fs.writeFileSync(down,'');else fs.rmSync(down,{force:true});const r=await cmd(path.join(TERMUX,'bin/sv'),['-w','15',action,path.join(SERVICE_DIR,name)],20000);if(!r.ok)throw Error('SERVICE_ACTION_FAILED');return {ok:true};}
 export function getLog(name){if(!serviceNames().includes(name))throw Error('SERVICE_NOT_ALLOWED');try{const p=path.join(LOG_DIR,name,'current'),fd=fs.openSync(p,'r');try{const size=fs.fstatSync(fd).size,n=Math.min(size,16000),b=Buffer.alloc(n);fs.readSync(fd,b,0,n,Math.max(0,size-n));return b.toString().replace(/(token|password|authorization|cookie|secret)\s*[:=]\s*\S+/gi,'$1=[REDACTED]');}finally{fs.closeSync(fd);}}catch{return 'LOG_UNAVAILABLE';}}

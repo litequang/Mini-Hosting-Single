@@ -98,3 +98,11 @@ build-release.mjs: committed Git blobs only → checksummed bundle/bootstrap.
 scripts/bootstrap.sh.in / boot.sh: official Termux packages, MHS-owned runit.
 cli.mjs: status/service/cloudflare/password/monitor/upgrade/rollback/recovery.
 install-upgrade.test / package-smoke.mjs: PC fixtures, not Android acceptance.
+
+RC3 deployment: panel/src/node-setup.mjs stages locked production npm dependencies,
+privately binds owned DB/socket configuration and restarts/probes the owned site.
+panel/public/node-setup.js guides Files/site workspace users through these steps.
+panel/src/sql-imports.mjs owns bounded private chunks and durable SQL jobs;
+panel/public/sql-import.js shows transfer and backup/import/recovery phases.
+tests/node-setup, sql-imports, deploy-browser cover these boundaries.
+Operator steps: docs/NODE-DEPLOY.md.

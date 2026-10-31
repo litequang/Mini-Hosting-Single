@@ -116,3 +116,12 @@ If logout403 persists: follow the Cloudflare logout URL and authenticate again;
 the old token is deliberately blocked, including after Panel restart.
 Rollback RC1: only local/SSH recovery; never public9090 or reuse old remote login.
 `mhs lan-monitor off` now requires `mhs service mhs-monitor restart`, not Panel.
+
+## Node deployment and large SQL restore (RC3)
+
+Use Files → Triển khai Node.js, see [NODE-DEPLOY.md](NODE-DEPLOY.md).
+A frontend dist alone cannot start an Express backend. Supply backend entrypoint,
+package.json/lock, install production dependencies, bind DB and start/check HTTP.
+The default placeholder is not application readiness. SQL512MiB uploads are
+chunked; import progress remains available after closing/reopening the dialog.
+RECOVERY_REQUIRED requires operator review of the recorded safety backup.
