@@ -1,0 +1,40 @@
+import {test,after} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+const temp=fs.mkdtempSync(path.join(os.tmpdir(),'mhs-domains-'));process.env.MHS_HOME=path.join(temp,'home');process.env.MHS_DATA=path.join(temp,'data');process.env.PREFIX=path.join(temp,'prefix');const c=await import('../panel/src/config.mjs');c.initialize();const sites=await import('../panel/src/sites.mjs'),d=await import('../panel/src/domains.mjs'),{Cloudflare}=await import('../panel/vendor/cloudflare.mjs');after(()=>fs.rmSync(temp,{recursive:true,force:true}));
+const accountId='a'.repeat(32),zoneId='b'.repeat(32),tunnelId='11111111-2222-4333-8444-555555555555',apiToken='synthetic_api_token_not_real_123456789';
+const baseConfig={ingress:[{hostname:'panel.example.com',service:'http://127.0.0.1:9093',originRequest:{access:{required:true,teamName:'owner',audTag:['fixture-panel-aud']}}},{hostname:'monitor.example.com',service:'http://127.0.0.1:9092',originRequest:{access:{required:true,teamName:'owner',audTag:['fixture-monitor-aud']}}},{hostname:'foreign.example.net',service:'http://127.0.0.1:6000',path:'/foreign.*',originRequest:{connectTimeout:12}},{service:'http_status:404'}],originRequest:{connectTimeout:5,tcpKeepAlive:30},'warp-routing':{enabled:false}};
+function fixture(){const f={remote:{source:'cloudflare',version:1,config:structuredClone(baseConfig)},records:[],writes:[],failCreate:false,interfere:false,calls:[]};let seq=0;
+ const mock=async(input,init={})=>{const req=input instanceof Request?input:new Request(input,init),url=new URL(req.url),p=url.pathname,method=req.method;f.calls.push({method,path:p});let result,code=200;
+  if(method==='GET'&&p.endsWith('/zones/'+zoneId))result={id:zoneId,name:'example.com',status:'active',account:{id:accountId}};
+  else if(method==='GET'&&p.endsWith('/cfd_tunnel/'+tunnelId))result={id:tunnelId,account_tag:accountId,name:'mhs-test-phone',config_src:'cloudflare'};
+  else if(p.endsWith('/configurations')){if(method==='PUT'){const body=await req.json();f.remote={...f.remote,config:body.config,version:f.remote.version+1};f.writes.push(structuredClone(body.config));if(f.interfere){f.remote.config.ingress.splice(0,0,{hostname:'concurrent.example.net',service:'http://127.0.0.1:7777'});f.remote.version++;f.interfere=false;}}result=f.remote;}
+  else if(p.endsWith('/dns_records')&&method==='GET'){const name=url.searchParams.get('name.exact')||url.searchParams.get('name[exact]');assert.ok(name,'SDK must filter exact DNS name');result=f.records.filter(r=>r.name===name);}
+  else if(p.endsWith('/dns_records')&&method==='POST'){if(f.failCreate){code=403;}else{const body=await req.json();result={...body,id:(++seq).toString(16).padStart(32,'0')};f.records.push(result);}}
+  else if(/\/dns_records\/[a-f0-9]{32}$/.test(p)){const id=p.split('/').at(-1),record=f.records.find(r=>r.id===id);if(!record)code=404;else if(method==='DELETE'){f.records=f.records.filter(r=>r.id!==id);result={id};}else result=record;}
+  else throw Error('UNEXPECTED_SDK_REQUEST_'+method+'_'+p);
+  return new Response(JSON.stringify(code===200?{success:true,result,errors:[],messages:[],result_info:{page:1,total_pages:1,count:Array.isArray(result)?result.length:1,total_count:Array.isArray(result)?result.length:1,per_page:100}}:{success:false,errors:[{code:10000,message:'fixture failure'}]}),{status:code,headers:{'content-type':'application/json'}});
+ };const client=new Cloudflare({apiToken,maxRetries:0,timeout:2000,fetch:mock,logLevel:'off'});f.ops=d.domainOperations({getClient:async()=>client,fetcher:async url=>{assert.match(url,/^https:\/\/[a-z0-9.-]+\.example\.com\/$/);return new Response(null,{status:200});}});return f;
+}
+function setup(){fs.mkdirSync(path.join(c.DATA,'cloudflare'),{recursive:true});fs.writeFileSync(path.join(c.DATA,'cloudflare/tunnel-token'),Buffer.from(JSON.stringify({a:accountId,t:tunnelId,s:'synthetic-connector-secret'})).toString('base64'));d.configureDomainApi({accountId,zoneId,zone:'example.com',tunnelId,apiToken,confirm:'MHS OWNS TUNNEL '+tunnelId});}
+test('manual fallback is honest; official SDK preview/apply/HTTPS/remove preserves complete unrelated ingress/origin settings',async()=>{
+ const site=await sites.addSite({slug:'domain-web',hostname:'new.example.com'});let f=fixture();const manual=await f.ops.preview(site.slug);assert.equal(manual.mode,'MANUAL');assert.equal(manual.applied,false);assert.equal(f.calls.length,0);setup();
+ const plan=await f.ops.preview(site.slug);assert.equal(plan.applied,false);assert.equal(f.writes.length,0);assert.ok(!JSON.stringify(plan).includes('fixture-panel-aud'));const applied=await f.ops.apply(plan.id,site.hostname);assert.equal(applied.state,'HTTPS verified');assert.deepEqual(f.remote.config.ingress.filter(r=>r.hostname!==site.hostname),baseConfig.ingress);assert.deepEqual(f.remote.config.originRequest,baseConfig.originRequest);assert.deepEqual(f.remote.config['warp-routing'],baseConfig['warp-routing']);assert.equal(f.records[0].content,tunnelId+'.cfargotunnel.com');assert.equal(f.records[0].proxied,true);assert.ok(!JSON.stringify(d.domainStatus()).includes(apiToken));
+ await assert.rejects(()=>sites.updateSite(site.slug,{hostname:'different.example.com'}),/UNPUBLISH/);await assert.rejects(()=>sites.deleteSite(site.slug),/UNPUBLISH/);
+ await f.ops.remove(site.slug,site.hostname);assert.equal(f.records.length,0);assert.deepEqual(f.remote.config,baseConfig);assert.equal(d.domainStatus().sites.find(s=>s.slug===site.slug).state,'local only');
+});
+test('foreign DNS/wildcard/management host and changed remote revision are refused without writes',async()=>{
+ const site=await sites.addSite({slug:'conflict-web',hostname:'conflict.example.com'}),f=fixture();f.records.push({id:'f'.repeat(32),name:site.hostname,type:'A',content:'192.0.2.1'});await assert.rejects(()=>f.ops.preview(site.slug),/ALREADY_EXISTS/);f.records=[{id:'f'.repeat(32),name:'*.example.com',type:'CNAME',content:'foreign.example.net'}];await assert.rejects(()=>f.ops.preview(site.slug),/WILDCARD/);f.records=[];
+ const plan=await f.ops.preview(site.slug);f.remote.version++;f.remote.config.originRequest.connectTimeout=99;await assert.rejects(()=>f.ops.apply(plan.id,site.hostname),/CONFIG_CHANGED/);assert.equal(f.writes.length,0);
+ const panel=await sites.addSite({slug:'panel-fake',hostname:'panel.example.com'});await assert.rejects(()=>f.ops.preview(panel.slug),/RESERVED/);assert.equal(f.writes.length,0);
+});
+test('DNS failure rolls back only own route; concurrent foreign change stops rollback and marks recovery',async()=>{
+ const site=await sites.addSite({slug:'rollback-web',hostname:'rollback.example.com'}),f=fixture();let plan=await f.ops.preview(site.slug);f.failCreate=true;await assert.rejects(()=>f.ops.apply(plan.id,site.hostname),/APPLY_FAILED/);assert.deepEqual(f.remote.config,baseConfig);assert.equal(f.records.length,0);
+ const other=await sites.addSite({slug:'race-web',hostname:'race.example.com'}),g=fixture();plan=await g.ops.preview(other.slug);g.interfere=true;await assert.rejects(()=>g.ops.apply(plan.id,other.hostname),/RECOVERY_INSPECTION/);assert.equal(g.writes.length,1);assert.ok(g.remote.config.ingress.some(r=>r.hostname==='concurrent.example.net'));assert.equal(d.domainStatus().sites.find(s=>s.slug===other.slug).state,'RECOVERY REQUIRED');
+});
+test('delete rejects manually changed DNS ownership; connector mismatch cannot replace valid API config',async()=>{
+ const site=await sites.addSite({slug:'owned-web',hostname:'owned.example.com'}),f=fixture(),p=await f.ops.preview(site.slug);await f.ops.apply(p.id,site.hostname);f.records[0].comment='manual-change';await assert.rejects(()=>f.ops.remove(site.slug,site.hostname),/REFUSE_DELETE/);assert.equal(f.records.length,1);
+ const original=fs.readFileSync(path.join(c.DATA,'domain-api.json'),'utf8');assert.throws(()=>d.configureDomainApi({accountId:'c'.repeat(32),zoneId,zone:'example.com',tunnelId,apiToken,confirm:'MHS OWNS TUNNEL '+tunnelId}),/SCOPE_IN_USE/);assert.equal(fs.readFileSync(path.join(c.DATA,'domain-api.json'),'utf8'),original);
+});

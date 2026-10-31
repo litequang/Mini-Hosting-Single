@@ -1,5 +1,9 @@
 # Panel SSO và Remote Monitor — Issue #1
 
+V2.1 thêm [Auto Publish Domain](DOMAIN-AUTOMATION.md) bằng official SDK/API token
+giới hạn. Đây là quyền riêng tùy chọn cho website; wizard Panel/Monitor bên dưới
+vẫn dùng connector token và thao tác Access thủ công, không tự đổi policy.
+
 Chỉ sử dụng Tunnel/hostname MHS riêng. Không sửa DNS/Access/Tunnel production hoặc
 của MHC. Không cần Worker, Durable Object, API token hay Codex SSH để cài từng máy.
 

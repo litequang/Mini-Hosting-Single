@@ -29,6 +29,12 @@ Backups; install/boot/management add/stop scheduler across source rollback.
 databases.mjs adds streamed SQL input and guard scan; old archive format retained.
 restic.test runs official PC restic when MHS_RESTIC_TEST_EXE is set; SQL injected.
 
+M4: domains.mjs private token/scope, connector binding, full remote config preview/
+re-read/hash/version, owned DNS/rule journal, apply/HTTPS/remove/rollback. SDK lazy
+local panel/vendor/cloudflare.mjs, build entry tools/vendor-cloudflare.mjs. UI in
+domains-v21.js extends original Cloudflare page; CLI domain setup/plan/apply.
+domains.test uses actual official SDK with mocked fetch endpoints, no live account.
+
 Issue #1 R1: remote-access.mjs adds strict schema2 owner-identity mapping, separate
 local/remote authorizers and bounded JWKS cache. createPanelServer factory keeps
 local password and remote-only SSO sessions separate. tests/panel-sso exercises

@@ -33,6 +33,13 @@ online files vs SQL consistency is explicitly separate. Restore is staged, safet
 backed, verified, maintenance gated and rolls back; no automatic cross-device secret
 mapping or replacement of current local credentials. See ENCRYPTED-BACKUP.md.
 
+M4 domain automation runs only on explicit owner actions, using scoped per-device
+API token distinct from connector. Full config replacement is protected by private
+preview snapshot/hash/version re-read and post-write verification; this is optimistic,
+not a Cloudflare CAS transaction. Conflicting DNS/wildcard/routes/changed ownership
+are refused. Partial rollback preserves foreign changes, stopping for inspection
+if remote state is ambiguous. Nginx website traffic never depends on SDK/Worker.
+
 One phone owns its sites and data. Direct Tunnel routes website hostnames to
 loopback Nginx8080; Nginx dispatches static/PHP/Node. Panel9090 is loopback-only.
 Local password Panel9090 and remote SSO Panel9093 are separate loopback listeners.

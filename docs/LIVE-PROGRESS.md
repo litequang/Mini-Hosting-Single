@@ -4,6 +4,16 @@ Only this file records execution status. Source provenance: b2f04f9 MHC, read-on
 
 ## Issue #2 — V2.1,31 October2026
 
+M3 commit `8278258`, pushed main. M4 DONE (source/PC SDK mock): exact domain
+preview/apply/HTTPS/remove, connector/API scope binding, private ownership journals,
+full ingress/origin settings preservation, optimistic version/hash checks and
+partial rollback.4 tests PASS using actual official SDK7.3.0 against fetch mock:
+foreign DNS/wildcard/management names/stale config denied; foreign concurrent
+change preserved and recovery marked; changed DNS refuses deletion. No real
+Cloudflare resource or token was accessed. Native API/HTTPS/Internet NOT RUN;
+wildcard automation intentionally not enabled. Current result: this M4 commit.
+Next M5: guided setup/reinstall guards, focused integration and pinned2.1 release.
+
 M2 commit `08c1ad6`, pushed main. M3 DONE (source/PC): encrypted restic backups,
 site/owner tags + repository ID, SQL512MiB streaming, private recovery metadata,
 verified restore/safety rollback, keepLast/prune, AES-GCM recovery kit export/import.

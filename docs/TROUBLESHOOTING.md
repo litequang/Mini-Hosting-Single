@@ -1,5 +1,17 @@
 # Troubleshooting
 
+- CF_CONNECTOR_TUNNEL_MISMATCH / OWNERSHIP_FAILED: use the dedicated MHS Tunnel
+  and matching connector token, not a MHC/production Tunnel. Do not relax binding.
+- CF_DNS_RECORD_ALREADY_EXISTS / INGRESS_CONFLICT / WILDCARD: stop; review resource
+  ownership, choose a new exact hostname. No overwrite/adoption is automatic.
+- CF_CONFIG_CHANGED_REPLAN: redo preview, no writes were applied from stale plan.
+- CF_RECOVERY_INSPECTION_REQUIRED: keep private plan/state; compare current remote
+  config and own hostname. Do not PUT the old full config over newer foreign changes.
+- CF_API_PERMISSION_DENIED_CHECK_SCOPES: check scoped DNS/Zone Read/Tunnel rights;
+  manual wizard remains usable. CF_API_RATE_LIMIT_RETRY_LATER: wait, then retry.
+- DNS published but HTTPS not verified: inspect site/Tunnel/HTTPS; this is not a
+  false hosting PASS. Preserve current Access policies and reserved management routes.
+
 - RESTIC_UNAVAILABLE: `pkg install restic`, then `mhs doctor` and scheduler up.
 - RESTIC_REPOSITORY_CHANGED: stop backup jobs; verify repo ID/config, do not init
   over an existing repository or change state to adopt it.

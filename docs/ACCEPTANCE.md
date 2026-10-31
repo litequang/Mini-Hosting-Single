@@ -1,5 +1,10 @@
 # Acceptance — 31 October 2026, Issue #1
 
+V2.1 M4:4 tests PASS with official Cloudflare SDK and mocked HTTP API. Full ingress/
+origin/unknown settings preserved; DNS ownership/conflicts/wildcards/reserved hosts,
+stale plan/concurrent write, DNS failure rollback, HTTPS response states and delete
+ownership checked. No live Cloudflare mutation. Android/API/Internet NOT RUN.
+
 V2.1 M3:3 targeted tests PASS, including actual restic0.19.1 Windows encrypted
 init/backup/check/restore/forget/prune and kit roundtrip. SQL dump/import adapter
 is a fixture; injected post-mutation SQL failure rolls back SQL/files. Scheduler

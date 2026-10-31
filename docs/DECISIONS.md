@@ -1,5 +1,13 @@
 # Decisions — 30 October 2026
 
+V2.1 M4: exact host auto-publish only; wildcard remains explicit/manual advanced
+work, never enabled automatically. Connector token must bind own MHS-named Tunnel.
+No API token adoption/production writes by development tests. API replacement
+GET/PUT has no documented CAS; use re-read/version/hash and refuse uncertain
+rollback rather than replacing foreign config. Owned DNS record IDs/comments are
+required for deletion; site rename/delete blocked until unpublish. Manual wizard
+still available and never falsely marks a plan as published.
+
 V2.1 M3: use Termux restic + local node-cron service, existing local operation
 lock; no arbitrary shell scheduler or distributed orchestration. Async backup
 jobs return202 and preserve states on reboot. Plain legacy archive format kept;

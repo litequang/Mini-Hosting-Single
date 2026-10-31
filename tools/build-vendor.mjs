@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {build} from 'esbuild';
 const root=path.resolve(import.meta.dirname,'..');
-for(const [entry,outfile,platform] of [['tools/vendor-runtime.mjs','panel/vendor/runtime.mjs','node'],['tools/vendor-browser.mjs','panel/public/vendor/browser.mjs','browser'],['tools/vendor-cron.mjs','panel/vendor/cron.mjs','node']]){
+for(const [entry,outfile,platform] of [['tools/vendor-runtime.mjs','panel/vendor/runtime.mjs','node'],['tools/vendor-browser.mjs','panel/public/vendor/browser.mjs','browser'],['tools/vendor-cron.mjs','panel/vendor/cron.mjs','node'],['tools/vendor-cloudflare.mjs','panel/vendor/cloudflare.mjs','node']]){
  const result=await build({absWorkingDir:root,entryPoints:[entry],outfile,bundle:true,platform,format:'esm',target:platform==='node'?'node22':'es2022',minify:true,legalComments:'eof',metafile:true,...(platform==='node'?{banner:{js:"import {createRequire as mhsCreateRequire} from 'node:module';const require=mhsCreateRequire(import.meta.url);"}}:{})});
  fs.mkdirSync(path.join(root,'docs/vendor'),{recursive:true});
  fs.writeFileSync(path.join(root,'docs/vendor',path.basename(outfile)+'-inputs.json'),JSON.stringify(Object.keys(result.metafile.inputs).sort(),null,2)+'\n');
