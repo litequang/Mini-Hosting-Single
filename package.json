@@ -1,6 +1,6 @@
 {
   "name": "mini-hosting-single",
-  "version": "2.1.0-rc.5",
+  "version": "2.1.0-rc.6",
   "private": true,
   "type": "module",
   "description": "Independent Android Termux hosting using the original Panel 9090",

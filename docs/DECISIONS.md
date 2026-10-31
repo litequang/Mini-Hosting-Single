@@ -72,3 +72,8 @@ rollback never reopens remote local-password flow.
   verified unchanged. V1 archives were not found and are not a dependency.
 - WordPress core installer uses official HTTPS version/checksum/download endpoints;
   fresh DB only. Node environment is private JSON and passed without a shell.
+
+ZIP path names are compared using private staging filesystem case sensitivity.
+Termux internal storage can contain distinct TVCHH/tvchh directory trees; do not
+lowercase imported media paths because SQL references preserve their case.
+Case-insensitive filesystems retain alias refusal. All other ZIP guards remain.

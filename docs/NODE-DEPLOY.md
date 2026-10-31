@@ -48,3 +48,11 @@ For existing installations the budget is temporarily raised through the private
 root socket and restored after import/failure; no SQL service restart is needed.
 Fresh services use128MiB. Error reports contain only numeric SQL codes/line numbers,
 never failing row text.
+
+For apps using file-backed media, put SHEET_STORAGE_ROOT in the uploaded .env
+with an absolute path to the folder containing the archive's inner media paths.
+A ZIP wrapper named sheets means the root is the extracted sheets directory,
+not its parent. Prefer persistent site storage outside replaceable app code.
+If a previous managed environment JSON contains the same variable, remove that
+one override after verifying the .env value, since managed values take precedence.
+Private env values/files and media stay out of Git.

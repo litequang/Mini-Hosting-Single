@@ -11,19 +11,22 @@ import {safeOpen,guarded,publicPath,requireSpace,LIMITS} from './file-policy.mjs
 import {HttpError,inside} from './security.mjs';
 import {assertIndependentTree} from './hosting.mjs';
 import {hashFile} from './uploads.mjs';
+// ZIP names must use the destination filesystem's rules. Termux private storage
+// distinguishes TVCHH from tvchh; a typical Windows filesystem does not.
+export function zipCaseSensitive(dir){const probe=fs.mkdtempSync(path.join(dir,'zip-case-'));try{fs.writeFileSync(path.join(probe,'Probe'),'',{mode:0o600,flag:'wx'});return !fs.existsSync(path.join(probe,'probe'));}finally{fs.rmSync(probe,{recursive:true,force:true});}}
 export async function extractZipFile(file,target,{maxBytes=LIMITS.expanded,maxFiles=LIMITS.files,space=DATA}={}){
- requireSpace(space,0);const handle=await fs.promises.open(file,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW||0));let zip;
+ requireSpace(space,0);const caseSensitive=zipCaseSensitive(space),key=name=>caseSensitive?name:name.toLowerCase();const handle=await fs.promises.open(file,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW||0));let zip;
  try{
   const stat=await handle.stat();if(!stat.isFile()||stat.nlink!==1)throw Error('ZIP_LINK_OR_TYPE_REFUSED');
   zip=await yauzl.fromFdPromise(handle.fd,{autoClose:false,lazyEntries:true,strictFileNames:true,validateEntrySizes:true});
   if(zip.entryCount<1||zip.entryCount>maxFiles)throw new HttpError(413,'ZIP_FILE_COUNT_LIMIT');
   const seen=new Map(),entries=[];let total=0;
   for await(const e of zip.eachEntry()){const dir=e.fileName.endsWith('/'),name=publicPath(dir?e.fileName.slice(0,-1):e.fileName),mode=(e.externalFileAttributes>>>16)&0xf000;
-   if(!name||seen.has(name.toLowerCase())||mode&&mode!==0x8000&&mode!==0x4000||e.generalPurposeBitFlag&1||![0,8].includes(e.compressionMethod))throw new HttpError(400,'ZIP_PATH_TYPE_OR_COLLISION');
+   if(!name||seen.has(key(name))||mode&&mode!==0x8000&&mode!==0x4000||e.generalPurposeBitFlag&1||![0,8].includes(e.compressionMethod))throw new HttpError(400,'ZIP_PATH_TYPE_OR_COLLISION');
    if(!Number.isSafeInteger(e.uncompressedSize)||e.uncompressedSize<0||!Number.isSafeInteger(e.compressedSize)||e.uncompressedSize>Math.max(1,e.compressedSize)*200)throw new HttpError(413,'ZIP_EXPANSION_RATIO_LIMIT');
-   seen.set(name.toLowerCase(),dir);total+=e.uncompressedSize;if(total>maxBytes)throw new HttpError(413,'ZIP_EXPANDED_LIMIT');entries.push({entry:e,path:name,dir});
+   seen.set(key(name),dir);total+=e.uncompressedSize;if(total>maxBytes)throw new HttpError(413,'ZIP_EXPANDED_LIMIT');entries.push({entry:e,path:name,dir});
   }
-  for(const e of entries){const parts=e.path.toLowerCase().split('/');while(parts.length>1){parts.pop();if(seen.get(parts.join('/'))===false)throw new HttpError(400,'ZIP_FILE_DIRECTORY_COLLISION');}}
+  for(const e of entries){const parts=key(e.path).split('/');while(parts.length>1){parts.pop();if(seen.get(parts.join('/'))===false)throw new HttpError(400,'ZIP_FILE_DIRECTORY_COLLISION');}}
   requireSpace(space,total);fs.mkdirSync(target,{recursive:true,mode:0o700});let written=0;
   for(const {entry:e,path:rel,dir} of entries){const out=inside(target,rel);if(dir){fs.mkdirSync(out,{recursive:true,mode:0o700});continue;}fs.mkdirSync(path.dirname(out),{recursive:true,mode:0o700});let bytes=0,crc=0;const input=await zip.openReadStreamPromise(e);
    await pipeline(input,new Transform({transform(chunk,_,cb){bytes+=chunk.length;written+=chunk.length;if(bytes>e.uncompressedSize||written>maxBytes)return cb(new Error('ZIP_ACTUAL_BYTES_LIMIT'));crc=zlib.crc32(chunk,crc);cb(null,chunk);}}),fs.createWriteStream(out,{flags:'wx',mode:0o600}));

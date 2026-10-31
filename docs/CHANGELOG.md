@@ -61,3 +61,12 @@ failure on a17.3MB INSERT exceeded the existing16MiB packet: client128MiB budget
 temporary scoped root-socket server allowance with finally restoration, fresh
 service128MiB default. SQL diagnostics expose numeric code/line only. Fresh
 service paths are also resolved before launch. Earlier artifacts unchanged.
+
+## 2.1.0-rc.6
+
+ZIP extraction now probes private staging filesystem case sensitivity. Android
+private storage preserves distinct media paths such as TVCHH/tvchh; case-insensitive
+filesystems still reject aliases. Exact duplicates, file/directory collisions,
+traversal, private paths, links, CRC, byte/count and expansion-ratio limits remain
+blocked. A332MB sheets ZIP failed on the previous unconditional lowercase map,
+not on the512MiB upload or2GiB expanded-size limits.

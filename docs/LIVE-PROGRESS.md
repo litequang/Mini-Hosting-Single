@@ -301,3 +301,10 @@ no corresponding storage backup was found in supplied build/local app directorie
 Requested its location; do not invent media or rerun SQL just to supply files.
 Next: copy verified media to persistent site storage after operator provides its
 source, verify authenticated app workflows, then separate reboot acceptance.
+
+RC6: authorized sheets.zip metadata332,291,675bytes compressed,542,128,521bytes
+expanded,11,779entries/5,167files. No unsafe paths, links or exact duplicate files;
+894 case aliases are legitimate on Android storage. Old preview400
+ZIP_PATH_TYPE_OR_COLLISION reproduced. Fixed ZIP namespace rules using actual
+private filesystem case-sensitivity probe. PC targeted5tests +88JS syntax PASS.
+Native extraction/checksums and .env SHEET_STORAGE_ROOT alignment next.
