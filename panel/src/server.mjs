@@ -128,6 +128,8 @@ async function api(req,res,url){
    if(action==='node-setup'&&method==='GET')return send(res,200,nodeOps.status(name));
    if(action==='node-setup'&&method==='POST'){const b=jsonBody(await readBody(req,4096)),result=await queueMutate(()=>nodeOps.prepare(name,b.confirm));void nodeOps.launch(name,queueMutate).catch(()=>{});return send(res,202,result);}
    if(action==='node-config'&&method==='GET')return send(res,200,await nodeOps.configuration(name));
+   if(action==='node-env-editor'&&method==='GET')return send(res,200,nodeOps.environmentEditor(name));
+   if(action==='node-env-editor'&&method==='POST'){const text=(await readBody(req,64*1024)).toString('utf8');return send(res,200,await queueMutate(()=>nodeOps.saveEnvironmentEditor(name,text,url.searchParams.get('confirm'))));}
    if(action==='node-env-file'&&method==='POST'){const text=(await readBody(req,64*1024)).toString('utf8');return send(res,200,await queueMutate(()=>nodeOps.environmentFile(name,text,url.searchParams.get('confirm'))));}
    if(action==='node-config'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>{if(b.database)sqlOps.assertReady(b.database);return nodeOps.configure(name,b);}));}
    if(action==='node-start'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>nodeOps.start(name,b.confirm)));}

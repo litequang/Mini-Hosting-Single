@@ -70,3 +70,12 @@ filesystems still reject aliases. Exact duplicates, file/directory collisions,
 traversal, private paths, links, CRC, byte/count and expansion-ratio limits remain
 blocked. A332MB sheets ZIP failed on the previous unconditional lowercase map,
 not on the512MiB upload or2GiB expanded-size limits.
+
+## 2.1.0-rc.7
+
+Files now includes an authenticated .env editor and Node restart/HTTP check.
+The editor shows effective file + legacy managed environment, privately backs up
+old values, and on save consolidates them into the uploaded .env file. It keeps
+reserved-variable/size guards; normal file download/public paths still deny .env.
+No secrets are logged or included in release. Update only dist when that is the
+application's deployment layout; sheets remains alongside dist in app root.

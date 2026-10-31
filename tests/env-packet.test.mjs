@@ -13,3 +13,6 @@ test('large statement packet allowance is bounded, acquired before import and re
  await assert.rejects(()=>withSqlPacketBudget(async()=>{assert.equal(current,128*1024*1024);throw Error('fixture import failure');},{query}),/fixture/);assert.equal(current,16*1024*1024);assert.equal(calls.length,3);
  current=256*1024*1024;calls.length=0;assert.equal(await withSqlPacketBudget(async()=>true,{query}),true);assert.equal(current,256*1024*1024);assert.equal(calls.length,1);
 });
+test('environment editor serialization preserves multiline secrets without executing or losing characters',async()=>{
+ const {serializeNodeEnv}=await import('../panel/src/node-env.mjs'),values={A:'one\ntwo',B:"contains'quote",C:'back\\slash # hash',D:'double"quote'};assert.deepEqual(parseNodeEnv(serializeNodeEnv(values)),values);
+});

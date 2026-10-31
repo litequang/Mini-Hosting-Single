@@ -308,3 +308,11 @@ expanded,11,779entries/5,167files. No unsafe paths, links or exact duplicate fil
 ZIP_PATH_TYPE_OR_COLLISION reproduced. Fixed ZIP namespace rules using actual
 private filesystem case-sensitivity probe. PC targeted5tests +88JS syntax PASS.
 Native extraction/checksums and .env SHEET_STORAGE_ROOT alignment next.
+
+RC7: Files .env editor + Node restart.9 targeted Node/env/real Chrome tests PASS,
+88 JS syntax PASS. Real332MB media ZIP extracted with CRC checks:5167 files,
+542128521bytes. User requested sheets in app root beside dist; moved atomically,
+visible through authenticated File Manager, absolute SHEET_STORAGE_ROOT updated
+in private .env and redundant legacy override removed. Existing app restart/HTTP
+200 PASS. Only dist is replaced for this application's normal updates.
+Native media/SQL SHA verification and final RC7 upgrade pending.

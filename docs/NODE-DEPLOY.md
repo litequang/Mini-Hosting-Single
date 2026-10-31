@@ -56,3 +56,9 @@ not its parent. Prefer persistent site storage outside replaceable app code.
 If a previous managed environment JSON contains the same variable, remove that
 one override after verifying the .env value, since managed values take precedence.
 Private env values/files and media stay out of Git.
+
+Files provides Sửa .env and Restart Node.js. The authenticated editor displays
+current effective configuration; saving consolidates legacy managed values into
+the private .env file with backups. Ordinary file routes still deny env downloads.
+For the dist-only deployment layout, keep sheets beside dist and set the absolute
+SHEET_STORAGE_ROOT accordingly. Replacing dist does not replace sibling sheets.

@@ -9,7 +9,7 @@ import {HttpError} from './security.mjs';
 import {requireSpace} from './file-policy.mjs';
 import {databaseCredentials,listDatabases} from './databases.mjs';
 import {serviceAction,siteHttpHealth} from './system.mjs';
-import {hasNodeEnv,saveNodeEnv} from './node-env.mjs';
+import {hasNodeEnv,saveNodeEnv,readNodeEnv,readNodeEnvText,serializeNodeEnv} from './node-env.mjs';
 export async function installLockedDependencies(stage){
  const cache=path.join(DATA,'npm-cache');fs.mkdirSync(cache,{recursive:true,mode:0o700});
  await new Promise((resolve,reject)=>{
@@ -74,6 +74,8 @@ export function nodeSetupOperations({install=installLockedDependencies,space=req
   return {started:false,health,error:health?.placeholder?'NODE_PLACEHOLDER_NOT_DEPLOYED':'NODE_APPLICATION_HTTP_NOT_READY'};
  }
  function environmentFile(slug,text,confirm){site(slug);if(confirm!==slug)throw new HttpError(400,'NODE_SETUP_CONFIRM_REQUIRED');return saveNodeEnv(slug,text);}
- return {status,prepare,launch,configuration,configure,start,environmentFile};
+ function environmentEditor(slug){site(slug);const legacy=readJson(path.join(DATA,'node-env-'+slug+'.json'),null);return {text:legacy?serializeNodeEnv({...readNodeEnv(slug),...legacy}):readNodeEnvText(slug)};}
+ function saveEnvironmentEditor(slug,text,confirm){site(slug);if(confirm!==slug)throw new HttpError(400,'NODE_SETUP_CONFIRM_REQUIRED');const legacy=path.join(DATA,'node-env-'+slug+'.json');if(fs.existsSync(legacy))fs.copyFileSync(legacy,path.join(DATA,'node-env-json-before-'+slug+'-'+crypto.randomBytes(8).toString('hex')+'.private'),fs.constants.COPYFILE_EXCL);saveNodeEnv(slug,text);fs.rmSync(legacy,{force:true});return {saved:true,restartRequired:true};}
+ return {status,prepare,launch,configuration,configure,start,environmentFile,environmentEditor,saveEnvironmentEditor};
 }
 export const nodeSetup=nodeSetupOperations();
