@@ -9,7 +9,7 @@ checks PASS, bash -n boot/bootstrap PASS. No Android or Cloudflare mutation run.
 | R1 SSO9093 / local9090 | PASS real local HTTP, fixture signed JWT; owner/Host/AUD/issuer/time/signature/CSRF/Origin/session checks, logout/replay/restart, local password | live Access and browser UX NOT RUN |
 | R2 Remote9092 / LAN9091 | PASS sanitized GET whitelist, wrong token/cookie/owner/AUD denied; no admin/log/file routes; no-store | remote Internet and cross-device LAN NOT RUN |
 | R3 wizard / doctor | PASS hidden/reused token, two apps/safe plan, actual negative HTTP probes, redacted reports, Monitor lifecycle fixture | account app/route permission, Termux native NOT RUN |
-| R4 regression / artifact |25 tests PASS, JS/shell syntax PASS; exact artifact smoke follows in LIVE-PROGRESS | physical install/reboot/PHP/SQL/WP/HTTPS NOT RUN |
+| R4 regression / artifact |25 tests PASS, JS/shell syntax PASS; RC2 exact checksum/extraction/manifest/fresh-install fixture and anonymous403 on remote Panel/Monitor PASS | physical install/reboot/PHP/SQL/WP/HTTPS NOT RUN |
 
 Issue #1 code/checkpoints delivered without closing its physical acceptance gaps.
 Below are inherited hosting checks, rerun where listed above to preserve behavior.

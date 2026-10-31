@@ -1,0 +1,10 @@
+{
+  "project": "MHS",
+  "version": "2.0.0-rc.2",
+  "sourceCommit": "1b52bb71d0fe38f544e3e50563bcbe788c14f56c",
+  "archive": "mhs-2.0.0-rc.2.mhs.gz",
+  "archiveSha256": "97f847e641e139a4dd14688d37307d9e7bc03644c727a80e656d9f0641a6a22e",
+  "bootstrap": "install-2.0.0-rc.2.sh",
+  "bootstrapSha256": "4194e1f22b31256e153f60263406d77492d7e78e45bec8c0cc36ec5c388c795b",
+  "physicalAcceptance": "NOT_RUN"
+}

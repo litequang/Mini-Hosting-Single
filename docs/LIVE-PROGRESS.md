@@ -107,3 +107,13 @@ paths.44 JS syntax checks PASS, boot/bootstrap bash syntax PASS. Browser UI,
 Android/reboot/native PHP/SQL/WP/public Access/Internet NOT RUN.
 Current result: this R4 source commit. Next: create immutable RC2 from this commit,
 smoke exact bundle/remote denial, push tag/artifacts and publish pinned install.
+
+R4 source commit `1b52bb71d0fe38f544e3e50563bcbe788c14f56c`, pushed main.
+RC2 `2.0.0-rc.2` packaged from that commit:56 committed source/docs files +
+release manifest. Actual artifact checksum/extraction/manifest/fresh-install fixture
+and anonymous403 on both remote listeners PASS; generated bootstrap bash syntax
+PASS. Mode PC_FIXTURE_ONLY; Android/Internet/reboot/native hosting NOT RUN.
+Archive SHA256 `97f847e641e139a4dd14688d37307d9e7bc03644c727a80e656d9f0641a6a22e`.
+Bootstrap SHA256 `4194e1f22b31256e153f60263406d77492d7e78e45bec8c0cc36ec5c388c795b`.
+RC1 archive/bootstrap hashes unchanged. Current checkpoint: immutable RC2 artifacts;
+next publish tag, verify public bytes and attach exact pinned install command.
