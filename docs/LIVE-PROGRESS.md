@@ -2,6 +2,27 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## Xiaomi 11T install findings ? 31 October 2026
+
+User authorized fixes in the original GitHub installer after the independent MHS
+11T deployment. Source RC2 adds php-gd + extension health checks, a narrow public
+SecretStream path fix, non-login LOGDIR and graceful supervised stock-service stop.
+12 targeted PC tests PASS (native-install-fixes, hosting, install-upgrade,
+remote-setup). Actual official WordPress 7.1.4 streaming extraction: 4,250 entries,
+3,338 non-wp-content core checksums PASS. No dependency/vendor rebuild required.
+
+Observed on the already deployed independent 11T RC1: WordPress/PHP-GD/MariaDB/
+Nginx, public beta HTTPS and supervised service restarts worked after scoped repair;
+Panel/Monitor anonymous Access redirects worked. This is partial native evidence,
+not fresh RC2, Adminer/restic/cloud API/owner SSO/reboot acceptance. Wi-Fi loss was
+confirmed; Android phantom-process killing was not established. Existing SSH keys
+and enabled/disabled choices remain owner-controlled. Historical NOT RUN rows below
+record the earlier pre-device release checkpoints.
+
+Current source result: this RC2 fix commit; packaging/pinned command follows.
+Next: publish immutable RC2 artifacts and exact command, then fresh-device/reboot
+acceptance when an independent empty test device is available.
+
 ## Issue #2 — V2.1,31 October2026
 
 | Timeline | Status | Latest result / SHA | Remaining |

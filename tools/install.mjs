@@ -37,12 +37,24 @@ async function nativeDatabase(){
  const dir=path.join(DATA,'mysql');fs.mkdirSync(dir,{recursive:true,mode:0o700});
  if(!fs.existsSync(path.join(dir,'mysql'))){const r=await cmd(path.join(TERMUX,'bin/mariadb-install-db'),['--no-defaults','--basedir='+TERMUX,'--datadir='+dir,'--auth-root-authentication-method=normal','--skip-test-db'],120000);if(!r.ok)throw Error('MHS_DATABASE_INIT_FAILED_RETRY_SAME_RELEASE');}
 }
-async function nativeStart(){
+export async function disableStockServices({run=cmd}={}){
  // Fresh-only installer: prevent unused package defaults from competing for ports.
- for(const name of ['nginx','php-fpm','mysqld']){const dir=path.join(TERMUX,'var/service',name);if(fs.existsSync(dir))fs.writeFileSync(path.join(dir,'down'),'');}
+ // A down marker alone does not stop a service that is already supervised/running.
+ for(const name of ['nginx','php-fpm','mysqld']){
+  const dir=path.join(TERMUX,'var/service',name);if(!fs.existsSync(dir))continue;
+  if(fs.lstatSync(dir).isSymbolicLink()||!fs.lstatSync(dir).isDirectory())throw Error('MHS_STOCK_SERVICE_PATH_REVIEW_REQUIRED');
+  const down=path.join(dir,'down'),stat=fs.lstatSync(down,{throwIfNoEntry:false});if(stat&&(!stat.isFile()||stat.isSymbolicLink()))throw Error('MHS_STOCK_SERVICE_PATH_REVIEW_REQUIRED');
+  fs.writeFileSync(down,'');
+  if(fs.existsSync(path.join(dir,'supervise/ok'))){const r=await run(path.join(TERMUX,'bin/sv'),['-w','15','down',dir],20000);if(!r.ok)throw Error('MHS_STOCK_SERVICE_STOP_FAILED');}
+ }
+}
+async function nativeStart(){
+ await disableStockServices();
  const r=await cmd(path.join(TERMUX,'bin/bash'),[path.join(BASE,'current/scripts/boot.sh')],120000);if(!r.ok)throw Error('MHS_SUPERVISOR_START_FAILED_RETRY');
 }
 export async function nativeHealth(){
+ const required=await cmd(path.join(TERMUX,'bin/php'),['-r','foreach (["gd","mysqli","curl","mbstring","zip"] as $e) { if (!extension_loaded($e)) exit(1); }'],5000,4096);
+ if(!required.ok)throw Error('MHS_PHP_EXTENSIONS_REQUIRED');
  for(let i=0;i<30;i++){
   try{const r=await fetch('http://127.0.0.1:9090/api/session',{signal:AbortSignal.timeout(1500)}),d=await r.json();
    const sql=await cmd(path.join(TERMUX,'bin/mariadb'),['--no-defaults','--protocol=socket','--socket='+SOCKET,'-uroot','-N','-e','SELECT 1'],3000);

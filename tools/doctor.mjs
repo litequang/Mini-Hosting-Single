@@ -5,7 +5,7 @@ import http from 'node:http';
 import {DATA,HOME,TERMUX,NGINX_CONFIG,SOCKET,readJson as storedJson,assertStandalone} from '../panel/src/config.mjs';
 import {config} from '../panel/src/remote-access.mjs';
 import {cmd,serviceNames} from '../panel/src/system.mjs';
-const packages=['nginx','php','php-fpm','mariadb','termux-services','termux-api','cloudflared','curl','coreutils','util-linux','restic'];
+const packages=['nginx','php','php-fpm','php-gd','mariadb','openssh','termux-services','termux-api','cloudflared','curl','coreutils','util-linux','restic'];
 export function httpProbe(port,host,route='/'){
  return new Promise(resolve=>{const q=http.get({host:'127.0.0.1',port,path:route,headers:{host},timeout:2000},r=>{let n=0;r.on('data',d=>{n+=d.length;if(n>65536)q.destroy();});r.on('end',()=>resolve({status:r.statusCode}));});q.on('error',()=>resolve({status:null}));q.on('timeout',()=>{q.destroy();resolve({status:null});});});
 }
@@ -18,6 +18,12 @@ export async function doctor({run=cmd,probe=httpProbe,loadConfig=config,platform
  const node=process.versions.node.split('.').map(Number);add('node',node[0]>22||node[0]===22&&node[1]>=16?'PASS':'FAIL','Node.js cần từ22.16.','pkg install nodejs-lts');
  if(native&&validData){
   for(const name of packages){const r=await run('dpkg-query',['-W','-f=${Status}',name],2500,4096);add('package-'+name,r.ok&&r.out==='install ok installed'?'PASS':'FAIL',name,r.ok?'':'Chạy lại bootstrap đúng release để cài thành phần thiếu.');}
+  const extensions=['gd','mysqli','curl','mbstring','zip'];
+  const phpExtensions=await run(path.join(TERMUX,'bin/php'),['-r','echo json_encode(array_filter(["gd","mysqli","curl","mbstring","zip"],"extension_loaded"));'],5000,4096);
+  let loaded=[];try{loaded=JSON.parse(phpExtensions.out);if(!Array.isArray(loaded))loaded=Object.values(loaded);}catch{}
+  for(const extension of extensions)add('php-extension-'+extension,phpExtensions.ok&&loaded.includes(extension)?'PASS':'FAIL','PHP '+extension,'Kiểm tra php/php-gd từ repo Termux; chạy lại bootstrap đúng release.');
+  const ssh=path.join(TERMUX,'var/service/sshd'),disabled=fs.existsSync(path.join(ssh,'down'));
+  if(fs.existsSync(ssh))add('ssh-supervised-enabled',disabled?'NOT RUN':'PASS',disabled?'SSH stock đang tắt; MHS giữ nguyên lựa chọn của chủ máy.':'SSH stock được bật; không chứng nhận kết nối từ máy khác.',disabled?'Nếu cần SSH: sv-enable sshd; dùng khóa công khai của riêng máy.':'');
   for(const name of serviceNames()){const r=await run(path.join(TERMUX,'bin/sv'),['status',path.join(TERMUX,'var/service',name)],2000,4096),installed=fs.existsSync(path.join(TERMUX,'var/service',name,'mhs-owned'));const optional=name==='mhs-tunnel';add('service-'+name,r.ok&&/^run:/.test(r.out)?'PASS':optional&&!installed?'NOT RUN':'FAIL',r.ok&&/^run:/.test(r.out)?'Dịch vụ đang chạy.':optional&&!installed?'Tunnel chưa cấu hình.':'Dịch vụ chưa chạy hoặc chưa được giám sát.',optional&&!installed?'mhs cloudflare':'Mở lại Termux; kiểm quyền chạy nền; mhs service '+name+' up');}
   const sql=await run(path.join(TERMUX,'bin/mariadb'),['--no-defaults','--protocol=socket','--socket='+SOCKET,'-uroot','-N','-e','SELECT 1'],3000,4096);add('sql-socket',sql.ok&&sql.out==='1'?'PASS':'FAIL','MariaDB Unix socket / SELECT1.','mhs service mhs-db up');
   for(const [id,file,args] of [['nginx-config','nginx',['-t','-p',path.dirname(NGINX_CONFIG)+'/', '-c',NGINX_CONFIG]],['php-config','php-fpm',['-t','-y',path.join(DATA,'php-fpm.conf')]]]){const r=await run(path.join(TERMUX,'bin',file),args,3000,4096);add(id,r.ok?'PASS':'FAIL','Kiểm cú pháp '+file,r.ok?'':'Kiểm cấu hình MHS, không cài đè website.');}

@@ -1,3 +1,24 @@
+# MHS 2.1.0-rc.2 ? Xiaomi 11T installation fixes
+
+- Install `php-gd`; require GD/mysqli/curl/mbstring/zip during native install health
+  and show individual extension checks in doctor. Missing packages no longer
+  silently appear ready for WordPress image processing.
+- Allow the exact public `SecretStream` class directory used by official
+  sodium_compat, while retaining private-name, traversal, symlink, CRC and size
+  guards. Actual WordPress 7.1.4: 4,250 streamed entries and 3,338 core checksums PASS.
+- Export Termux `LOGDIR` before starting runit from Boot/non-login SSH. Existing
+  stock SSH keys/service choices are preserved; doctor identifies a disabled SSH
+  service instead of treating it as an Android crash.
+- Fresh install marks stock nginx/php-fpm/mysqld down and also stops an already
+  supervised instance before starting the MHS equivalents. Unknown/orphaned
+  processes are not killed. A stop failure refuses startup for operator review.
+- 12 targeted PC regression tests PASS. Full fresh RC2 Android installation and
+  physical reboot remain NOT RUN; Wi-Fi loss/Android process termination cannot
+  be repaired or certified by these source changes. Existing 11T RC1 deployment
+  supplied the reported problems; no production or Cluster state was changed.
+- Earlier release artifacts remain immutable. Follow the new pinned RC2 command
+  in INSTALL.md; rerunning an old pinned command continues to install the old code.
+
 # MHS2.1.0-rc.1
 
 - Original Panel: site workspace, Files Uppy/Tus512MiB + SHA/resume, folder upload,

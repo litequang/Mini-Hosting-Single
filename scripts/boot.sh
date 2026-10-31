@@ -3,6 +3,8 @@ set -eu
 export PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
 export PATH="$PREFIX/bin:$PATH"
 export SVDIR="$PREFIX/var/service"
+# termux-services stock loggers inherit this even when Boot/SSH has no login profile.
+export LOGDIR="${LOGDIR:-$PREFIX/var/log/sv}"
 node "$HOME/.local/share/mhs/current/tools/boot-record.mjs"
 command -v termux-wake-lock >/dev/null && termux-wake-lock >/dev/null 2>&1 || true
 if [ -f "$PREFIX/etc/profile.d/start-services.sh" ]; then

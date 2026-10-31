@@ -21,7 +21,7 @@ fi
 if ! command -v node >/dev/null; then pkg update -y; pkg install -y nodejs-lts; fi
 node -e 'const v=process.versions.node.split(".").map(Number);if(v[0]<22||(v[0]===22&&v[1]<16))process.exit(1)' || { echo MHS_NODE_22_16_REQUIRED; exit 1; }
 missing=()
-for package in curl coreutils util-linux nginx php php-fpm mariadb openssh termux-services termux-api cloudflared restic; do
+for package in curl coreutils util-linux nginx php php-fpm php-gd mariadb openssh termux-services termux-api cloudflared restic; do
   dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed' || missing+=("$package")
 done
 if test "${#missing[@]}" -gt 0; then pkg update -y; pkg install -y "${missing[@]}"; fi

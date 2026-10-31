@@ -1,5 +1,19 @@
 # Troubleshooting
 
+- RC2 install fixes: missing `gd` ? use the RC2 bootstrap (`php-gd` is included).
+  `MHS_PHP_EXTENSIONS_REQUIRED` means CLI PHP cannot load a required extension;
+  inspect `mhs doctor`, install the official missing package, retry the same release.
+- `MHS_STOCK_SERVICE_STOP_FAILED` / `MHS_STOCK_SERVICE_PATH_REVIEW_REQUIRED`: inspect
+  stock nginx/php-fpm/mysqld supervisor/path ownership. Do not kill unknown PIDs or
+  remove user databases. MHS keeps the install journal and refuses startup.
+- SSH disabled: if SSH is wanted, use `sv-enable sshd` on the phone and provision
+  your own public key. MHS does not rotate keys or enable SSH automatically. Boot
+  now exports LOGDIR for non-login startup; already-running supervisors retain
+  their old environment. Restarting those needs a separate controlled maintenance
+  window. Wi-Fi loss and Android background limits are distinct from runit state.
+- WordPress `SecretStream` false positive: upgrade to RC2; do not disable private
+  path/ZIP checks. Other protected names remain rejected.
+
 - UPLOAD_NGINX_GUARD_REQUIRED: do not upload ZIP/SQL until own site's Nginx guard
   is installed. Upgrade or `mhs nginx secure-uploads`; unknown custom configuration
   needs review while preserving site rules. Authenticated Panel download still works.

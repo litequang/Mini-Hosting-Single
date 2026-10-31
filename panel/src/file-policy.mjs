@@ -8,7 +8,9 @@ export const LIMITS={file:512*MiB,chunk:8*MiB,expanded:2048*MiB,files:30000,rese
 export function requireTransferGuard(slug,rel){if(!/\.(?:zip|sql|bak|mhs\.gz)$/i.test(rel)||!registry().nginxIntegrated)return;let text='';try{text=fs.readFileSync(path.join(NGINX,slug+'.conf'),'utf8');}catch{}if(!text.includes(NGINX_UPLOAD_DENY))throw new HttpError(409,'UPLOAD_NGINX_GUARD_REQUIRED');}
 export function publicPath(rel){
  const normalized=cleanRel(rel);
- for(const part of normalized.split('/'))if(/^(?:\.env(?:\..*)?|\.git|\.ssh|\.config|\.cloudflared|\.npmrc|\.netrc|\.pypirc|\.git-credentials|id_(?:rsa|dsa|ecdsa|ed25519)(?:\.pub)?|.*\.(?:pem|key|p12|pfx)|wp-config\.php|(?:authority|cluster|node-identity|credentials|secrets|tunnel-token|writer-gate).*|\.mhs-.*)$/i.test(part)||/[<>:"|?*\x00-\x1f]/.test(part)||/[. ]$/.test(part))throw new HttpError(403,'PROTECTED_SITE_PATH');
+ // sodium_compat's exact public class directory is not a secrets file. Keep all
+ // private-name/prefix rules for other entries, including SecretStream-backup.json.
+ for(const part of normalized.split('/'))if((part!=='SecretStream'&&/^(?:\.env(?:\..*)?|\.git|\.ssh|\.config|\.cloudflared|\.npmrc|\.netrc|\.pypirc|\.git-credentials|id_(?:rsa|dsa|ecdsa|ed25519)(?:\.pub)?|.*\.(?:pem|key|p12|pfx)|wp-config\.php|(?:authority|cluster|node-identity|credentials|secrets|tunnel-token|writer-gate).*|\.mhs-.*)$/i.test(part))||/[<>:"|?*\x00-\x1f]/.test(part)||/[. ]$/.test(part))throw new HttpError(403,'PROTECTED_SITE_PATH');
  return normalized;
 }
 export function guarded(root,rel,{rootAllowed=false}={}){
