@@ -14,7 +14,8 @@ Hoạt động thông thường phát sinh **0 request đến MHC Worker/DO**; k
 cho ứng dụng khác trong tài khoản Cloudflare.
 
 Release candidate **2.1.0-rc.5**: tiếp tục original Panel, có kiểm thử PC theo
-checkpoint. Nghiệm thu Android/Internet: **NOT RUN**, cần máy MHS riêng.
+checkpoint. Targeted11T upgrade/Node/SQL/public HTTPS PASS; full fresh install
+and reboot acceptance remain pending.
 Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVENANCE.md).
 
 - Website Manager: tạo/sửa/xóa static, Node, PHP, WordPress; hostname/entry/port/env.
