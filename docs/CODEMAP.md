@@ -9,6 +9,12 @@ R2: monitor-server.mjs owns separate mhs-monitor service; lan-monitor.mjs provid
 anonymous LAN and verified remote read-only factories with route allowlists.
 remote-monitor.test covers method/Host/AUD/identity/session separation and fields.
 
+R3: cloudflare.mjs Vietnamese owner/two-app wizard + safe local route plan; no API.
+doctor.mjs: bounded sanitized package/service/config/permission/HTTP denial report.
+setup-entry.mjs: fresh/resume vs verified existing-MHS source upgrade dispatch.
+management.mjs: independent Monitor lifecycle when source upgrades/downgrades;
+boot-record.mjs: invocation receipt, explicitly not physical reboot acceptance.
+
 - panel/src/server.mjs: original HTTP Panel, loopback, password/session/CSRF/Host.
 - config.mjs: separate MHS data marker and registry, MHC import refusal.
 - security.mjs / zip.mjs: inherited scrypt, path and archive boundaries.

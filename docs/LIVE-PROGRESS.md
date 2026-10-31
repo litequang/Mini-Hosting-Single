@@ -85,3 +85,16 @@ Next concrete task: user overall fresh-Termux acceptance per INSTALL/ACCEPTANCE,
 then fix actual reported failures. No authorized Android or new MHS Cloudflare
 resources are available; native/Internet tests remain NOT RUN, not release-certified.
 R2 verification:8 targeted Windows tests PASS (remote-monitor + standalone), boot shell and browser script syntax PASS.
+
+R2 commit: `cd1cad7`, pushed main. R3 source COMPLETE: Vietnamese wizard configures
+owner +2 Access apps/AUDs, privately stores/reuses connector token and prints safe
+manual routes9093/9092/8080; never calls account/DNS API. `mhs doctor` reports
+sanitized PASS/FAIL/NOT RUN for packages/services/config/private permissions/boot
+receipt/anonymous and spoofed remote denial, with repair steps. Boot invocation
+does not certify reboot. Bootstrap now dispatches fresh/resume or existing MHS
+source upgrade; old hosting/Cluster/user schema footprints refused before setup.
+Management upgrade starts independent Monitor, rollback stops it before old Panel;
+web/DB/Tunnel stay outside this restart scope. Windows9 targeted tests PASS
+(remote-setup + install-upgrade + hosting), JS44/shell syntax PASS. Android/Internet
+still NOT RUN. Current result: this R3 commit. Next: R4 regressions, immutable RC2,
+exact pinned one-command install and current instructions.

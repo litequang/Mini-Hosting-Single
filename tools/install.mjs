@@ -14,6 +14,7 @@ export function preflight(){
  for(const name of ['.config/mhc-full-installer','.local/share/mhc-full-installer','android-hosting-panel','.config/mini-hosting-cluster','apps','.nginx','.cloudflared'])if(fs.existsSync(path.join(HOME,name)))throw Error('MHS_EXISTING_HOSTING_REFUSED');
  const stats=fs.statfsSync(fs.existsSync(HOME)?HOME:path.dirname(HOME));
  for(const name of ['amh-panel','mhc-authority-agent','mhc-lab-p33','mini-web','named-tunnel'])if(fs.existsSync(path.join(TERMUX,'var/service',name)))throw Error('MHS_EXISTING_HOSTING_SERVICE_REFUSED');
+ const mysql=path.join(TERMUX,'var/lib/mysql');if(fs.existsSync(mysql)&&fs.readdirSync(mysql,{withFileTypes:true}).some(e=>e.isDirectory()&&!['mysql','sys','performance_schema','test'].includes(e.name)))throw Error('MHS_EXISTING_DATABASE_REFUSED');
  const prop=key=>{const r=spawnSync('getprop',[key],{encoding:'utf8',timeout:1200});return r.status===0?r.stdout.trim().slice(0,80):null;};
  let battery={available:false};if(process.platform==='android'){const b=spawnSync(path.join(TERMUX,'bin/termux-battery-status'),[],{encoding:'utf8',timeout:2500,maxBuffer:16384});try{const v=JSON.parse(b.stdout);battery={available:true,percentage:Number.isFinite(v.percentage)?v.percentage:null,temperature:Number.isFinite(v.temperature)?v.temperature:null};}catch{}}
  return {project:'MHS',arch:os.arch(),cpuCores:os.availableParallelism(),model:prop('ro.product.model'),android:prop('ro.build.version.release'),battery,memoryMiB:Math.floor(os.totalmem()/1048576),freeMiB:Math.floor(stats.bavail*stats.bsize/1048576),data:DATA,androidPermissionsVerified:false};
@@ -47,7 +48,8 @@ export async function nativeHealth(){
    const php=await cmd(path.join(TERMUX,'bin/sv'),['status',path.join(TERMUX,'var/service/mhs-php')],1500);
    const web=await cmd(path.join(TERMUX,'bin/sv'),['status',path.join(TERMUX,'var/service/mhs-nginx')],1500);
    const probe=await fetch('http://127.0.0.1:8080/__mhs_php_ready',{signal:AbortSignal.timeout(1500)});
-   if(r.ok&&d.project==='MHS'&&sql.ok&&sql.out==='1'&&nginx.ok&&php.ok&&/^run:/.test(php.out)&&web.ok&&/^run:/.test(web.out)&&probe.ok&&await probe.text()==='MHS_PHP_READY')return {panel:true,sql:true,nginx:true,php:true};
+   const [sso,monitor]=await Promise.all([fetch('http://127.0.0.1:9093/',{signal:AbortSignal.timeout(1500)}),fetch('http://127.0.0.1:9092/',{signal:AbortSignal.timeout(1500)})]);
+   if(r.ok&&d.project==='MHS'&&sql.ok&&sql.out==='1'&&nginx.ok&&php.ok&&/^run:/.test(php.out)&&web.ok&&/^run:/.test(web.out)&&probe.ok&&await probe.text()==='MHS_PHP_READY'&&sso.status===403&&monitor.status===403)return {panel:true,sql:true,nginx:true,php:true,anonymousRemoteDenied:true,remoteAccessVerified:false};
   }catch{}await new Promise(r=>setTimeout(r,500));
  }throw Error('MHS_LOCAL_HEALTH_FAILED');
 }

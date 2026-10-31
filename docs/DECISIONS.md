@@ -8,6 +8,11 @@ session is token+identity+Host bound, logout hash persists across process restar
 Edge Access handles account/session revocation; offline JWT verification cannot
 discover an account-wide revocation immediately. Logout redirects to Access;
 do not promise per-app global logout or perpetual cross-app SSO without prompts.
+R2/R3: independent Monitor runit service, distinct app/AUD and sanitized GET-only
+surface; wizard configures local state only and prints required Cloudflare manual
+steps. Doctor performs no account mutation and always separates native/Internet
+NOT RUN. Source upgrade handles old bundled-LAN Panel vs new Monitor lifecycle;
+rollback never reopens remote local-password flow.
 
 - User requests an independent Mini-Hosting-Single repo, not an MHC mode.
 - Preserve original Panel9090 UI/auth/hosting foundation; remove Cluster imports,

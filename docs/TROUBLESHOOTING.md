@@ -33,3 +33,15 @@
   No login is needed on9091, but do not publish it through Tunnel/forwarding.
 - MHS_UPGRADE_ROLLBACK_FAILED: keep releases/current/upgrade.json and data. Resume
   same bundle or `mhs rollback`; do not run fresh install or restore DB for source error.
+
+Issue #1 (31/10): Panel Internet uses9093 SSO, local password remains9090. Remote
+Monitor uses9092 in separate mhs-monitor service. LAN9091 is never Tunnel public.
+Run `mhs doctor` for redacted local diagnosis; it does not mutate or certify live
+Cloudflare. Nonzero exit means at least one FAIL; NOT RUN is not PASS.
+Legacy Access config schema1/no owner: run `mhs cloudflare`, set owner/two AUDs,
+route Panel9093 and Monitor9092. Never change hostname/Host allowlists to bypass403.
+Wrong email is denied even if the Access application admits that user.
+If logout403 persists: follow the Cloudflare logout URL and authenticate again;
+the old token is deliberately blocked, including after Panel restart.
+Rollback RC1: only local/SSH recovery; never public9090 or reuse old remote login.
+`mhs lan-monitor off` now requires `mhs service mhs-monitor restart`, not Panel.

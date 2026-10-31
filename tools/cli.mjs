@@ -8,18 +8,21 @@ import {wizard} from './cloudflare.mjs';
 import {ask} from './input.mjs';
 import {deployZip,requireSite} from '../panel/src/sites.mjs';
 import {recoverSiteRestore} from '../panel/src/backups.mjs';
+import {doctor} from './doctor.mjs';
 async function main(){
- const [action,...args]=process.argv.slice(2);assertStandalone();
+ const [action,...args]=process.argv.slice(2);
+ if(action==='doctor'){const report=await doctor();if(report.summary.FAIL)process.exitCode=1;return report;}
+ assertStandalone();
  if(action==='status'||action==='monitor')return systemStats();
  if(action==='service')return withOperation(()=>serviceAction(args[0],args[1]));
- if(action==='cloudflare')return withOperation(wizard);
+ if(action==='cloudflare'||action==='setup'&&args[0]==='remote')return withOperation(()=>wizard());
  if(action==='upgrade')return upgrade(path.resolve(args[0]),args[1]);
  if(action==='rollback')return rollback();
  if(action==='recover-restore'){if(await ask('Type '+args[0]+' to restore original safety backup: ')!==args[0])throw Error('CANCELLED');return withOperation(()=>recoverSiteRestore(args[0],args[0]));}
- if(action==='lan-monitor'){if(!['on','off'].includes(args[0]))throw Error('MHS_MONITOR_ON_OR_OFF_REQUIRED');const file=path.join(DATA,'settings.json');atomicJson(file,{...readJson(file,{}),lanMonitorEnabled:args[0]==='on'});return {saved:true,restart:'sv restart "$PREFIX/var/service/mhs-panel"'};}
+ if(action==='lan-monitor'){if(!['on','off'].includes(args[0]))throw Error('MHS_MONITOR_ON_OR_OFF_REQUIRED');const file=path.join(DATA,'settings.json');atomicJson(file,{...readJson(file,{}),lanMonitorEnabled:args[0]==='on'});return {saved:true,restart:'mhs service mhs-monitor restart'};}
  if(action==='password'){if(!process.stdout.isTTY)throw Error('MHS_PASSWORD_LOCAL_TTY_REQUIRED');process.stdout.write(fs.readFileSync(path.join(DATA,'initial-password'),'utf8'));return;}
  if(action==='reset-password'){await import('../panel/tools/reset-password.mjs');return;}
  if(action==='recover-deploy'){const slug=args[0],site=requireSite(slug);if(await ask('Type '+slug+' to restore previous code: ')!==slug)throw Error('CANCELLED');return withOperation(async()=>{const file=path.join(DATA,'deploy-'+slug+'.json'),j=readJson(file,null);if(!j||!['PREPARED','OLD_MOVED'].includes(j.phase)||!/^[-a-z0-9.]+$/.test(j.previous||''))throw Error('MHS_NO_PENDING_DEPLOY');const root=path.join(DATA,'sites',slug,site.type==='node'?'app':'public'),prev=path.join(path.dirname(root),j.previous);if(fs.existsSync(prev)){if(fs.existsSync(root))fs.renameSync(root,root+'-recovery-saved-'+Date.now());fs.renameSync(prev,root);}else if(!fs.existsSync(root))throw Error('MHS_DEPLOY_PREVIOUS_MISSING');atomicJson(file,{...j,phase:'ROLLED_BACK'});if(site.type==='node')await serviceAction('mhs-site-'+slug,'up');return {recovered:true,databaseUnchanged:true};});}
- return {usage:['mhs status','mhs service <mhs-name> up|down|restart','mhs cloudflare','mhs password','mhs reset-password','mhs lan-monitor on|off','mhs upgrade <release.mhs.gz> <sha256>','mhs rollback','mhs recover-deploy <slug>'],panel:'http://127.0.0.1:9090',lanMonitor:'http://PHONE_LAN_IP:9091 (read-only, no login)'};
+ return {usage:['mhs doctor','mhs setup remote','mhs status','mhs service <mhs-name> up|down|restart','mhs cloudflare','mhs password','mhs reset-password','mhs lan-monitor on|off','mhs upgrade <release.mhs.gz> <sha256>','mhs rollback','mhs recover-deploy <slug>'],panel:'http://127.0.0.1:9090',lanMonitor:'http://PHONE_LAN_IP:9091 (read-only, no login)'};
 }
 main().then(v=>{if(v!==undefined)console.log(JSON.stringify(v,null,2));}).catch(e=>{console.error(/^[A-Z][A-Z0-9_]{2,100}$/.test(e.message)?e.message:'MHS_OPERATION_FAILED');process.exitCode=1;});

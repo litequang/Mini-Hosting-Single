@@ -3,6 +3,7 @@ set -eu
 export PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
 export PATH="$PREFIX/bin:$PATH"
 export SVDIR="$PREFIX/var/service"
+node "$HOME/.local/share/mhs/current/tools/boot-record.mjs"
 command -v termux-wake-lock >/dev/null && termux-wake-lock >/dev/null 2>&1 || true
 if [ -f "$PREFIX/etc/profile.d/start-services.sh" ]; then
   . "$PREFIX/etc/profile.d/start-services.sh"
