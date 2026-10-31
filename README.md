@@ -1,4 +1,4 @@
-# Mini Hosting Single V2.0
+# Mini Hosting Single V2.1
 
 Hosting độc lập trên một Android/Termux, phát triển từ original Hosting Panel
 9090 của MHC. Đây là repo riêng; không nâng cấp hay chuyển đổi node Cluster.
@@ -8,8 +8,8 @@ Không Authority, Worker/DO, heartbeat, Primary/Standby hoặc replication.
 Hoạt động thông thường phát sinh **0 request đến MHC Worker/DO**; không nói thay
 cho ứng dụng khác trong tài khoản Cloudflare.
 
-Release candidate **2.0.0-rc.2**: source hosting và kiểm thử PC theo checkpoint đã
-có. Nghiệm thu Android/Internet: **NOT RUN**, cần máy sạch riêng.
+Release candidate **2.1.0-rc.1**: tiếp tục original Panel, có kiểm thử PC theo
+checkpoint. Nghiệm thu Android/Internet: **NOT RUN**, cần máy MHS riêng.
 Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVENANCE.md).
 
 - Website Manager: tạo/sửa/xóa static, Node, PHP, WordPress; hostname/entry/port/env.
@@ -20,21 +20,32 @@ Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVE
 - Panel Internet Access SSO: không nhập Admin lần2; local9090 vẫn có password.
 - Remote Monitor riêng qua Access9092, độc lập Panel; wizard tiếng Việt + doctor.
 - Installer có checksum/resume, source upgrade/rollback giữ data.
+- V2.1: Uppy/Tus upload512MiB, resume/checksum; ZIP streaming, thùng rác,
+  CodeMirror và deploy riêng frontend giữ backend/database.
+- Adminer MySQL theo từng site, qua phiên Panel; không có cổng Adminer public.
+- Restic mã hóa, recovery kit, lịch cron/chu kỳ và restore có kiểm chứng.
+- Cloudflare SDK: preview/apply exact hostname, giữ ingress khác, kiểm ownership
+  và rollback có điều kiện; API token tùy chọn, wizard thủ công vẫn dùng được.
+- First-site wizard; reset chỉ cách ly dữ liệu MHS sau backup ngoài máy đã kiểm.
 
 [Cài / nâng cấp](docs/INSTALL.md) · [Hosting](docs/HOSTING.md) ·
 [Cloudflare](docs/CLOUDFLARE.md) · [Backup](docs/BACKUP-RESTORE.md) ·
-[PASS / NOT RUN](docs/ACCEPTANCE.md).
+[PASS / NOT RUN](docs/ACCEPTANCE.md) · [Thay đổi V2.1](docs/CHANGELOG.md).
 
-[**Lệnh cài RC2 / nâng từ RC1 đã ghim commit và SHA256**](docs/INSTALL.md#lệnh-cài-rc2-ghim-commit-và-sha256)
-và [Cloudflare Panel/Monitor](docs/CLOUDFLARE.md). Release
-[v2.0.0-rc.2](https://github.com/litequang/Mini-Hosting-Single/tree/v2.0.0-rc.2)
-đã kiểm lại download/checksum công khai. Không dùng curl main | bash hoặc cài lên node MHC.
+[**Cài / nâng cấp V2.1 có checksum**](docs/INSTALL.md),
+[Cloudflare Panel/Monitor](docs/CLOUDFLARE.md),
+[domain automation](docs/DOMAIN-AUTOMATION.md),
+[backup mã hóa](docs/ENCRYPTED-BACKUP.md). Các gói RC1/RC2 cũ giữ bất biến.
+Không dùng curl main | bash hoặc cài lên node MHC.
 
-Dev trên PC (Node ≥22.16, không cần npm dependencies):
+Dev trên PC (Node ≥22.16): runtime đã vendor trong repo; `npm ci --ignore-scripts`
+cài dependency khóa phiên bản để rebuild/test browser. Không cần npm trên Android.
 
 ```powershell
 npm run check
 npm test
+# Chỉ khi đổi dependency/vendor entry:
+npm run vendor
 ```
 
 Để mở Panel thử, đặt MHS_HOME và MHS_DATA vào thư mục cách ly ngoài source,

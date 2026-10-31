@@ -19,6 +19,7 @@ Issue #2 là đặc tả hợp nhất. Baseline RC2 `b63ead8`; không sửa MHC/
 | esbuild |0.28.2, MIT | công cụ build trên PC; binary không đưa vào gói Android, chỉ ship JS/assets/license |
 | @noble/hashes |2.4.0, MIT | hash incremental browser,8MiB window; không file.arrayBuffer()512MiB |
 | fastcgi-client / busboy |0.2.0 /1.6.0, MIT | private FPM transport + multipart stream; old FastCGI module bounded8MiB response/60s, no public route; native PHP gate NOT RUN |
+| playwright-core |1.64.1, Apache-2.0, dev-only | dùng Chrome PC đã có cho UI smoke; không tải/đưa browser hoặc Playwright vào gói Android |
 
 Nền Node≥22.16 hiện tại đáp ứng engines của các runtime Node. Pure JS không cần
 Linux glibc prebuild; khả năng Android/Bionic thực tế chưa được nghiệm thu. PHP

@@ -1,0 +1,15 @@
+[
+  "node_modules/busboy/lib/index.js",
+  "node_modules/busboy/lib/types/multipart.js",
+  "node_modules/busboy/lib/types/urlencoded.js",
+  "node_modules/busboy/lib/utils.js",
+  "node_modules/fastcgi-client/lib/check.js",
+  "node_modules/fastcgi-client/lib/connection.js",
+  "node_modules/fastcgi-client/lib/consts.js",
+  "node_modules/fastcgi-client/lib/main.js",
+  "node_modules/fastcgi-client/lib/parsekv.js",
+  "node_modules/fastcgi-client/lib/request.js",
+  "node_modules/fastcgi-client/lib/stringifykv.js",
+  "node_modules/streamsearch/lib/sbmh.js",
+  "tools/vendor-adminer.mjs"
+]

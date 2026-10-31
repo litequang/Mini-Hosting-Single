@@ -11,7 +11,7 @@ async function req(route,{method='GET',body,raw=false}={}){
  if(method!=='GET')opts.headers['x-csrf-token']=state.csrf;
  if(body!==undefined){if(raw){opts.body=body;}else{opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}}
  let res;try{res=await fetch(route,opts);}catch{throw Error('Không kết nối được panel');}
- if(!res.ok){let msg='HTTP '+res.status;try{msg=(await res.json()).error||msg;}catch{}if(res.status===401||res.status===403&&remoteEntry)showLogin();throw Error(msg);}
+ if(!res.ok){let msg='HTTP '+res.status;try{msg=(await res.json()).error||msg;}catch{}if(res.status===401||res.status===403&&remoteEntry&&/Remote Access verification required|Access session logged out|Use Cloudflare Access/.test(msg))showLogin();throw Error(msg);}
  return res.json();
 }
 function showLogin(){state.user=null;if(remoteEntry){$('#loginForm').classList.add('hide');let message=$('#remoteDenied');if(!message){message=document.createElement('div');message.id='remoteDenied';message.className='login-card';message.textContent='Phiên Cloudflare Access đã hết hiệu lực hoặc chưa được phép. Tải lại trang để xác thực Access; không dùng mật khẩu Admin tại hostname Internet.';$('#login').append(message);}$('#shell').classList.add('hide');$('#login').classList.remove('hide');return;}$('#shell').classList.add('hide');$('#login').classList.remove('hide');}

@@ -1,5 +1,17 @@
 # Troubleshooting
 
+- UPLOAD_NGINX_GUARD_REQUIRED: do not upload ZIP/SQL until own site's Nginx guard
+  is installed. Upgrade or `mhs nginx secure-uploads`; unknown custom configuration
+  needs review while preserving site rules. Authenticated Panel download still works.
+- MHS_NGINX_UPLOAD_GUARD_REVIEW_REQUIRED: keep source/config-safety/upgrade journals;
+  no blind config regeneration. Source rollback may restore Panel but will retain
+  a successfully added transfer-download security rule.
+- MHS_RESET_VERIFIED_EXTERNAL_BACKUP_AND_KIT_REQUIRED / RECENT_SITE_BACKUP_REQUIRED:
+  follow REINSTALL.md; external SFTP/S3, kit export and recent snapshots of every
+  site are required. Do not edit receipt/proof or delete data to bypass.
+- MHS_RESET_UNDO_REQUIRES_EMPTY_CURRENT_DATA: new DATA exists or quarantine invalid;
+  undo refuses to overwrite it. Keep both copies; use verified restore explicitly.
+
 - CF_CONNECTOR_TUNNEL_MISMATCH / OWNERSHIP_FAILED: use the dedicated MHS Tunnel
   and matching connector token, not a MHC/production Tunnel. Do not relax binding.
 - CF_DNS_RECORD_ALREADY_EXISTS / INGRESS_CONFLICT / WILDCARD: stop; review resource
@@ -63,8 +75,10 @@
 - RESTORE_RECOVERY_REQUIRED / RESTORE_ROLLBACK_FAILED_SITE_IN_MAINTENANCE: keep
   maintenance503, restore journal, safety archive and SQL backup. Do not create a
   new site or remove guards/journals. Recovery must use verified safety data.
-- Backups exclude private configuration; read BACKUP-RESTORE.md before deleting
-  source data. SQL fixture PASS is not native MariaDB restore acceptance.
+- Legacy archives exclude private configuration; read BACKUP-RESTORE.md before
+  deleting source data. Encrypted restic includes private recovery metadata but
+  preserves current credentials on restore; see ENCRYPTED-BACKUP.md. SQL fixture
+  PASS is not native MariaDB restore acceptance.
 - Interrupted restore: Websites → Khôi phục restore, or `mhs recover-restore SLUG`;
   confirm same slug. Recovery reads original verified safety backup and local
   config from live/previous files; never remove maintenance/journal to unlock it.

@@ -1,5 +1,14 @@
 # Architecture
 
+M5 retains immutable source/current and separate private data. Explicit reset
+requires verified remote restic backups/recovery kit, stops only owned MHS services,
+then quarantines data by rename; it never deletes hosting/Termux or mutates Cluster.
+Undo refuses a new existing DATA directory. Parent canonical aliases are accepted
+for Android paths; site symlink escapes remain denied. Nginx blocks public transfer
+ZIP/SQL/backup suffixes; upgrade patches only known owned configs, with safety copy
+and tested rollback. Source rollback keeps that security rule. Same-UID trusted
+apps can still read files; this is not tenant/process isolation.
+
 V2.1 adds site-scoped adapters within this Panel, using audited pure-JS vendor
 bundles. No second panel, upload bypass, privileged daemon or Cluster runtime.
 See MODULES-V21.md for license/native validation gates; Android remains NOT RUN.

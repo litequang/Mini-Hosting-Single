@@ -34,6 +34,35 @@ private như .env/wp-config/credentials không được đọc qua File Manager.
 Chi tiết: [Files và Deploy](FILES-DEPLOY.md). Chỉ chủ thiết bị tin cậy sử dụng.
 Không dùng thiết bị cho các tenant không tin cậy vì Termux cùng UID.
 
+## Chuyển WordPress độc lập
+
+Chỉ nhận site độc lập có backup đã kiểm. Site MHC/managed-writer bị từ chối;
+không xóa marker/fencing để import. Chưa có one-click di chuyển serialized DB.
+
+Tạo WordPress site mới để MHS tạo user/schema/wp-config/salts riêng. Backup nguồn
+ra ngoài máy trước; upload core/theme/plugin/wp-content bằng Files, bỏ wp-config,
+`.env` và các khóa. Kiểm checksum ZIP và preview giải nén trước khi xác nhận.
+Không ghi đè uploads có sẵn mà chưa có safety backup và lựa chọn collision rõ ràng.
+Import SQL qua Database Manager của đúng schema (tối đa64MiB interactive), hoặc
+quy trình restic cho snapshot MHS đã xác minh (SQL tối đa512MiB). Restic giữ local
+credentials/env; mapping cấu hình giữa hai máy không tự thực hiện.
+
+Kiểm table prefix có khớp wp-config MHS; xử lý khác biệt trên máy riêng, không
+sửa credentials để trỏ root/DB khác. Nếu đổi hostname, dùng công cụ WordPress
+hiểu serialized data trên bản sao đã backup để đổi URL; không blind SQL replace.
+Đối chiếu siteurl/home, media, permalink, đăng nhập và HTTPS trước mở site.
+SQL quá giới hạn hoặc prefix/URL chưa mapping thì dừng bước đó và giữ nguồn.
+WP-CLI là tùy chọn chưa bật vì native test NOT RUN; trình cài Panel vẫn dùng được.
+
+## ZIP upload và publish
+
+Upload không tự giải nén/deploy. Chọn unzip, frontend-only hoặc full-app riêng.
+Frontend-only có restart tùy chọn mặc định tắt; không chạy SQL migration. Cập nhật
+backend dùng full-app có backup/health/rollback; code rollback không quay ngược DB.
+Nginx chặn public `.zip/.sql/.bak/.mhs.gz` trong site; tải qua Files đã xác thực.
+Nếu nâng từ bản cũ: updater thêm guard vào cấu hình MHS có backup; cấu hình custom
+không nhận diện báo cần review. `mhs nginx secure-uploads` retry sau kiểm cấu hình.
+
 Tham khảo chính thức:
 [WordPress installation](https://developer.wordpress.org/advanced-administration/before-install/howto-install/),
 [wp-config and socket DB_HOST](https://developer.wordpress.org/apis/wp-config-php/).

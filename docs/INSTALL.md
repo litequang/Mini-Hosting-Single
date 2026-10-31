@@ -1,7 +1,7 @@
-# Cài Mini Hosting Single V2.0 — RC2
+# Cài Mini Hosting Single V2.1 — RC1
 
 Chỉ điện thoại riêng/Termux sạch; không cài lên các node MHC/AMH V1 hoặc hosting
-cũ. Bản2.0.0-rc.2 có source và PC tests PASS; Android/Internet thật **NOT RUN**.
+cũ. Bản2.1.0-rc.1 có source và PC tests PASS; Android/Internet thật **NOT RUN**.
 Không root, cần3GiB trống, Node≥22.16; bộ cài tự cài các thành phần còn thiếu.
 
 ## Ba bước dùng trên điện thoại
@@ -42,6 +42,7 @@ hoặc thay khóa SSH có sẵn. IP xem trong chi tiết Wi-Fi Android.
 
 ```sh
 mhs doctor
+mhs setup first-site
 mhs cloudflare
 mhs setup remote
 mhs service mhs-tunnel up
@@ -60,19 +61,23 @@ FAIL trả exit1. Kiểm local anonymous403 không chứng minh Access Internet 
 Source bất biến: ~/.local/share/mhs/releases/<version>-<commit>, current symlink.
 Data/site/SQL/credentials riêng: ~/.local/share/mhs/data (0700), files private0600.
 MariaDB Unix socket, Nginx8080/Panel9090/SSO9093/Remote Monitor9092 loopback.
-Runit quản lý mhs-db/php/nginx/panel/monitor/tunnel và Node site. Boot giữ local
+Runit quản lý mhs-db/php/nginx/panel/monitor/scheduler/tunnel và Node site. Boot giữ local
 recovery; marker/invocation receipt không chứng nhận đã test Android reboot.
 
 Bootstrap từ chối footprint hosting cũ/schema SQL riêng/Cluster. Không bỏ guard,
 xóa thư mục hoặc chỉnh marker để ép cài. Packages lấy repo chính thức Termux.
 Máy<2GiB RAM giới hạn PHP một child; default3. SQL buffer64MiB.
 
-## Nâng từ RC1 và rollback
+## Nâng từ V2.0 và rollback
 
-**Từ RC1 lên RC2:** dùng chính lệnh bootstrap RC2 đã kiểm SHA. Nó nhận MHS đã
-INSTALLED và gọi updater mới, không fresh-install đè dữ liệu. Updater tạo dịch vụ
-Monitor riêng và restart management; web/DB/Tunnel không thuộc scope restart.
-Sau đó `mhs cloudflare`: khai báo owner +2 AUD. Đổi **route Panel MHS** từ9090
+**Từ MHS2.0 lên2.1:** dùng bootstrap2.1 ghim commit/checksum ở cuối tài liệu.
+Nó nhận MHS đã INSTALLED và gọi updater mới, không fresh-install đè dữ liệu.
+Updater bổ sung scheduler/Monitor nếu thiếu và restart management; DB/Tunnel
+không bị restart. Riêng cấu hình Nginx của site MHS được bổ sung rule chặn tải
+`.zip/.sql/.bak/.mhs.gz`, có backup cấu hình, nginx test/reload và rollback lỗi.
+Các rule tùy chỉnh được giữ; mẫu không nhận diện sẽ từ chối thay vì ghi đè.
+Rule bảo vệ này được giữ khi rollback source. Web có thể chịu reload Nginx ngắn.
+Nếu từ RC1: `mhs cloudflare`, khai báo owner +2 AUD. Đổi **route Panel MHS** từ9090
 sang9093, thêm Monitor9092. Config schema1 cũ fail-closed, không đoán danh tính.
 Không đổi route MHC/production. Native upgrade này vẫn cần user nghiệm thu.
 
@@ -93,6 +98,27 @@ Rollback về RC1 dừng Monitor service riêng trước khi Panel cũ nhận l�
 không phục vụ cho đến khi quay lại RC2. Config schema2 vẫn giữ, không hạ bảo mật.
 Các release cũ giữ bất biến. Tạo backup website và credentials riêng trước update.
 
+## Bắt đầu với V2.1
+
+`mhs setup first-site` hướng dẫn tạo static/Node/PHP/WordPress; cũng có thể tạo
+trong Websites. Vào site → Files để upload, rồi chọn rõ giải nén, deploy frontend
+hay deploy app. Upload ZIP không tự cài app. WordPress dùng nút Cài WordPress;
+database dùng site user, không dùng root trong Adminer.
+
+Backups → cấu hình repository restic và mật khẩu riêng → init → backup/verify →
+export recovery kit. Lịch chọn cron/timezone hoặc chu kỳ; mặc định chưa bật.
+Giữ kit/passphrase ngoài điện thoại. Repository local không thay thế backup ngoài
+máy. Xem [backup mã hóa](ENCRYPTED-BACKUP.md) và [cài lại an toàn](REINSTALL.md).
+
+Cloudflare Panel/Monitor vẫn dùng `mhs cloudflare` + hai app Access do chủ tài khoản
+tạo. Nếu muốn tự publish website: Cloudflare → cấu hình scoped API token hoặc
+`mhs domain setup`, sau đó preview và xác nhận đúng hostname của site. Chỉ dùng
+Tunnel MHS riêng; không chọn Tunnel MHC/production. Xem [DOMAIN-AUTOMATION](DOMAIN-AUTOMATION.md).
+
+WP-CLI chưa được bật/phát hành do chưa kiểm thử PHP/Termux thật. Cài WordPress
+vẫn dùng trình cài Panel hiện có. Chuyển WordPress độc lập cần mapping config/URL
+thủ công theo [HOSTING](HOSTING.md); không import site managed Cluster.
+
 ## Nghiệm thu của người vận hành
 
 Fresh install/resume → doctor → local login → Panel Access SSO → Monitor qua
@@ -100,7 +126,8 @@ hostname riêng không có cookie Panel → LAN9091 → sai email/AUD bị chặ
 login lại → Website/WordPress/Node/DB/backup → reboot/crash restart → upgrade/
 rollback. Hiện Android/reboot/Internet đều NOT RUN; xem [ACCEPTANCE](ACCEPTANCE.md).
 
-RC1 lịch sử vẫn có tại releases/2.0.0-rc.1.json; dùng RC2 cho Issue #1.
+Lệnh2.1 có checksum sẽ được ghim sau checkpoint artifact. Khối RC2 bên dưới là
+lịch sử V2.0, không chứa tính năng V2.1. Không sửa byte các release lịch sử.
 
 ## Lệnh cài RC2 ghim commit và SHA256
 

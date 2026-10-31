@@ -1,4 +1,28 @@
-# Acceptance — 31 October 2026, Issue #1
+# Acceptance — 31 October 2026, V2.1 / Issue #2
+
+M5 integration on Windows Node22.22.2: **42 tests PASS,0 FAIL,0 skipped** in one
+targeted integration run covering changed/preserved features. Real installed
+Chrome tested local login, Uppy/Tus multi-file upload, CodeMirror save, site
+workspace, schedule form and manual domain plan, including mobile viewport.
+This is PC browser automation, not physical Android or visual design approval.
+Actual restic0.19.1 Windows encrypted backup/check/restore/retention/kit PASS; SQL
+adapter remains injected. Tus35/90/150/512MiB HTTP/resume PASS; latest RSS75→111MiB
+(reported delta35MiB after rounding). Reset/quarantine/undo/private-path boundaries
+and owned Nginx guard migration/reload-error rollback PASS with fixtures.
+77 JavaScript syntax checks and boot/bootstrap bash syntax PASS. After final
+doctor text/private-file-list update,3 remote-setup/doctor/lifecycle tests PASS.
+
+| V2.1 native acceptance | Result | Needed next |
+|---|---|---|
+| Fresh/resume/upgrade/reboot on Android | NOT RUN | separate authorized MHS Termux |
+| PHP lint/Adminer6/MariaDB/WordPress | NOT RUN | native PHP/SQL integration |
+| Access SSO/Monitor + Internet upload | NOT RUN | own MHS Tunnel/two Access apps |
+| SDK apply/HTTPS/delete on Cloudflare | NOT RUN | explicit own account LAB scope |
+| Restic SFTP/S3, service restart/reset | NOT RUN | separate remote repository + Android |
+| WP-CLI / wildcard automation | NOT ENABLED | optional, native gate/manual scope |
+
+No MHC phone, production resource or real hosting data was changed. Exact release
+artifact smoke/distribution checks are recorded in LIVE-PROGRESS at packaging.
 
 V2.1 M4:4 tests PASS with official Cloudflare SDK and mocked HTTP API. Full ingress/
 origin/unknown settings preserved; DNS ownership/conflicts/wildcards/reserved hosts,

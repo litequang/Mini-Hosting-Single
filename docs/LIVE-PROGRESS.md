@@ -4,6 +4,28 @@ Only this file records execution status. Source provenance: b2f04f9 MHC, read-on
 
 ## Issue #2 — V2.1,31 October2026
 
+| Timeline | Status | Latest result / SHA | Remaining |
+|---|---|---|---|
+| M0 modules | DONE | `8a86cc1`, audit0 | Android compatibility NOT RUN |
+| M1 Files/deploy | DONE (PC) | `b678dd0`,512MiB/resume/ZIP/frontend PASS | Android/Internet NOT RUN |
+| M2 Adminer/editor | DONE (source/PC adapter) | `08c1ad6`, scoped FCGI/auth PASS | native PHP/DB/Adminer NOT RUN |
+| M3 restic/scheduler | DONE (PC) | `8278258`, real Windows restic PASS | Android/SQL/SFTP/S3/reboot NOT RUN |
+| M4 domain | DONE (SDK mock) | `e9f922a`, preserve/conflict/rollback PASS | live Cloudflare NOT RUN |
+| M5 integration/release | IN PROGRESS | 42 PC integration tests PASS; nearest committed SHA `e9f922a` | source checkpoint, immutable2.1 RC1 + pinned instructions |
+
+M5 current checkpoint work: isolated real Chrome desktop/mobile viewport smoke
+PASS for local login, real Uppy/Tus upload, CodeMirror save, site workspace,
+schedule form and manual domain plan. Reinstall quarantine/undo, verified-backup
+gate, MHC footprint refusal and trusted parent-path alias fixtures PASS. Owned
+Nginx transfer-download guard migration preserves custom rules and rollback PASS.
+No real reset, hosting-device operation or Cloudflare mutation. Next concrete task:
+package exact committed source and verify public hashes. Final integration:
+42 PASS,0 FAIL,0 skipped, including installed Chrome and real Windows restic;
+latest Tus512MiB RSS75→111MiB (reported delta35MiB). Native/Internet still NOT RUN.
+77 JavaScript syntax + boot/bootstrap bash syntax PASS. Final doctor change:
+3 targeted regression tests PASS. origin/main fetched,0 ahead/behind at e9f922a;
+reference MHC remains clean at b2f04f9. No remote account/device changed.
+
 M3 commit `8278258`, pushed main. M4 DONE (source/PC SDK mock): exact domain
 preview/apply/HTTPS/remove, connector/API scope binding, private ownership journals,
 full ingress/origin settings preservation, optimistic version/hash checks and

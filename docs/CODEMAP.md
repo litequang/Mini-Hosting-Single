@@ -1,5 +1,16 @@
 # Code map
 
+M5: tools/reinstall.mjs owns verified external-backup reset plan, MHS-only service
+stop/data quarantine and guarded undo; cli.mjs adds first-site/reset helpers.
+tools/secure-downloads.mjs migrates only registered MHS Nginx configs to deny public
+transfer archives, with config backups/reload rollback. file-policy.mjs checks
+native upload guard and trusted canonical parent aliases. Adminer transport/parser
+split into lazy panel/vendor/adminer.mjs; normal Panel startup avoids loading it.
+tests/browser-v21.test.mjs uses existing Chrome via MHS_BROWSER_TEST_EXE for local
+PC UI only; tests/reinstall/secure-downloads cover boundaries and rollback fixtures.
+Build runtime needs npm only for local vendor regeneration; releases ship vendor
+JS/assets/third-party notices, never node_modules or dev restic/Chrome binaries.
+
 V2.1 Issue #2: MODULES-V21.md records candidate/license/runtime decisions;
 package-lock.json pins dependencies/integrity; deployment will use local vendor
 bundles, no runtime CDN/npm requirement. RC1/RC2 archives remain immutable.

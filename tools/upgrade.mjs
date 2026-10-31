@@ -1,3 +1,4 @@
+import {secureDownloads} from './secure-downloads.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -9,7 +10,7 @@ import {verifyRelease,copyRelease,switchCurrent,sha256} from './release.mjs';
 import {reconcileManagement} from './management.mjs';
 import {httpProbe} from './doctor.mjs';
 const base=path.join(HOME,'.local/share/mhs'),journal=path.join(DATA,'upgrade.json');
-async function restartPanel(){await reconcileManagement();}
+async function restartPanel(){if(fs.existsSync(path.join(base,'current/tools/secure-downloads.mjs')))await secureDownloads();await reconcileManagement();}
 async function panelHealth(){for(let i=0;i<30;i++){try{const r=await fetch('http://127.0.0.1:9090/api/session',{signal:AbortSignal.timeout(1000)}),v=await r.json(),current=fs.realpathSync(path.join(base,'current'));if(r.ok&&v.project==='MHS'&&v.version===verifyRelease(current).version){if(fs.existsSync(path.join(current,'panel/src/monitor-server.mjs'))){const [panel,monitor]=await Promise.all([httpProbe(9093,'localhost:9090'),httpProbe(9092,'localhost:9090')]);if(panel.status!==403||monitor.status!==403)throw Error('MHS_REMOTE_NEGATIVE_HEALTH_FAILED');}return;}}catch{}await new Promise(r=>setTimeout(r,250));}throw Error('MHS_UPGRADE_PANEL_HEALTH_FAILED');}
 function ownedTarget(target){const p=fs.realpathSync(target);if(!p.startsWith(path.join(base,'releases')+path.sep))throw Error('MHS_UPGRADE_TARGET_REFUSED');verifyRelease(p);return p;}
 export async function upgrade(archive,expected,{restart=restartPanel,health=panelHealth,checkpoint=()=>{}}={}){

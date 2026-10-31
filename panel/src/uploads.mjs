@@ -5,9 +5,9 @@ import {AsyncLocalStorage} from 'node:async_hooks';
 import {Transform} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {TusServer,FileStore} from '../vendor/runtime.mjs';
-import {DATA,atomicJson,readJson} from './config.mjs';
+import {DATA,NGINX,registry,atomicJson,readJson} from './config.mjs';
 import {requireSite,siteRoot} from './sites.mjs';
-import {guarded,requireSpace,LIMITS,MiB} from './file-policy.mjs';
+import {guarded,requireSpace,LIMITS,MiB,NGINX_UPLOAD_DENY} from './file-policy.mjs';
 import {HttpError} from './security.mjs';
 const context=new AsyncLocalStorage(),base=path.join(DATA,'uploads'),TTL=24*3600000;
 const idOK=id=>/^[a-f0-9]{32}$/.test(id),meta=id=>path.join(base,id+'.mhs.json');
@@ -36,6 +36,7 @@ function getServer(){
    const c=context.getStore(),m=upload.metadata||{},size=upload.size;
    if(!Number.isSafeInteger(size)||size<1||size>uploadLimit()||!/^[a-f0-9]{64}$/.test(m.sha256||''))throw {status_code:400,body:'UPLOAD_SIZE_OR_SHA256_REQUIRED'};
    const target=guarded(siteRoot(requireSite(c.slug)),m.path||'');if(fs.existsSync(target)&&m.confirm!==m.path)throw {status_code:409,body:'UPLOAD_OVERWRITE_CONFIRM_REQUIRED'};
+   if(/\.(?:zip|sql|bak|mhs\.gz)$/i.test(m.path||'')&&registry().nginxIntegrated){let nginx='';try{nginx=fs.readFileSync(path.join(NGINX,c.slug+'.conf'),'utf8');}catch{}if(!nginx.includes(NGINX_UPLOAD_DENY))throw {status_code:409,body:'UPLOAD_NGINX_GUARD_REQUIRED'};}
    const reservations=fs.readdirSync(base).filter(n=>n.endsWith('.mhs.json')).map(n=>readJson(path.join(base,n),null)).filter(r=>r?.phase==='UPLOADING'&&r.updatedAt>Date.now()-TTL);const reserved=reservations.reduce((n,r)=>n+r.size,0);
    if(reservations.length>=8||reserved+size>LIMITS.staging)throw {status_code:429,body:'UPLOAD_STAGING_QUOTA'};requireSpace(DATA,reserved+size*2+LIMITS.chunk);
    atomicJson(meta(upload.id),{id:upload.id,slug:c.slug,owner:c.owner,path:m.path,size,sha256:m.sha256,confirm:m.confirm===m.path,phase:'UPLOADING',updatedAt:Date.now()});

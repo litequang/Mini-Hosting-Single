@@ -1,5 +1,15 @@
 # Decisions — 30 October 2026
 
+31 October, V2.1 M5: ship PC-verified2.1 RC1, not a native Android acceptance claim.
+Use optional Playwright core with an existing PC browser; no browser downloaded or
+included on device. Lazy split old FastCGI dependency to avoid normal startup RAM
+and deprecated Buffer initialization. Reset is typed, externally backed, MHS-only
+quarantine, never wipe. Trusted Android HOME canonical aliases are accepted without
+allowing cross-site symlinks. Block public archive/SQL download in owned Nginx;
+unknown custom config needs review, not blind replacement. Independent WordPress
+prefix/URL migration remains explicit/manual; WP-CLI not enabled without native
+PASS. No production/phone/API mutation was needed to develop or package this RC.
+
 V2.1 M4: exact host auto-publish only; wildcard remains explicit/manual advanced
 work, never enabled automatically. Connector token must bind own MHS-named Tunnel.
 No API token adoption/production writes by development tests. API replacement
