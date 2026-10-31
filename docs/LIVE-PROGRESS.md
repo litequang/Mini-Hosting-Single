@@ -279,3 +279,25 @@ backup rollback restored empty target. Added128MiB packet allowance and safe
 numeric diagnostics. User requested original .env workflow: private file upload
 and launcher parsing now replace any need to manually convert .env into JSON.
 Pending: package/upgrade RC5, successful native import and application/public QA.
+
+RC5 distribution/native checkpoint (2026-10-31): source83e3382e579e4b6d26c84c007b2cbf635535497d;
+artifact3a3f9c0077f77e843095a0b49684b3841a6f1265; tag v2.1.0-rc.5. All pushed.
+Public immutable archive/bootstrap SHA256 PASS; package smoke PASS;87 JS syntax
+checks PASS; targeted SQL/Node/env/upgrade/website17 tests and updated Chrome
+.env/install/config/start/SQL flow PASS. Earlier hosting/auth regressions PASS.
+Pinned RC5 command bash syntax PASS; PC execution refuses before any mutation.
+
+Authorized11T source upgrade PASS; production npm install READY/missing0; private
+.env upload/load PASS; trusted86,427,484-byte SQL import DONE with93 tables and
+successful safety backup;128MiB packet allowance restored after import. Guided
+Node start reports actual HTTP200 (placeholder false), Nginx HTML/JS/CSS and API
+health200; .env HTTP403. Actual public Chrome HTTPS/app health200 with no page
+errors or Google-origin denial observed; unauthenticated app APIs correctly401.
+Existing independent WordPress HTTPS200. Google account login/business operations,
+fresh full RC5 install and physical reboot have not been accepted by the operator.
+
+Remaining app migration input: SQL references file-backed sheet/MusicXML assets;
+no corresponding storage backup was found in supplied build/local app directories.
+Requested its location; do not invent media or rerun SQL just to supply files.
+Next: copy verified media to persistent site storage after operator provides its
+source, verify authenticated app workflows, then separate reboot acceptance.

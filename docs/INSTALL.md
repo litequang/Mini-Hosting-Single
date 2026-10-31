@@ -1,3 +1,43 @@
+# Install Mini Hosting Single 2.1 RC5
+
+Current release **2.1.0-rc.5** includes guided Node deployment, direct private
+`.env` file upload/loading, locked production dependencies, database binding,
+HTTP verification and512MiB SQL restore with128MiB statement packet support.
+It also fixes management service paths during upgrade/rollback and fresh install.
+See [Node deployment](NODE-DEPLOY.md).
+
+## Install 2.1 RC5
+
+Run this complete block in standard Termux on an independent MHS phone. It
+supports fresh install, resume of the same RC5, or source upgrade of installed
+MHS. Earlier pinned installers remain immutable and install older code. Use this
+new installer to upgrade RC1-RC4, so that the new upgrade code is used.
+
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr || { echo MHS_STANDARD_TERMUX_REQUIRED; exit 1; }
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/3a3f9c0077f77e843095a0b49684b3841a6f1265/releases/install-2.1.0-rc.5.sh' -o "$HOME/mhs-install-2.1.0-rc.5.sh"
+  printf '%s  %s\n' '013601c0aba003e8d5ec7d5945472bc457d5a3072a827a30d83229e463526f12' "$HOME/mhs-install-2.1.0-rc.5.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.5.sh"
+)
+```
+
+Source `83e3382e579e4b6d26c84c007b2cbf635535497d`; artifact
+`3a3f9c0077f77e843095a0b49684b3841a6f1265`; tag `v2.1.0-rc.5`.
+Bundle SHA256 `dffd6db2706350d6b6165c58305caeb0932aac7994e129aa5ed55c60ac26d547`.
+PC tests, Chrome workflow, package smoke and public pinned checksums PASS.
+Authorized11T source upgrade, npm install, .env upload,86.4MB/93-table SQL import,
+Node/Nginx/public HTTPS and /api/health PASS. Fresh RC5 install and reboot have
+not been performed. Existing independent WordPress remains available over HTTPS.
+
+---
+
 # C?i Mini Hosting Single V2.1 ? RC2
 
 Chỉ điện thoại riêng/Termux sạch; không cài lên các node MHC/AMH V1 hoặc hosting
