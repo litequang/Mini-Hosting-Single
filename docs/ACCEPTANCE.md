@@ -21,8 +21,12 @@ doctor text/private-file-list update,3 remote-setup/doctor/lifecycle tests PASS.
 | Restic SFTP/S3, service restart/reset | NOT RUN | separate remote repository + Android |
 | WP-CLI / wildcard automation | NOT ENABLED | optional, native gate/manual scope |
 
-No MHC phone, production resource or real hosting data was changed. Exact release
-artifact smoke/distribution checks are recorded in LIVE-PROGRESS at packaging.
+Exact2.1 RC1 archive1118432 bytes/99 source files + manifest: checksum/extraction/
+manifest/fresh-install fixture and remote anonymous403 PASS. Bootstrap bash syntax
+PASS; public pinned commit bootstrap/archive + tag archive downloaded, HTTP200
+and exact SHA256 PASS. V2.0 RC1/RC2 bytes unchanged. Artifact/tag `d0d1793` /
+`v2.1.0-rc.1`; source `4c865fc`. No MHC phone, production resource or real hosting
+data was changed. No overall native/Internet acceptance claim.
 
 V2.1 M4:4 tests PASS with official Cloudflare SDK and mocked HTTP API. Full ingress/
 origin/unknown settings preserved; DNS ownership/conflicts/wildcards/reserved hosts,

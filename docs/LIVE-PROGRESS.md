@@ -11,15 +11,17 @@ Only this file records execution status. Source provenance: b2f04f9 MHC, read-on
 | M2 Adminer/editor | DONE (source/PC adapter) | `08c1ad6`, scoped FCGI/auth PASS | native PHP/DB/Adminer NOT RUN |
 | M3 restic/scheduler | DONE (PC) | `8278258`, real Windows restic PASS | Android/SQL/SFTP/S3/reboot NOT RUN |
 | M4 domain | DONE (SDK mock) | `e9f922a`, preserve/conflict/rollback PASS | live Cloudflare NOT RUN |
-| M5 integration/release | IN PROGRESS | source `4c865fc` pushed;42 PC integration tests PASS; exact package smoke PASS | push artifact/tag, public hash verification + pinned instructions |
+| M5 integration/release | DONE (PC/distribution) | source `4c865fc`, artifact `d0d1793`, tag `v2.1.0-rc.1` pushed;42 tests/package/public SHA PASS | native acceptance remains NOT RUN |
+| Physical acceptance | BLOCKED | NOT RUN; no authorized independent MHS Android available | fresh phone + own MHS Tunnel/Access/repository required |
 
 M5 current checkpoint work: isolated real Chrome desktop/mobile viewport smoke
 PASS for local login, real Uppy/Tus upload, CodeMirror save, site workspace,
 schedule form and manual domain plan. Reinstall quarantine/undo, verified-backup
 gate, MHC footprint refusal and trusted parent-path alias fixtures PASS. Owned
 Nginx transfer-download guard migration preserves custom rules and rollback PASS.
-No real reset, hosting-device operation or Cloudflare mutation. Next concrete task:
-package exact committed source and verify public hashes. Final integration:
+No real reset, hosting-device operation or Cloudflare mutation. Source/packaging
+and public hash verification are complete; next task is native acceptance below.
+Final integration:
 42 PASS,0 FAIL,0 skipped, including installed Chrome and real Windows restic;
 latest Tus512MiB RSS75→111MiB (reported delta35MiB). Native/Internet still NOT RUN.
 77 JavaScript syntax + boot/bootstrap bash syntax PASS. Final doctor change:
@@ -33,7 +35,17 @@ fresh-install PC fixture and anonymous remote Panel/Monitor403 PASS. Generated
 bootstrap bash syntax PASS. Source/package mode PC_ONLY; native/Internet NOT RUN.
 Archive SHA256 `3450f42ef97de7e68c337864c972e7a42d3f232f4d9d375bd38fbff1071454c9`.
 Bootstrap SHA256 `4bf4e9ac58b5e02f05f8daa181e365e81f659ad08cd4a2caa6b52aa5c79b1698`.
-Next: push tag/artifacts, verify exact public bytes and publish pinned command.
+Artifact `d0d179319c4165096d577095d889fec42c39803f` and tag v2.1.0-rc.1 pushed.
+Pinned bootstrap5034 bytes and archive1118432 bytes downloaded from public commit
+URLs, plus archive from tag URL: HTTP200/exact SHA256 PASS. INSTALL.md publishes
+copyable pinned command and first-site/Cloudflare/upgrade/rollback instructions.
+All four V2.0 RC1/RC2 artifact hashes unchanged. Issue #2 native gates left open.
+Published pinned install command bash syntax PASS; execution on PC refused
+non-Termux before package/download/setup. Final documentation checkpoint: Git HEAD.
+Blocker requiring owner: separate authorized MHS Termux and own Cloudflare LAB
+scope; no current MHC phone may substitute. Next concrete task: run documented
+fresh install/resume + doctor + PHP/Adminer/WordPress/Access/Monitor on that phone,
+collect sanitized failures and fix only actual errors. No live reset/API executed.
 
 M3 commit `8278258`, pushed main. M4 DONE (source/PC SDK mock): exact domain
 preview/apply/HTTPS/remove, connector/API scope binding, private ownership journals,

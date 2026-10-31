@@ -32,7 +32,7 @@ Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVE
 [Cloudflare](docs/CLOUDFLARE.md) · [Backup](docs/BACKUP-RESTORE.md) ·
 [PASS / NOT RUN](docs/ACCEPTANCE.md) · [Thay đổi V2.1](docs/CHANGELOG.md).
 
-[**Cài / nâng cấp V2.1 có checksum**](docs/INSTALL.md),
+[**Lệnh cài / nâng cấp V2.1 ghim commit + SHA256**](docs/INSTALL.md#lệnh-cài-v21-ghim-commit-và-sha256),
 [Cloudflare Panel/Monitor](docs/CLOUDFLARE.md),
 [domain automation](docs/DOMAIN-AUTOMATION.md),
 [backup mã hóa](docs/ENCRYPTED-BACKUP.md). Các gói RC1/RC2 cũ giữ bất biến.

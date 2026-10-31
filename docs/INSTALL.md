@@ -126,8 +126,39 @@ hostname riêng không có cookie Panel → LAN9091 → sai email/AUD bị chặ
 login lại → Website/WordPress/Node/DB/backup → reboot/crash restart → upgrade/
 rollback. Hiện Android/reboot/Internet đều NOT RUN; xem [ACCEPTANCE](ACCEPTANCE.md).
 
-Lệnh2.1 có checksum sẽ được ghim sau checkpoint artifact. Khối RC2 bên dưới là
-lịch sử V2.0, không chứa tính năng V2.1. Không sửa byte các release lịch sử.
+## Lệnh cài V2.1 ghim commit và SHA256
+
+Copy toàn khối vào **Termux MHS riêng**. Dùng cho fresh2.1, resume cùng release
+hoặc nâng MHS2.0 đã INSTALLED; không chạy trên MHC/AMH/hosting khác. URL bootstrap
+ghim commit artifact `d0d1793`, bên trong pin tag+SHA bundle. Sau cài `mhs doctor`,
+`mhs setup first-site`, rồi `mhs cloudflare`. Không cần Codex SSH từng máy.
+
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr || { echo MHS_STANDARD_TERMUX_REQUIRED; exit 1; }
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/d0d179319c4165096d577095d889fec42c39803f/releases/install-2.1.0-rc.1.sh' -o "$HOME/mhs-install-2.1.0-rc.1.sh"
+  printf '%s  %s\n' '4bf4e9ac58b5e02f05f8daa181e365e81f659ad08cd4a2caa6b52aa5c79b1698' "$HOME/mhs-install-2.1.0-rc.1.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.1.sh"
+)
+```
+
+Release [v2.1.0-rc.1](https://github.com/litequang/Mini-Hosting-Single/tree/v2.1.0-rc.1),
+manifest [2.1.0-rc.1.json](../releases/2.1.0-rc.1.json). Source `4c865fc`; artifact
+`d0d1793`. Bootstrap5034 bytes và bundle1118432 bytes đã tải lại qua commit/tag:
+HTTP200/SHA256 PASS. Bundle SHA256:
+`3450f42ef97de7e68c337864c972e7a42d3f232f4d9d375bd38fbff1071454c9`.
+Đây là kiểm phân phối/fixture, **Android/Internet thật NOT RUN**. Chủ máy vẫn
+cài ứng dụng Termux/Boot/API, cấp chạy nền, tạo Tunnel + hai app Access và nhập
+thông tin riêng; website API token chỉ cần nếu chọn automation thay cho thủ công.
+
+Khối RC2 bên dưới là lịch sử V2.0, không chứa tính năng V2.1. Không sửa byte các
+release lịch sử. Rollback dùng `mhs rollback`; không khôi phục SQL theo source.
 
 ## Lệnh cài RC2 ghim commit và SHA256
 
