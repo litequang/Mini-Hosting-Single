@@ -1,19 +1,19 @@
-# Install Mini Hosting Single 2.1 RC11
+# Install Mini Hosting Single 2.1 RC12
 
-Current release **2.1.0-rc.11** includes guided Node deployment, direct private
+Current release **2.1.0-rc.12** includes guided Node deployment, direct private
 `.env` file upload/loading, locked production dependencies, database binding,
 case-sensitive ZIP media paths, HTTP verification and512MiB SQL restore with128MiB statement packet support.
 Files also provides a private .env editor and Node restart/HTTP check.
 CLI/Boot wrappers follow current across future upgrades and rollback.
 It fixes native Termux MariaDB initialization and generates hostname hash buckets
 covering the supported253-byte hostname limit on fresh installations.
-RC11 also saves one logger process per MHS service while keeping private,
-bounded per-service logs. See [Node deployment](NODE-DEPLOY.md).
+RC12 also saves one logger process per MHS service while keeping private,
+bounded per-service logs and fixes PHP-FPM config checks under Node stdio. See [Node deployment](NODE-DEPLOY.md).
 
-## Install 2.1 RC11
+## Install 2.1 RC12
 
 Run this complete block in standard Termux on an independent MHS phone. It
-supports fresh install, resume of the same RC11, or source upgrade of installed
+supports fresh install, resume of the same RC12, or source upgrade of installed
 MHS. Earlier pinned installers remain immutable and install older code. Use this
 new installer to upgrade RC1-RC4, so that the new upgrade code is used.
 
@@ -26,22 +26,22 @@ new installer to upgrade RC1-RC4, so that the new upgrade code is used.
   done
   command -v curl >/dev/null || pkg install -y curl
   command -v sha256sum >/dev/null || pkg install -y coreutils
-  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/ecff43040ffc3a56cc4a56075b436a9d34902230/releases/install-2.1.0-rc.11.sh' -o "$HOME/mhs-install-2.1.0-rc.11.sh"
-  printf '%s  %s\n' 'd2f8d21b3b0d665d176168790edb27b5d39803ee4592a10e8c4fbf45f0a0fd99' "$HOME/mhs-install-2.1.0-rc.11.sh" | sha256sum -c -
-  bash "$HOME/mhs-install-2.1.0-rc.11.sh"
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/b6d8613ec5ec9c5dec3cd4336ef35e231e729786/releases/install-2.1.0-rc.12.sh' -o "$HOME/mhs-install-2.1.0-rc.12.sh"
+  printf '%s  %s\n' '145d1d3f9d974b8d30892528306cd823de68abb3507423a33e8eee5713082513' "$HOME/mhs-install-2.1.0-rc.12.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.12.sh"
 )
 ```
 
-Source `4018ebc18df9f402c70b5d8c39908a5824e64e09`; artifact
-`ecff43040ffc3a56cc4a56075b436a9d34902230`; tag `v2.1.0-rc.11`.
-Bundle SHA256 `c4726ebfb95edaeb8d1faa712d35c01ca7e2e765bc8277f21adc3c79d7af6bc2`.
+Source `f94aff5c4b15a9f544e3f11d1d5108f67a14d4a2`; artifact
+`b6d8613ec5ec9c5dec3cd4336ef35e231e729786`; tag `v2.1.0-rc.12`.
+Bundle SHA256 `0caebb8b0392396bffbdc491c10d04bbf0f00b90ba37ebd4147e44ad5cb55a02`.
 PC tests, Chrome workflow, package smoke and public pinned checksums PASS.
 Earlier RC7 targeted11T source upgrade, npm install, .env upload, SQL import and
-Node/public HTTPS checks passed. RC11 installer/upgrade regressions and package
-smoke pass; native MariaDB initialization and Nginx hostname probes pass. X7B RC10 fresh install/data migration and RC11 source upgrade pass. Access
-hostnames/AUDs configured; both public hosts redirect to Access. Final native
-service handoff/stability and authenticated owner login require verification;
-physical reboot acceptance remains pending.
+Node/public HTTPS checks passed. RC12 installer/upgrade regressions and package
+smoke pass; native MariaDB initialization and Nginx hostname probes pass. X7B RC10 fresh install/data migration and RC12 source upgrade pass. Access
+hostnames/AUDs configured; both public hosts redirect to Access. Native doctor54PASS/0FAIL and all8services/SSH running; Chrome local Panel and
+public website checks pass. Authenticated owner Access login and physical reboot
+acceptance remain pending.
 
 ---
 

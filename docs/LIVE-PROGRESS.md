@@ -356,23 +356,31 @@ download denied, JSerrors0. Existing X7B connector token moved to MHS private
 storage without account/DNS mutations. Public pro homepage/API200, UI rendered,
 Chrome JSerrors0. Evidence/private credentials remain only on operator PC.
 
-NOT COMPLETE: panel.thophuong.com and monitor.thophuong.com Access configuration.
-Require exact routes9093/9092, separate AUDs and owner policy; no public9090/9091.
-Browser automation unavailable. User requested manual instructions. SSH8022 still
-intermittently unavailable despite foreground sshd loop. LAN Monitor remains200;
-7/8services reported running, mhs-db supervision reportedfalse while actual Node
-SQL health stayed200. Investigate orphan/supervisor state after SSH recovery;
-do not claim all services or reboot accepted. Termux:Boot installed, MHS Boot entry
-created; final Boot-script invocation and physical reboot NOT RUN.
-Next: bind two exact Access apps via mhs cloudflare, validate authenticated remote
-Panel/Monitor and negative JWT cases, reconcile SQL supervision and verify Boot.
+Final remote/stability checkpoint (2026-11-02): configured exact thophuong
+Panel/Monitor with separately supplied AUDs and existing owner/team. Live tunnel
+routes confirmed9093/9092, no Host override. Both Internet hosts redirect302 to
+that Access team; no JWT, malformed JWT and wrong Host denied403. User's actual
+Access login/session remains user acceptance, not a claimed authenticated test.
 
-RC11 in progress: user supplied separate AUDs for thophuong Panel/Monitor.
-Configured locally with the existing owner/team and verified published routes
-9093/9092 with no Host override. Both Internet hosts redirect302 to the correct
-Access team; no/invalid JWT and wrong Host return403. Authenticated owner login
-still requires user's Access session. Temporary operator site/files retired.
-Root SQL and web orphan handoffs initially passed, but supervisor loss recurred
-with35+ Termux processes. RC11 removes permanent svlogd children for MHS services
-while retaining bounded private per-service logs. Android process pressure is
-suspected; no system-log proof. Tests/native reduced-process acceptance pending.
+Installed RC12 sourcef94aff5c4b15a9f544e3f11d1d5108f67a14d4a2,
+artifactb6d8613ec5ec9c5dec3cd4336ef35e231e729786, tagv2.1.0-rc.12.
+RC11 saves one permanent logger child per MHS service with bounded private logs;
+RC12 fixes PHP-FPM /proc/self/fd/2 ENXIO under Node captured stdio by using the
+same private log file directly.16 logging/hosting/install/remote regressions,
+then6 targeted PHP/logging regressions,91JS syntax/package/shell/publicSHA PASS.
+
+Native legacy/orphan handoff: quiesced only positively owned services, used clean
+SQL shutdown, retired orphaned Nginx/FPM workers identified by own service cwd,
+role and parent1, then started one owned runner. No live socket was deleted.
+Eight MHS services now run with their individual logger children disabled; SSH
+and stock logging preserved. Prior35+ process pressure was suspected, not proven
+by Android system logs. Temporary operator site/files retired; app entry restored
+to dist/server.cjs. No owner secret/OAuth/SQL/media changes during this work.
+
+RC12 native doctor54PASS/0FAIL; all8MHS services and SSH running. SQL/Nginx/app
+PID stability rechecked across several minutes. Native Panel Chrome login,
+Files/sheets,.env editor and private-file denial PASS again, JSerrors0.
+Public pro API200. Termux:Boot installed; current CLI/Boot wrappers and startup
+script tested. Physical reboot and Android battery/autostart permissions remain
+NOT RUN; do not claim reboot acceptance. Main remaining user check: sign into
+both public management hostnames with the permitted Access identity.
