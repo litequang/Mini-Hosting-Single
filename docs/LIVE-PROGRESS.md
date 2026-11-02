@@ -339,3 +339,11 @@ shared tools/entrypoints.mjs, reused by install and management upgrades/rollback
 pro hostname; user explicitly authorized independent conversion. Preserve original
 app/data/session/OAuth/connector and take independent verified backup before
 local decommission. This is operator migration, never an automatic preflight bypass.
+
+RC8 artifact29f7c25e33192964afa16c16a83b0644a5fc8930, source
+b1a57bb5eef2f242517ed634c017641e252e2924, tag v2.1.0-rc.8 pushed.
+Exact package smoke, generated bash syntax and public pinned bytes/SHA PASS.
+X7B prerequisite package installation started; SSH became unavailable before any
+website pause, data relocation or decommission. Legacy data remains in place.
+Resume by verifying device connectivity and dpkg/package state, then independently
+back up both schemas/media/config on phone and PC before migration operations.

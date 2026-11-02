@@ -1,16 +1,17 @@
-# Install Mini Hosting Single 2.1 RC7
+# Install Mini Hosting Single 2.1 RC8
 
-Current release **2.1.0-rc.7** includes guided Node deployment, direct private
+Current release **2.1.0-rc.8** includes guided Node deployment, direct private
 `.env` file upload/loading, locked production dependencies, database binding,
 case-sensitive ZIP media paths, HTTP verification and512MiB SQL restore with128MiB statement packet support.
 Files also provides a private .env editor and Node restart/HTTP check.
+CLI/Boot wrappers follow current across future upgrades and rollback.
 It also fixes management service paths during upgrade/rollback and fresh install.
 See [Node deployment](NODE-DEPLOY.md).
 
-## Install 2.1 RC7
+## Install 2.1 RC8
 
 Run this complete block in standard Termux on an independent MHS phone. It
-supports fresh install, resume of the same RC7, or source upgrade of installed
+supports fresh install, resume of the same RC8, or source upgrade of installed
 MHS. Earlier pinned installers remain immutable and install older code. Use this
 new installer to upgrade RC1-RC4, so that the new upgrade code is used.
 
@@ -23,19 +24,19 @@ new installer to upgrade RC1-RC4, so that the new upgrade code is used.
   done
   command -v curl >/dev/null || pkg install -y curl
   command -v sha256sum >/dev/null || pkg install -y coreutils
-  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/1b65870fb2a48904a414f50955f3283b008df558/releases/install-2.1.0-rc.7.sh' -o "$HOME/mhs-install-2.1.0-rc.7.sh"
-  printf '%s  %s\n' 'b9ecdd0aa9a6d99d0e0b26bcf669924a67770a81c31d8ee71eaff715e19e5940' "$HOME/mhs-install-2.1.0-rc.7.sh" | sha256sum -c -
-  bash "$HOME/mhs-install-2.1.0-rc.7.sh"
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/29f7c25e33192964afa16c16a83b0644a5fc8930/releases/install-2.1.0-rc.8.sh' -o "$HOME/mhs-install-2.1.0-rc.8.sh"
+  printf '%s  %s\n' '41c6285483dc93bcfa34207810d2dad33139b73989e9acc2f40d08b24b2f8bf4' "$HOME/mhs-install-2.1.0-rc.8.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.8.sh"
 )
 ```
 
-Source `dbfefb0da97f62de25d4bbd5f7027cb15d3b7cb5`; artifact
-`1b65870fb2a48904a414f50955f3283b008df558`; tag `v2.1.0-rc.7`.
-Bundle SHA256 `bca00e5e05e1140ad415945e132b3c3be7bd3c707808c1b85ba65f57e8385a18`.
+Source `b1a57bb5eef2f242517ed634c017641e252e2924`; artifact
+`29f7c25e33192964afa16c16a83b0644a5fc8930`; tag `v2.1.0-rc.8`.
+Bundle SHA256 `5c42cc4d13149745ac6cb609f69a6c3ad94f57015a7753144da330655bcfd7a2`.
 PC tests, Chrome workflow, package smoke and public pinned checksums PASS.
-Authorized11T source upgrade, npm install, .env upload,86.4MB/93-table SQL import,
-Node/Nginx/public HTTPS and /api/health PASS. Fresh RC7 install and reboot have
-not been performed. Existing independent WordPress remains available over HTTPS.
+Earlier RC7 targeted11T source upgrade, npm install, .env upload, SQL import and
+Node/public HTTPS checks passed. RC8 installer/upgrade regressions and package
+smoke pass; fresh RC8 install and physical reboot have not yet been accepted.
 
 ---
 
