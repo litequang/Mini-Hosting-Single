@@ -374,3 +374,12 @@ backup (the prior rollback briefly resumed writers), retaining original dumps.
 Two original triggers have legacy definers; the separate import working copies
 map only those trigger headers to CURRENT_USER, preserving bodies and originals.
 Preserve all old guards/services/data; do not change product preflight to bypass.
+
+2026-11-02: X7B SSH resumed. RC9 fresh native install PASS: PHP/SQL/Nginx/local
+Panel and anonymous remote denial. Both93-table databases restored with exact
+per-table row counts. Website creation exposed native Nginx's default32-byte
+server_names_hash_bucket_size; actual nginx -t confirmed this exact error.
+Operator rollback retained originals again. RC10 sets512bytes in generated HTTP
+config to cover all accepted253-byte hostnames; native real-host probe PASS.
+Old local mhc-online also left an orphaned Node child after sv down; operator
+stops only positively identified legacy children, preserving SSH/MHS/M51.

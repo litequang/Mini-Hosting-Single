@@ -132,3 +132,9 @@ before SQL initialization. RC9 uses the package's built-in paths, --no-defaults
 and the private MHS datadir. Initialized databases are preserved. A failed
 native stage must resume its original release; never replace files in a signed
 release or remove the install journal to force a different release.
+
+NGINX_CONFIG_FAILED when adding a website: X7B's native Nginx defaults to a
+32-byte server-name hash bucket, which rejected even its existing pro hostname.
+RC10 generates an explicit512-byte bucket covering the supported253-byte host
+limit. A native nginx -t probe passed with the real hostname after this change.
+Use the new release; do not delete the website or weaken private-file guards.
