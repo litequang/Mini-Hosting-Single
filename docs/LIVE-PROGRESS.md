@@ -366,3 +366,13 @@ do not claim all services or reboot accepted. Termux:Boot installed, MHS Boot en
 created; final Boot-script invocation and physical reboot NOT RUN.
 Next: bind two exact Access apps via mhs cloudflare, validate authenticated remote
 Panel/Monitor and negative JWT cases, reconcile SQL supervision and verify Boot.
+
+RC11 in progress: user supplied separate AUDs for thophuong Panel/Monitor.
+Configured locally with the existing owner/team and verified published routes
+9093/9092 with no Host override. Both Internet hosts redirect302 to the correct
+Access team; no/invalid JWT and wrong Host return403. Authenticated owner login
+still requires user's Access session. Temporary operator site/files retired.
+Root SQL and web orphan handoffs initially passed, but supervisor loss recurred
+with35+ Termux processes. RC11 removes permanent svlogd children for MHS services
+while retaining bounded private per-service logs. Android process pressure is
+suspected; no system-log proof. Tests/native reduced-process acceptance pending.

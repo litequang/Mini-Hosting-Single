@@ -1,4 +1,5 @@
 import {NGINX_UPLOAD_DENY} from './file-policy.mjs';
+import {prepareServiceLog} from './service-logs.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -18,7 +19,7 @@ export function siteHttpHealth(site){return new Promise(resolve=>{
  req.on('error',()=>resolve({ok:false,status:null}));req.on('timeout',()=>{req.destroy();resolve({ok:false,status:null});});
 });}
 export async function shellStatus(name){if(!serviceOK(name))throw Error('SERVICE_NOT_ALLOWED');return cmd(path.join(TERMUX,'bin/sv'),['status',path.join(SERVICE_DIR,name)],2500);}
-export async function serviceAction(name,action){if(!serviceNames().includes(name)||name==='mhs-panel'||!['up','down','restart'].includes(action)||!fs.existsSync(path.join(SERVICE_DIR,name,'mhs-owned')))throw Error('SERVICE_ACTION_REFUSED');const down=path.join(SERVICE_DIR,name,'down');if(action==='down')fs.writeFileSync(down,'');else fs.rmSync(down,{force:true});const r=await cmd(path.join(TERMUX,'bin/sv'),['-w','15',action,path.join(SERVICE_DIR,name)],20000);if(!r.ok)throw Error('SERVICE_ACTION_FAILED');return {ok:true};}
+export async function serviceAction(name,action){if(!serviceNames().includes(name)||name==='mhs-panel'||!['up','down','restart'].includes(action)||!fs.existsSync(path.join(SERVICE_DIR,name,'mhs-owned')))throw Error('SERVICE_ACTION_REFUSED');const down=path.join(SERVICE_DIR,name,'down');if(action==='down')fs.writeFileSync(down,'');else fs.rmSync(down,{force:true});const r=await cmd(path.join(TERMUX,'bin/sv'),['-w','15',action,path.join(SERVICE_DIR,name)],20000);if(!r.ok)throw Error('SERVICE_ACTION_FAILED');if(action!=='down')await stopLegacyLogger(name);return {ok:true};}
 export function getLog(name){if(!serviceNames().includes(name))throw Error('SERVICE_NOT_ALLOWED');try{const p=path.join(LOG_DIR,name,'current'),fd=fs.openSync(p,'r');try{const size=fs.fstatSync(fd).size,n=Math.min(size,16000),b=Buffer.alloc(n);fs.readSync(fd,b,0,n,Math.max(0,size-n));return b.toString().replace(/(token|password|authorization|cookie|secret)\s*[:=]\s*\S+/gi,'$1=[REDACTED]');}finally{fs.closeSync(fd);}}catch{return 'LOG_UNAVAILABLE';}}
 let lastNet=null,lastCpu=null,statsCache=null,statsPromise=null;
 export async function systemStats(){
@@ -55,6 +56,18 @@ export async function regenerateNginx(sites){
 }
 export async function integrateNginx(){const r=registry();if(!(await nginxTest()).ok)throw Error('NGINX_CONFIG_FAILED');r.nginxIntegrated=true;saveRegistry(r);return {ok:true};}
 export const quote=s=>"'"+String(s).replaceAll("'","'\\''")+"'";
-export function writeService(name,command){if(!serviceOK(name))throw Error('SERVICE_NOT_ALLOWED');const dir=path.join(SERVICE_DIR,name);if(fs.existsSync(dir)&&!fs.existsSync(path.join(dir,'mhs-owned')))throw Error('FOREIGN_SERVICE_REFUSED');fs.mkdirSync(path.join(dir,'log'),{recursive:true});fs.writeFileSync(path.join(dir,'mhs-owned'),'MHS\n');for(const [f,v] of [['run',`#!${TERMUX}/bin/sh\nexec 2>&1\n${command}\n`],['log/run',`#!${TERMUX}/bin/sh\nmkdir -p ${quote(path.join(LOG_DIR,name))}\nexec ${quote(path.join(TERMUX,'bin/svlogd'))} -tt ${quote(path.join(LOG_DIR,name))}\n`]]){fs.writeFileSync(path.join(dir,f),v,{mode:0o700});fs.chmodSync(path.join(dir,f),0o700);}return dir;}
+export function writeService(name,command){
+ if(!serviceOK(name))throw Error('SERVICE_NOT_ALLOWED');const dir=path.join(SERVICE_DIR,name);
+ if(fs.existsSync(dir)&&!fs.existsSync(path.join(dir,'mhs-owned')))throw Error('FOREIGN_SERVICE_REFUSED');
+ fs.mkdirSync(dir,{recursive:true});const log=prepareServiceLog(name);
+ fs.writeFileSync(path.join(dir,'mhs-owned'),'MHS\n');fs.writeFileSync(path.join(dir,'mhs-direct-log'),'MHS\n');
+ const legacy=path.join(dir,'log');if(fs.existsSync(legacy))fs.writeFileSync(path.join(legacy,'down'),'');
+ const run=path.join(dir,'run');fs.writeFileSync(run,`#!${TERMUX}/bin/sh\numask 077\nexec >> ${quote(log)} 2>&1\n${command}\n`,{mode:0o700});fs.chmodSync(run,0o700);return dir;
+}
+export async function stopLegacyLogger(name,{run=cmd}={}){
+ if(!serviceOK(name))throw Error('SERVICE_NOT_ALLOWED');const dir=path.join(SERVICE_DIR,name);
+ if(!fs.existsSync(path.join(dir,'mhs-direct-log'))||!fs.existsSync(path.join(dir,'log/supervise/ok')))return;
+ const r=await run(path.join(TERMUX,'bin/sv'),['-w','5','down',path.join(dir,'log')],7000);if(!r.ok)throw Error('MHS_LEGACY_LOGGER_STOP_FAILED');
+}
 export async function createService(site){if(site.type!=='node')return;writeService('mhs-site-'+site.slug,`exec ${quote(process.execPath)} ${quote(path.join(HOME,'.local/share/mhs/current/tools/node-app.mjs'))} ${quote(site.slug)}`);}
 export async function removeService(site){if(site.type!=='node')return;await serviceAction('mhs-site-'+site.slug,'down');fs.writeFileSync(path.join(SERVICE_DIR,'mhs-site-'+site.slug,'down'),'');}

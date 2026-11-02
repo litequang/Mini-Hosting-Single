@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {HOME,TERMUX} from '../panel/src/config.mjs';
-import {writeService,quote,cmd} from '../panel/src/system.mjs';
+import {writeService,quote,cmd,stopLegacyLogger} from '../panel/src/system.mjs';
 import {configureEntrypoints} from './entrypoints.mjs';
 export async function reconcileManagement({run=cmd,pause=ms=>new Promise(r=>setTimeout(r,ms))}={}){
  // Pin every service to the selected release. Older entry guards compare argv
@@ -22,5 +22,5 @@ export async function reconcileManagement({run=cmd,pause=ms=>new Promise(r=>setT
   fs.writeFileSync(path.join(monitor,'down'),'');const r=await run(path.join(TERMUX,'bin/sv'),['-w','10','down',monitor],12000);if(!r.ok)throw Error('MHS_MONITOR_ROLLBACK_STOP_FAILED');
  }
  // Restart Panel first so the old bundled LAN listener releases9091 before Monitor.
- for(const name of ['mhs-panel',...(separate?['mhs-monitor']:[]),...(scheduler?['mhs-scheduler']:[])]){const r=await run(path.join(TERMUX,'bin/sv'),['-w','15','restart',path.join(TERMUX,'var/service',name)],20000);if(!r.ok)throw Error('MHS_MANAGEMENT_RESTART_FAILED');}
+ for(const name of ['mhs-panel',...(separate?['mhs-monitor']:[]),...(scheduler?['mhs-scheduler']:[])]){const r=await run(path.join(TERMUX,'bin/sv'),['-w','15','restart',path.join(TERMUX,'var/service',name)],20000);if(!r.ok)throw Error('MHS_MANAGEMENT_RESTART_FAILED');await stopLegacyLogger(name,{run});}
 }

@@ -138,3 +138,14 @@ NGINX_CONFIG_FAILED when adding a website: X7B's native Nginx defaults to a
 RC10 generates an explicit512-byte bucket covering the supported253-byte host
 limit. A native nginx -t probe passed with the real hostname after this change.
 Use the new release; do not delete the website or weaken private-file guards.
+
+Repeated missing runsvdir/runsv with live orphaned daemons: inspect owned process
+IDs against supervise/pid and the SQL PID file; a momentary run status is not
+proof that the listening daemon is supervised. X7B had35+ Termux processes and
+repeated supervisor loss. Android process-budget pressure is suspected, not
+confirmed by system logs. RC11 writes private bounded per-service logs directly,
+saving one permanent logger child per MHS service. Existing logger definitions
+are preserved but disabled after handoff; scheduler caps current logs at2MiB,
+retaining the latest128KiB in the same inode. Do not kill foreign processes or
+unlink live database/socket files. A pre-existing orphan needs a reviewed local
+handoff: quiesce its site, clean SQL shutdown, then start the owned runner.

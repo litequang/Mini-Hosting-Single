@@ -19,9 +19,11 @@ for name in mhs-db mhs-php mhs-nginx mhs-panel mhs-monitor mhs-scheduler; do
     sleep 1
   done
   sv -w 15 up "$SVDIR/$name" || exit 1
+  if test -f "$SVDIR/$name/mhs-direct-log" && test -d "$SVDIR/$name/log"; then sv -w 5 down "$SVDIR/$name/log" || true; fi
 done
 for service in "$SVDIR"/mhs-site-* "$SVDIR/mhs-tunnel"; do
   test -f "$service/mhs-owned" || continue
   test ! -f "$service/down" || continue
   sv -w 15 up "$service" || true
+  if test -f "$service/mhs-direct-log" && test -d "$service/log"; then sv -w 5 down "$service/log" || true; fi
 done
