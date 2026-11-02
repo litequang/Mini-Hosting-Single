@@ -149,3 +149,11 @@ are preserved but disabled after handoff; scheduler caps current logs at2MiB,
 retaining the latest128KiB in the same inode. Do not kill foreign processes or
 unlink live database/socket files. A pre-existing orphan needs a reviewed local
 handoff: quiesce its site, clean SQL shutdown, then start the owned runner.
+
+RC12 fixes a false PHP config failure: Node child stdio uses Unix sockets, so
+PHP-FPM cannot open /proc/self/fd/2 as an error_log (ENXIO). Fresh generated FPM
+config now points directly to the same private bounded per-service log. Runtime
+PHP could work while doctor failed before this change. Native Node config-test
+and doctor54PASS/0FAIL confirmed. Orphaned FPM/Nginx workers can also retain a
+listening socket after the master exits; identify their owned service cwd/UID,
+parent1 and role before a reviewed graceful handoff. Never delete a live socket.

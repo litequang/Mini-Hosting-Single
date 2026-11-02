@@ -30,6 +30,7 @@ test('PHP/Node vhosts and WordPress use private local credentials, not imported 
  await sites.deployZip(wp.slug,zip({'wordpress/index.php':'<?php echo "fixture";','wordpress/wp-settings.php':'<?php // synthetic core placeholder'}));
  assert.equal(fs.readFileSync(path.join(root,'wp-config.php'),'utf8'),owned);
  hostingConfigs();assert.match(fs.readFileSync(config.NGINX_CONFIG,'utf8'),/default_server/);assert.doesNotMatch(fs.readFileSync(config.NGINX_CONFIG,'utf8'),/worker\.dev|authority/i);
+ const fpm=fs.readFileSync(path.join(config.DATA,'php-fpm.conf'),'utf8'),log=path.join(config.LOG_DIR,'mhs-php/current');assert.ok(fpm.includes('error_log = '+log.replaceAll('\\','/')));assert.doesNotMatch(fpm,/\/proc\/self\/fd\/2/);assert.ok(fs.existsSync(log));
 });
 test('direct connector token private file and Access validation have no account/Worker token',async()=>{
  const {configureConnector,configureAccess}=await import('../tools/cloudflare.mjs');
