@@ -383,3 +383,13 @@ Operator rollback retained originals again. RC10 sets512bytes in generated HTTP
 config to cover all accepted253-byte hostnames; native real-host probe PASS.
 Old local mhc-online also left an orphaned Node child after sv down; operator
 stops only positively identified legacy children, preserving SSH/MHS/M51.
+
+RC10 source39428dd6dc55da4ef39550ba1084eacb928cf5ff, artifact
+963afa84728dbc63679b1229b6a95f585d453165, tag v2.1.0-rc.10 pushed.
+10 hosting/native/install regressions,89JS syntax, exact package smoke, shell
+syntax and both public artifact hashes PASS. Native corrected nginx -t PASS.
+RC9 failed only while creating the vhost, after SQL validation; original system
+was restored automatically and its Node API still answered200 over LAN. SSH8022
+stopped again before the next migration attempt. User asked to keep a foreground
+Termux loop starting sshd every5seconds; cause remains unproven, no Android/Doze
+or reboot guarantee. RC10 is published but not yet installed on X7B.

@@ -1,17 +1,18 @@
-# Install Mini Hosting Single 2.1 RC9
+# Install Mini Hosting Single 2.1 RC10
 
-Current release **2.1.0-rc.9** includes guided Node deployment, direct private
+Current release **2.1.0-rc.10** includes guided Node deployment, direct private
 `.env` file upload/loading, locked production dependencies, database binding,
 case-sensitive ZIP media paths, HTTP verification and512MiB SQL restore with128MiB statement packet support.
 Files also provides a private .env editor and Node restart/HTTP check.
 CLI/Boot wrappers follow current across future upgrades and rollback.
-It also fixes native Termux MariaDB initialization without a doubled binary path.
+It fixes native Termux MariaDB initialization and generates hostname hash buckets
+covering the supported253-byte hostname limit on fresh installations.
 See [Node deployment](NODE-DEPLOY.md).
 
-## Install 2.1 RC9
+## Install 2.1 RC10
 
 Run this complete block in standard Termux on an independent MHS phone. It
-supports fresh install, resume of the same RC9, or source upgrade of installed
+supports fresh install, resume of the same RC10, or source upgrade of installed
 MHS. Earlier pinned installers remain immutable and install older code. Use this
 new installer to upgrade RC1-RC4, so that the new upgrade code is used.
 
@@ -24,19 +25,20 @@ new installer to upgrade RC1-RC4, so that the new upgrade code is used.
   done
   command -v curl >/dev/null || pkg install -y curl
   command -v sha256sum >/dev/null || pkg install -y coreutils
-  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/c43f45405c3fc4e080d6c5531c20fd9f00557092/releases/install-2.1.0-rc.9.sh' -o "$HOME/mhs-install-2.1.0-rc.9.sh"
-  printf '%s  %s\n' '62aab23dfbbd1350c8ebbc23e0c549e83ed57fb3e7ae66c909f07b4177e38d78' "$HOME/mhs-install-2.1.0-rc.9.sh" | sha256sum -c -
-  bash "$HOME/mhs-install-2.1.0-rc.9.sh"
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/963afa84728dbc63679b1229b6a95f585d453165/releases/install-2.1.0-rc.10.sh' -o "$HOME/mhs-install-2.1.0-rc.10.sh"
+  printf '%s  %s\n' 'f8dac4ab9a93a448492d5d893a2f681b871c23069e819750fd6f40ab6c66eea6' "$HOME/mhs-install-2.1.0-rc.10.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.10.sh"
 )
 ```
 
-Source `05ddd748bcd08b81b646b514aef6c43f945bfd81`; artifact
-`c43f45405c3fc4e080d6c5531c20fd9f00557092`; tag `v2.1.0-rc.9`.
-Bundle SHA256 `4267ebab7cea1fb03fd129a2d76c82e2cd561fad3ab18fca78d60d205d0af9fd`.
+Source `39428dd6dc55da4ef39550ba1084eacb928cf5ff`; artifact
+`963afa84728dbc63679b1229b6a95f585d453165`; tag `v2.1.0-rc.10`.
+Bundle SHA256 `0d2dc27679429bfa2763135d5a868fc0566acf58d0cbb140ed3b3e9ee9fa6321`.
 PC tests, Chrome workflow, package smoke and public pinned checksums PASS.
 Earlier RC7 targeted11T source upgrade, npm install, .env upload, SQL import and
-Node/public HTTPS checks passed. RC9 installer/upgrade regressions and package
-smoke pass; native initialization probe passes; complete fresh RC9 install and reboot acceptance are pending.
+Node/public HTTPS checks passed. RC10 installer/upgrade regressions and package
+smoke pass; native MariaDB initialization and Nginx hostname probes pass. Full RC10 website
+migration and physical reboot acceptance remain pending.
 
 ---
 
