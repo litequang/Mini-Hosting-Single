@@ -9,6 +9,7 @@ import {hostingConfigs} from '../panel/src/hosting.mjs';
 import {writeService,quote,cmd} from '../panel/src/system.mjs';
 import {copyRelease,switchCurrent,verifyRelease,sha256} from './release.mjs';
 import {withOperation} from '../panel/src/operation.mjs';
+import {configureEntrypoints} from './entrypoints.mjs';
 export const BASE=path.join(HOME,'.local/share/mhs');
 export function preflight(){
  for(const name of ['.config/mhc-full-installer','.local/share/mhc-full-installer','android-hosting-panel','.config/mini-hosting-cluster','apps','.nginx','.cloudflared'])if(fs.existsSync(path.join(HOME,name)))throw Error('MHS_EXISTING_HOSTING_REFUSED');
@@ -28,10 +29,7 @@ export async function configureServices(){
  writeService('mhs-monitor',`exec ${quote(process.execPath)} ${quote(path.join(source,'panel/src/monitor-server.mjs'))}`);
  writeService('mhs-scheduler',`exec ${quote(process.execPath)} ${quote(path.join(source,'tools/scheduler-service.mjs'))}`);
  for(const name of ['mhs-db','mhs-php','mhs-nginx','mhs-panel','mhs-monitor','mhs-scheduler'])fs.rmSync(path.join(TERMUX,'var/service',name,'down'),{force:true});
- const launcher=path.join(TERMUX,'bin/mhs');if(fs.existsSync(launcher)&&!fs.readFileSync(launcher,'utf8').includes('# MHS-owned launcher'))throw Error('MHS_FOREIGN_LAUNCHER_REFUSED');
- fs.writeFileSync(launcher,`#!${TERMUX}/bin/sh\n# MHS-owned launcher\nexec ${quote(process.execPath)} ${quote(path.join(source,'tools/cli.mjs'))} "$@"\n`,{mode:0o700});fs.chmodSync(launcher,0o700);
- const boot=path.join(HOME,'.termux/boot/20-mhs-start');fs.mkdirSync(path.dirname(boot),{recursive:true,mode:0o700});if(fs.existsSync(boot)&&!fs.readFileSync(boot,'utf8').includes('# MHS-owned boot'))throw Error('MHS_FOREIGN_BOOT_REFUSED');
- fs.writeFileSync(boot,`#!${TERMUX}/bin/bash\n# MHS-owned boot\nexec ${quote(path.join(TERMUX,'bin/bash'))} ${quote(path.join(source,'scripts/boot.sh'))}\n`,{mode:0o700});fs.chmodSync(boot,0o700);
+ configureEntrypoints();
 }
 async function nativeDatabase(){
  const dir=path.join(DATA,'mysql');fs.mkdirSync(dir,{recursive:true,mode:0o700});

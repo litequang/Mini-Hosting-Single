@@ -79,3 +79,11 @@ old values, and on save consolidates them into the uploaded .env file. It keeps
 reserved-variable/size guards; normal file download/public paths still deny .env.
 No secrets are logged or included in release. Update only dist when that is the
 application's deployment layout; sheets remains alongside dist in app root.
+
+## 2.1.0-rc.8
+
+Fresh install and source upgrade/rollback now reconcile owned CLI and Termux:Boot
+wrappers through current, instead of pinning them to the first installed release.
+Supervised Node server entrypoints retain resolved version paths. Foreign launchers
+and boot scripts remain protected.6 installer/upgrade/remote regression tests PASS;
+89 JavaScript syntax checks PASS. Physical reboot still requires device acceptance.

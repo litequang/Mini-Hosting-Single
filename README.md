@@ -1,6 +1,6 @@
 # Mini Hosting Single V2.1
 
-**Latest source: 2.1.0-rc.7** with guided Node deployment and large SQL restore.
+**Latest source: 2.1.0-rc.8** with guided Node deployment and large SQL restore.
 Use the [current installer](docs/INSTALL.md) and [Node deployment guide](docs/NODE-DEPLOY.md).
 Earlier pinned commands keep installing their historical releases. Fresh Android
 installation/reboot acceptance remains separate from targeted deployment checks.
@@ -13,7 +13,7 @@ Không Authority, Worker/DO, heartbeat, Primary/Standby hoặc replication.
 Hoạt động thông thường phát sinh **0 request đến MHC Worker/DO**; không nói thay
 cho ứng dụng khác trong tài khoản Cloudflare.
 
-Release candidate **2.1.0-rc.7**: tiếp tục original Panel, có kiểm thử PC theo
+Release candidate **2.1.0-rc.8**: tiếp tục original Panel, có kiểm thử PC theo
 checkpoint. Targeted11T upgrade/Node/SQL/public HTTPS PASS; full fresh install
 and reboot acceptance remain pending.
 Xem [tiến độ](docs/LIVE-PROGRESS.md), [nguồn tái sử dụng](docs/PROVENANCE.md).

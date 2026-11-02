@@ -3,10 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {HOME,TERMUX} from '../panel/src/config.mjs';
 import {writeService,quote,cmd} from '../panel/src/system.mjs';
+import {configureEntrypoints} from './entrypoints.mjs';
 export async function reconcileManagement({run=cmd,pause=ms=>new Promise(r=>setTimeout(r,ms))}={}){
  // Pin every service to the selected release. Older entry guards compare argv
  // with import.meta.url and cannot launch through a symlink named "current".
  const current=fs.realpathSync(path.join(HOME,'.local/share/mhs/current')),monitor=path.join(TERMUX,'var/service/mhs-monitor');
+ configureEntrypoints();
  writeService('mhs-panel',`exec ${quote(process.execPath)} ${quote(path.join(current,'panel/src/server.mjs'))}`);
  const separate=fs.existsSync(path.join(current,'panel/src/monitor-server.mjs'));
  const scheduler=fs.existsSync(path.join(current,'tools/scheduler-service.mjs')),schedulerDir=path.join(TERMUX,'var/service/mhs-scheduler');

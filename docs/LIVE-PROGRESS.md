@@ -332,3 +332,10 @@ owned processes before claiming full boot readiness. SSH remained enabled.
 MHS like11T. No M51 change. X7B old endpoint unreachable; device inventory and
 independent backup required before any decommission or MHS install. Never run the
 fresh installer over legacy footprints or remove Cluster guards to pass preflight.
+
+2026-11-02 RC8 source: fixed fresh CLI/Boot wrappers tracking current through
+shared tools/entrypoints.mjs, reused by install and management upgrades/rollback.
+6 targeted tests +89JS syntax PASS. X7B confirmed legacy primary serving its own
+pro hostname; user explicitly authorized independent conversion. Preserve original
+app/data/session/OAuth/connector and take independent verified backup before
+local decommission. This is operator migration, never an automatic preflight bypass.
