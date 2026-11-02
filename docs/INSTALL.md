@@ -1,17 +1,17 @@
-# Install Mini Hosting Single 2.1 RC8
+# Install Mini Hosting Single 2.1 RC9
 
-Current release **2.1.0-rc.8** includes guided Node deployment, direct private
+Current release **2.1.0-rc.9** includes guided Node deployment, direct private
 `.env` file upload/loading, locked production dependencies, database binding,
 case-sensitive ZIP media paths, HTTP verification and512MiB SQL restore with128MiB statement packet support.
 Files also provides a private .env editor and Node restart/HTTP check.
 CLI/Boot wrappers follow current across future upgrades and rollback.
-It also fixes management service paths during upgrade/rollback and fresh install.
+It also fixes native Termux MariaDB initialization without a doubled binary path.
 See [Node deployment](NODE-DEPLOY.md).
 
-## Install 2.1 RC8
+## Install 2.1 RC9
 
 Run this complete block in standard Termux on an independent MHS phone. It
-supports fresh install, resume of the same RC8, or source upgrade of installed
+supports fresh install, resume of the same RC9, or source upgrade of installed
 MHS. Earlier pinned installers remain immutable and install older code. Use this
 new installer to upgrade RC1-RC4, so that the new upgrade code is used.
 
@@ -24,19 +24,19 @@ new installer to upgrade RC1-RC4, so that the new upgrade code is used.
   done
   command -v curl >/dev/null || pkg install -y curl
   command -v sha256sum >/dev/null || pkg install -y coreutils
-  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/29f7c25e33192964afa16c16a83b0644a5fc8930/releases/install-2.1.0-rc.8.sh' -o "$HOME/mhs-install-2.1.0-rc.8.sh"
-  printf '%s  %s\n' '41c6285483dc93bcfa34207810d2dad33139b73989e9acc2f40d08b24b2f8bf4' "$HOME/mhs-install-2.1.0-rc.8.sh" | sha256sum -c -
-  bash "$HOME/mhs-install-2.1.0-rc.8.sh"
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/c43f45405c3fc4e080d6c5531c20fd9f00557092/releases/install-2.1.0-rc.9.sh' -o "$HOME/mhs-install-2.1.0-rc.9.sh"
+  printf '%s  %s\n' '62aab23dfbbd1350c8ebbc23e0c549e83ed57fb3e7ae66c909f07b4177e38d78' "$HOME/mhs-install-2.1.0-rc.9.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.9.sh"
 )
 ```
 
-Source `b1a57bb5eef2f242517ed634c017641e252e2924`; artifact
-`29f7c25e33192964afa16c16a83b0644a5fc8930`; tag `v2.1.0-rc.8`.
-Bundle SHA256 `5c42cc4d13149745ac6cb609f69a6c3ad94f57015a7753144da330655bcfd7a2`.
+Source `05ddd748bcd08b81b646b514aef6c43f945bfd81`; artifact
+`c43f45405c3fc4e080d6c5531c20fd9f00557092`; tag `v2.1.0-rc.9`.
+Bundle SHA256 `4267ebab7cea1fb03fd129a2d76c82e2cd561fad3ab18fca78d60d205d0af9fd`.
 PC tests, Chrome workflow, package smoke and public pinned checksums PASS.
 Earlier RC7 targeted11T source upgrade, npm install, .env upload, SQL import and
-Node/public HTTPS checks passed. RC8 installer/upgrade regressions and package
-smoke pass; fresh RC8 install and physical reboot have not yet been accepted.
+Node/public HTTPS checks passed. RC9 installer/upgrade regressions and package
+smoke pass; native initialization probe passes; complete fresh RC9 install and reboot acceptance are pending.
 
 ---
 

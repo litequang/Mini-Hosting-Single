@@ -359,3 +359,18 @@ restored legacy system. A separate native init probe without basedir succeeded.
 RC9 removes that argument; regression covers failure/retry/existing DB preservation.
 M51 and external Cloudflare configuration remain unchanged. Migration is ongoing;
 do not claim reboot or public MHS readiness until remaining checks complete.
+
+RC9 source05ddd748bcd08b81b646b514aef6c43f945bfd81, artifact
+c43f45405c3fc4e080d6c5531c20fd9f00557092, tag v2.1.0-rc.9 pushed.
+7 installer/native regressions,89JS syntax, exact package smoke, generated bash
+syntax and public artifact SHA256 PASS. Native independent init probe PASS.
+X7B RC8 rollback restored original paths; the old runsvdir was absent, so the
+stock service daemon was started explicitly. MariaDB was then verified running.
+SSH8022 subsequently stopped responding although the phone still answers LAN
+and the original Node port remains open. User asked to reopen Termux/sshd.
+RC9 bundle and operator recovery scripts are staged privately. Before retry:
+verify SSH and stock supervisor; refresh paused SQL/counts plus independent PC
+backup (the prior rollback briefly resumed writers), retaining original dumps.
+Two original triggers have legacy definers; the separate import working copies
+map only those trigger headers to CURRENT_USER, preserving bodies and originals.
+Preserve all old guards/services/data; do not change product preflight to bypass.
