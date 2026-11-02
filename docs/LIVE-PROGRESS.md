@@ -347,3 +347,15 @@ X7B prerequisite package installation started; SSH became unavailable before any
 website pause, data relocation or decommission. Legacy data remains in place.
 Resume by verifying device connectivity and dpkg/package state, then independently
 back up both schemas/media/config on phone and PC before migration operations.
+
+2026-11-02 X7B checkpoint: both93-table schemas, per-table row counts, resolved
+application snapshot, private config/services and5155media files backed up on
+phone and independently SHA256-verified on PC (539736540bytes). The app directory
+was a symlink; backup explicitly follows its current snapshot root. Legacy code,
+guards, raw datadir and services remain intact in the rollback archive.
+RC8 fresh native initialization failed because Termux mariadb-install-db doubled
+the explicit basedir and its already-absolute mariadbd path. Operator rollback
+restored legacy system. A separate native init probe without basedir succeeded.
+RC9 removes that argument; regression covers failure/retry/existing DB preservation.
+M51 and external Cloudflare configuration remain unchanged. Migration is ongoing;
+do not claim reboot or public MHS readiness until remaining checks complete.

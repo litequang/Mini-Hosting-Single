@@ -31,9 +31,11 @@ export async function configureServices(){
  for(const name of ['mhs-db','mhs-php','mhs-nginx','mhs-panel','mhs-monitor','mhs-scheduler'])fs.rmSync(path.join(TERMUX,'var/service',name,'down'),{force:true});
  configureEntrypoints();
 }
-async function nativeDatabase(){
+export async function nativeDatabase({run=cmd}={}){
  const dir=path.join(DATA,'mysql');fs.mkdirSync(dir,{recursive:true,mode:0o700});
- if(!fs.existsSync(path.join(dir,'mysql'))){const r=await cmd(path.join(TERMUX,'bin/mariadb-install-db'),['--no-defaults','--basedir='+TERMUX,'--datadir='+dir,'--auth-root-authentication-method=normal','--skip-test-db'],120000);if(!r.ok)throw Error('MHS_DATABASE_INIT_FAILED_RETRY_SAME_RELEASE');}
+ // Termux's packaged install-db already has absolute binary paths. Passing
+ // --basedir prefixes those paths again and prevents a clean initialization.
+ if(!fs.existsSync(path.join(dir,'mysql'))){const r=await run(path.join(TERMUX,'bin/mariadb-install-db'),['--no-defaults','--datadir='+dir,'--auth-root-authentication-method=normal','--skip-test-db'],120000);if(!r.ok)throw Error('MHS_DATABASE_INIT_FAILED_RETRY_SAME_RELEASE');}
 }
 export async function disableStockServices({run=cmd}={}){
  // Fresh-only installer: prevent unused package defaults from competing for ports.

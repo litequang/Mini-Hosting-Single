@@ -8,7 +8,7 @@ process.env.MHS_HOME=path.join(temp,'home');process.env.MHS_DATA=path.join(temp,
 const c=await import('../panel/src/config.mjs');c.initialize();
 const {publicPath}=await import('../panel/src/file-policy.mjs');
 const {extractZipFile}=await import('../panel/src/zip-stream.mjs');
-const {disableStockServices}=await import('../tools/install.mjs');
+const {disableStockServices,nativeDatabase}=await import('../tools/install.mjs');
 const {zip}=await import('./helpers.mjs');
 test('official sodium_compat SecretStream directories pass streamed ZIP; private lookalikes remain denied',async()=>{
  const files={};for(const core of ['Core','Core32']){const name='wordpress/wp-includes/sodium_compat/src/'+core+'/SecretStream/State.php';assert.equal(publicPath(name),name);files[name]='<?php // public library fixture';}
@@ -34,3 +34,11 @@ test('bootstrap includes GD and non-login boot exports logger environment before
  assert.match(boot,/LOGDIR:-\$PREFIX\/var\/log\/sv/);
 });
 process.on('exit',()=>fs.rmSync(temp,{recursive:true,force:true}));
+test('Termux fresh MariaDB init uses packaged binary paths and retries without touching an initialized database',async()=>{
+ const calls=[],run=async(file,args)=>{calls.push({file,args});return {ok:false};};
+ await assert.rejects(()=>nativeDatabase({run}),/MHS_DATABASE_INIT_FAILED_RETRY_SAME_RELEASE/);
+ assert.equal(path.basename(calls[0].file),'mariadb-install-db');assert.equal(calls[0].args[0],'--no-defaults');
+ assert.ok(!calls[0].args.some(arg=>arg.startsWith('--basedir=')));assert.ok(calls[0].args.includes('--datadir='+path.join(c.DATA,'mysql')));
+ await nativeDatabase({run:async()=>{fs.mkdirSync(path.join(c.DATA,'mysql/mysql'));return {ok:true};}});
+ await nativeDatabase({run:async()=>{assert.fail('must preserve existing initialized database');}});
+});

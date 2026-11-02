@@ -125,3 +125,10 @@ package.json/lock, install production dependencies, bind DB and start/check HTTP
 The default placeholder is not application readiness. SQL512MiB uploads are
 chunked; import progress remains available after closing/reopening the dialog.
 RECOVERY_REQUIRED requires operator review of the recorded safety backup.
+
+Fresh Termux MariaDB: RC8 and earlier passed --basedir to mariadb-install-db.
+On X7B's packaged MariaDB this doubled its absolute mariadbd path and failed
+before SQL initialization. RC9 uses the package's built-in paths, --no-defaults
+and the private MHS datadir. Initialized databases are preserved. A failed
+native stage must resume its original release; never replace files in a signed
+release or remove the install journal to force a different release.
