@@ -1,19 +1,22 @@
-# Install Mini Hosting Single 2.1 RC12
+# Install Mini Hosting Single 2.1 RC13
 
-Current release **2.1.0-rc.12** includes guided Node deployment, direct private
+Current release **2.1.0-rc.13** includes guided Node deployment, direct private
 `.env` file upload/loading, locked production dependencies, database binding,
 case-sensitive ZIP media paths, HTTP verification and512MiB SQL restore with128MiB statement packet support.
 Files also provides a private .env editor and Node restart/HTTP check.
 CLI/Boot wrappers follow current across future upgrades and rollback.
 It fixes native Termux MariaDB initialization and generates hostname hash buckets
 covering the supported253-byte hostname limit on fresh installations.
-RC12 also saves one logger process per MHS service while keeping private,
-bounded per-service logs and fixes PHP-FPM config checks under Node stdio. See [Node deployment](NODE-DEPLOY.md).
+RC11/RC12 also save one logger process per MHS service while keeping private,
+bounded per-service logs and fix PHP-FPM config checks under Node stdio. See [Node deployment](NODE-DEPLOY.md).
 
-## Install 2.1 RC12
+RC13 hides all unavailable Monitor readings/details, preserves valid zero values,
+and checks the Android Termux:Boot app separately from the startup script.
+
+## Install 2.1 RC13
 
 Run this complete block in standard Termux on an independent MHS phone. It
-supports fresh install, resume of the same RC12, or source upgrade of installed
+supports fresh install, resume of the same RC13, or source upgrade of installed
 MHS. Earlier pinned installers remain immutable and install older code. Use this
 new installer to upgrade RC1-RC4, so that the new upgrade code is used.
 
@@ -26,22 +29,41 @@ new installer to upgrade RC1-RC4, so that the new upgrade code is used.
   done
   command -v curl >/dev/null || pkg install -y curl
   command -v sha256sum >/dev/null || pkg install -y coreutils
-  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/b6d8613ec5ec9c5dec3cd4336ef35e231e729786/releases/install-2.1.0-rc.12.sh' -o "$HOME/mhs-install-2.1.0-rc.12.sh"
-  printf '%s  %s\n' '145d1d3f9d974b8d30892528306cd823de68abb3507423a33e8eee5713082513' "$HOME/mhs-install-2.1.0-rc.12.sh" | sha256sum -c -
-  bash "$HOME/mhs-install-2.1.0-rc.12.sh"
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/922485a3384cc2afc18b038ba7f1f1a0bf7c0605/releases/install-2.1.0-rc.13.sh' -o "$HOME/mhs-install-2.1.0-rc.13.sh"
+  printf '%s  %s\n' '7a8e4351d5c0ea792de224ad0382404ab4913eacca5ab3a4397e9a010ba593c9' "$HOME/mhs-install-2.1.0-rc.13.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.13.sh"
 )
 ```
 
-Source `f94aff5c4b15a9f544e3f11d1d5108f67a14d4a2`; artifact
-`b6d8613ec5ec9c5dec3cd4336ef35e231e729786`; tag `v2.1.0-rc.12`.
-Bundle SHA256 `0caebb8b0392396bffbdc491c10d04bbf0f00b90ba37ebd4147e44ad5cb55a02`.
+Source `6a6a0ceb438ef47821e3abca3de22d9be882b529`; artifact
+`922485a3384cc2afc18b038ba7f1f1a0bf7c0605`; tag `v2.1.0-rc.13`.
+Bundle SHA256 `b48601c917e667ede544e790461754a603da08e350cbbea595b87d293c2e8e05`.
 PC tests, Chrome workflow, package smoke and public pinned checksums PASS.
 Earlier RC7 targeted11T source upgrade, npm install, .env upload, SQL import and
-Node/public HTTPS checks passed. RC12 installer/upgrade regressions and package
-smoke pass; native MariaDB initialization and Nginx hostname probes pass. X7B RC10 fresh install/data migration and RC12 source upgrade pass. Access
-hostnames/AUDs configured; both public hosts redirect to Access. Native doctor54PASS/0FAIL and all8services/SSH running; Chrome local Panel and
+Node/public HTTPS checks passed. RC13 installer/upgrade regressions and package
+smoke pass; native MariaDB initialization and Nginx hostname probes pass. X7B RC10 fresh install/data migration and RC13 source upgrade pass. Access
+hostnames/AUDs configured locally. The public Monitor hostname was subsequently
+identified on the old Worker; detach its Custom Domain and point it at the X7B
+Tunnel9092 before public Monitor acceptance. Native doctor55PASS/0FAIL and all8services/SSH running; Chrome local Panel and
 public website checks pass. Authenticated owner Access login and physical reboot
 acceptance remain pending.
+
+## Autostart and new website domains
+
+The installer creates `~/.termux/boot/20-mhs-start`, takes a wake lock and starts
+termux-services plus enabled MHS database/PHP/Nginx/Panel/Monitor/scheduler,
+sites and Tunnel. Disabled optional services remain disabled; SSH follows its stock setting.
+Install Termux:Boot from the same signing source as Termux and open it once.
+Allow Android background/autostart for Termux, Boot and API. The shell installer
+cannot grant those Android settings or certify an actual reboot.
+Run `mhs doctor`: boot-app, boot-entry and boot-invocation are distinct checks.
+After rebooting and unlocking the phone, verify services and public site access.
+See [official Termux:Boot instructions](https://github.com/termux/termux-boot#how-to-use).
+
+Creating a website configures local hosting. Cloudflare DNS/Tunnel publishing is
+a separate Preview/Apply step with a scoped API token and a dedicated MHS Tunnel;
+the connector token alone cannot edit DNS. Without API setup, configure the
+exact hostname manually. See [domain automation](DOMAIN-AUTOMATION.md).
 
 ---
 

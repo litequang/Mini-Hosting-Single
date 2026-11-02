@@ -392,3 +392,18 @@ zero readings, recovery and mobile layout; JS errors0.12 targeted existing
 Monitor/remote/install/domain tests and91JS syntax PASS. Doctor now checks the
 Android Boot app separately from its launcher/receipt; bootstrap explains the
 compatible APK/open-once requirement. Package/native verification follows.
+
+RC13 completed: source6a6a0ceb438ef47821e3abca3de22d9be882b529, artifact
+922485a3384cc2afc18b038ba7f1f1a0bf7c0605, tagv2.1.0-rc.13 pushed.
+Bundle/bootstrap commit+tag public SHA256 and package/shell checks PASS.
+X7B source upgrade DONE; native doctor55PASS/0FAIL,8MHS services and stock SSH
+enabled/running, owned app health200. Current Boot wrapper executed successfully.
+Termux:Boot APK installed/enabled; Android package-details inspection unavailable.
+CPU/network unavailable on this device, RAM/disk/battery available; RC13 filters
+missing readings. Physical reboot/autostart permissions remain unverified.
+Domain API is not configured on X7B: creating sites does not publish DNS/routes.
+User screenshot identified the public Monitor hostname attached to the old Worker;
+its Custom Domain must be detached and routed to X7B Tunnel9092. Do not remove
+the Worker or its other telemetry hostname. Public authenticated acceptance is
+still pending that Cloudflare change and owner login. No account API writes made.
+Next: owner verifies Monitor after hostname cutover; physical reboot acceptance.
