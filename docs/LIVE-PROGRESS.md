@@ -316,3 +316,19 @@ visible through authenticated File Manager, absolute SHEET_STORAGE_ROOT updated
 in private .env and redundant legacy override removed. Existing app restart/HTTP
 200 PASS. Only dist is replaced for this application's normal updates.
 Native media/SQL SHA verification and final RC7 upgrade pending.
+
+RC7 final native checkpoint (2026-10-31): source dbfefb0da97f62de25d4bbd5f7027cb15d3b7cb5,
+artifact1b65870fb2a48904a414f50955f3283b008df558, tag v2.1.0-rc.7 pushed.
+Original ZIP332291675bytes extracted5167files/542128521bytes with CRC validation.
+All5155 SQL-referenced image/MusicXML files matched byte sizes and SHA256; missing0.
+User requested sheets beside dist in app root; moved there, visible in Files,
+SHEET_STORAGE_ROOT updated in .env. Env editor read/save200; legacy JSON overrides
+consolidated into .env; Node restart/actual HTTP200.9 Node/env/Chrome tests and
+88 JS syntax checks PASS. Full physical reboot remains NOT RUN. A later runtime
+check found PHP/Nginx supervised socket conflicts with legacy daemons; inspect
+owned processes before claiming full boot readiness. SSH remained enabled.
+
+2026-11-02: user explicitly authorizes X7B conversion from legacy MHC to independent
+MHS like11T. No M51 change. X7B old endpoint unreachable; device inventory and
+independent backup required before any decommission or MHS install. Never run the
+fresh installer over legacy footprints or remove Cluster guards to pass preflight.
