@@ -1,5 +1,10 @@
 # Code map
 
+RC13: monitor.js hides unavailable resource cards/details on each refresh while
+retaining valid zero values and temperature-only battery readings. doctor.mjs
+checks whether the Android Termux:Boot app is installed/enabled separately from
+the boot wrapper/receipt; physical reboot remains a distinct acceptance check.
+
 M5: tools/reinstall.mjs owns verified external-backup reset plan, MHS-only service
 stop/data quarantine and guarded undo; cli.mjs adds first-site/reset helpers.
 tools/secure-downloads.mjs migrates only registered MHS Nginx configs to deny public

@@ -28,6 +28,11 @@ export async function doctor({run=cmd,probe=httpProbe,loadConfig=config,platform
   const sql=await run(path.join(TERMUX,'bin/mariadb'),['--no-defaults','--protocol=socket','--socket='+SOCKET,'-uroot','-N','-e','SELECT 1'],3000,4096);add('sql-socket',sql.ok&&sql.out==='1'?'PASS':'FAIL','MariaDB Unix socket / SELECT1.','mhs service mhs-db up');
   for(const [id,file,args] of [['nginx-config','nginx',['-t','-p',path.dirname(NGINX_CONFIG)+'/', '-c',NGINX_CONFIG]],['php-config','php-fpm',['-t','-y',path.join(DATA,'php-fpm.conf')]]]){const r=await run(path.join(TERMUX,'bin',file),args,3000,4096);add(id,r.ok?'PASS':'FAIL','Kiểm cú pháp '+file,r.ok?'':'Kiểm cấu hình MHS, không cài đè website.');}
  }else add('native-services','NOT RUN','Packages/runit/Nginx/PHP/SQL chưa kiểm trên Termux thật.');
+ if(native){
+  const bootApp=await run('pm',['list','packages','-e','com.termux.boot'],3000,4096);
+  const installed=bootApp.ok&&bootApp.out.split(/\r?\n/).some(line=>line.trim()==='package:com.termux.boot');
+  add('boot-app',installed?'PASS':bootApp.ok?'FAIL':'NOT RUN',installed?'Ứng dụng Termux:Boot đã cài và được bật; chưa chứng minh reboot thật.':bootApp.ok?'Thiếu Termux:Boot hoặc ứng dụng đang bị tắt.':'Android không cho kiểm tra ứng dụng Termux:Boot.','Cài Termux:Boot cùng nguồn/chữ ký với Termux, mở một lần và cho phép tự khởi động/chạy nền.');
+ }else add('boot-app','NOT RUN','Cần kiểm tra ứng dụng Termux:Boot trên Android thật.');
  const boot=path.join(HOME,'.termux/boot/20-mhs-start');let bootOk=false;try{bootOk=fs.readFileSync(boot,'utf8').includes('# MHS-owned boot');}catch{}
  add('boot-entry',bootOk?'PASS':'FAIL','Termux:Boot entry MHS.',bootOk?'':'Mở Termux:Boot một lần; dùng installer/resume đúng release.');
  const receipt=readJson(path.join(DATA,'boot-last.json'),null);add('boot-invocation',receipt?.project==='MHS'?'PASS':'NOT RUN',receipt?.project==='MHS'?'Có ghi nhận boot/start script; chưa chứng minh reboot thật.':'Chưa có ghi nhận boot script.');

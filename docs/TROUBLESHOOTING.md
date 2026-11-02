@@ -1,5 +1,13 @@
 # Troubleshooting
 
+- Monitor omits unavailable CPU/RAM/disk/battery/network readings starting RC13.
+  Android may deny telemetry access; missing readings are not reported as zero.
+  Cards return automatically when subsequent samples contain real numbers.
+- Boot script installed does not prove Termux:Boot is installed or allowed by
+  Android. Check `mhs doctor` boot-app/boot-entry/boot-invocation, install a Boot
+  APK compatible with Termux's signature and open it once. Allow background and
+  autostart for Termux/Boot/API, then verify services after an actual phone reboot.
+
 - RC2 install fixes: missing `gd` ? use the RC2 bootstrap (`php-gd` is included).
   `MHS_PHP_EXTENSIONS_REQUIRED` means CLI PHP cannot load a required extension;
   inspect `mhs doctor`, install the official missing package, retry the same release.

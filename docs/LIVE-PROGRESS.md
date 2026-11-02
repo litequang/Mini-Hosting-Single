@@ -384,3 +384,11 @@ Public pro API200. Termux:Boot installed; current CLI/Boot wrappers and startup
 script tested. Physical reboot and Android battery/autostart permissions remain
 NOT RUN; do not claim reboot acceptance. Main remaining user check: sign into
 both public management hostnames with the permitted Access identity.
+
+RC13 Monitor/autostart update (2026-11-02): hide unavailable resource cards and
+partial details on every refresh, preserve numeric zero and reappear on recovery.
+Chrome PC checks cover unavailable/missing objects, partial battery/disk/network,
+zero readings, recovery and mobile layout; JS errors0.12 targeted existing
+Monitor/remote/install/domain tests and91JS syntax PASS. Doctor now checks the
+Android Boot app separately from its launcher/receipt; bootstrap explains the
+compatible APK/open-once requirement. Package/native verification follows.

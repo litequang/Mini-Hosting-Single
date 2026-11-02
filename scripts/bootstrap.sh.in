@@ -44,6 +44,7 @@ MHS_EXTRACTOR
 node "$stage/tools/setup-entry.mjs" "$bundle" "$EXPECTED"
 printf '\nMHS ready: http://127.0.0.1:9090 (admin). Run mhs password locally for credentials.\n'
 printf 'LAN read-only monitor: http://PHONE_LAN_IP:9091 (no login).\n'
-printf 'Open Termux:Boot once and allow background/autostart for Termux, Boot and API.\n'
+printf 'MHS autostart script installed: ~/.termux/boot/20-mhs-start (enabled MHS services/sites/Tunnel).\n'
+printf 'Install Termux:Boot from the same source/signature as Termux, open it once, and allow background/autostart for Termux, Boot and API.\n'
 printf 'Cloudflare: mhs cloudflare (wizard tiếng Việt, chỉ tài nguyên MHS riêng).\n'
 printf 'Chẩn đoán: mhs doctor . Panel Internet9093, Monitor Internet9092; KHÔNG publish9090/9091.\n'
