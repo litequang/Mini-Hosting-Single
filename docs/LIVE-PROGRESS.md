@@ -328,68 +328,41 @@ consolidated into .env; Node restart/actual HTTP200.9 Node/env/Chrome tests and
 check found PHP/Nginx supervised socket conflicts with legacy daemons; inspect
 owned processes before claiming full boot readiness. SSH remained enabled.
 
-2026-11-02: user explicitly authorizes X7B conversion from legacy MHC to independent
-MHS like11T. No M51 change. X7B old endpoint unreachable; device inventory and
-independent backup required before any decommission or MHS install. Never run the
-fresh installer over legacy footprints or remove Cluster guards to pass preflight.
+2026-11-02 X7B operator migration checkpoint
+User explicitly authorized conversion of X7B to independent MHS, preserving its
+pro.thophuong.com app/data. No M51/11T changes and no Cluster guards removed.
+Legacy config/services/raw MariaDB datadir remain archived on X7B. PC backup
+711408092bytes independently SHA256-verified; original dumps retained separately.
+Current snapshot symlink was resolved explicitly for the app/media backup.
 
-2026-11-02 RC8 source: fixed fresh CLI/Boot wrappers tracking current through
-shared tools/entrypoints.mjs, reused by install and management upgrades/rollback.
-6 targeted tests +89JS syntax PASS. X7B confirmed legacy primary serving its own
-pro hostname; user explicitly authorized independent conversion. Preserve original
-app/data/session/OAuth/connector and take independent verified backup before
-local decommission. This is operator migration, never an automatic preflight bypass.
+Installed RC10 source39428dd6dc55da4ef39550ba1084eacb928cf5ff,
+artifact963afa84728dbc63679b1229b6a95f585d453165, tagv2.1.0-rc.10.
+RC8 CLI/Boot wrappers follow current. RC9 fixes Termux install-db double basedir;
+RC10 sets hostname hash bucket512 in fresh generated Nginx config. Both defects
+were reproduced natively and fixed upstream; old release artifacts immutable.
+10 targeted tests,89JS syntax, package/shell/publicSHA checks PASS.
 
-RC8 artifact29f7c25e33192964afa16c16a83b0644a5fc8930, source
-b1a57bb5eef2f242517ed634c017641e252e2924, tag v2.1.0-rc.8 pushed.
-Exact package smoke, generated bash syntax and public pinned bytes/SHA PASS.
-X7B prerequisite package installation started; SSH became unavailable before any
-website pause, data relocation or decommission. Legacy data remains in place.
-Resume by verifying device connectivity and dpkg/package state, then independently
-back up both schemas/media/config on phone and PC before migration operations.
+Fresh native RC10 install PASS: MariaDB socket, PHP/GD, Nginx, Panel and anonymous
+remote403. Both93-table DBs restored with exact per-table row counts. Original
+SQL preserved; only two trigger definer headers in import working copies were
+mapped to the new scoped database owner. Both DBs verified two owned triggers.
+5155files/538830021bytes verified size+SHA; all5155SQL media references matched,
+missing0/mismatch0. Sheets now app/sheets beside dist. Original session secret,
+Google client IDs and domain preserved; private.env is canonical, no JSON override.
+Only socket-compatible backend33c0237 replaced the matching original build.
 
-2026-11-02 X7B checkpoint: both93-table schemas, per-table row counts, resolved
-application snapshot, private config/services and5155media files backed up on
-phone and independently SHA256-verified on PC (539736540bytes). The app directory
-was a symlink; backup explicitly follows its current snapshot root. Legacy code,
-guards, raw datadir and services remain intact in the rollback archive.
-RC8 fresh native initialization failed because Termux mariadb-install-db doubled
-the explicit basedir and its already-absolute mariadbd path. Operator rollback
-restored legacy system. A separate native init probe without basedir succeeded.
-RC9 removes that argument; regression covers failure/retry/existing DB preservation.
-M51 and external Cloudflare configuration remain unchanged. Migration is ongoing;
-do not claim reboot or public MHS readiness until remaining checks complete.
+Chrome native Panel login, File Manager/sheets and.env editor PASS; ordinary.env
+download denied, JSerrors0. Existing X7B connector token moved to MHS private
+storage without account/DNS mutations. Public pro homepage/API200, UI rendered,
+Chrome JSerrors0. Evidence/private credentials remain only on operator PC.
 
-RC9 source05ddd748bcd08b81b646b514aef6c43f945bfd81, artifact
-c43f45405c3fc4e080d6c5531c20fd9f00557092, tag v2.1.0-rc.9 pushed.
-7 installer/native regressions,89JS syntax, exact package smoke, generated bash
-syntax and public artifact SHA256 PASS. Native independent init probe PASS.
-X7B RC8 rollback restored original paths; the old runsvdir was absent, so the
-stock service daemon was started explicitly. MariaDB was then verified running.
-SSH8022 subsequently stopped responding although the phone still answers LAN
-and the original Node port remains open. User asked to reopen Termux/sshd.
-RC9 bundle and operator recovery scripts are staged privately. Before retry:
-verify SSH and stock supervisor; refresh paused SQL/counts plus independent PC
-backup (the prior rollback briefly resumed writers), retaining original dumps.
-Two original triggers have legacy definers; the separate import working copies
-map only those trigger headers to CURRENT_USER, preserving bodies and originals.
-Preserve all old guards/services/data; do not change product preflight to bypass.
-
-2026-11-02: X7B SSH resumed. RC9 fresh native install PASS: PHP/SQL/Nginx/local
-Panel and anonymous remote denial. Both93-table databases restored with exact
-per-table row counts. Website creation exposed native Nginx's default32-byte
-server_names_hash_bucket_size; actual nginx -t confirmed this exact error.
-Operator rollback retained originals again. RC10 sets512bytes in generated HTTP
-config to cover all accepted253-byte hostnames; native real-host probe PASS.
-Old local mhc-online also left an orphaned Node child after sv down; operator
-stops only positively identified legacy children, preserving SSH/MHS/M51.
-
-RC10 source39428dd6dc55da4ef39550ba1084eacb928cf5ff, artifact
-963afa84728dbc63679b1229b6a95f585d453165, tag v2.1.0-rc.10 pushed.
-10 hosting/native/install regressions,89JS syntax, exact package smoke, shell
-syntax and both public artifact hashes PASS. Native corrected nginx -t PASS.
-RC9 failed only while creating the vhost, after SQL validation; original system
-was restored automatically and its Node API still answered200 over LAN. SSH8022
-stopped again before the next migration attempt. User asked to keep a foreground
-Termux loop starting sshd every5seconds; cause remains unproven, no Android/Doze
-or reboot guarantee. RC10 is published but not yet installed on X7B.
+NOT COMPLETE: panel.thophuong.com and monitor.thophuong.com Access configuration.
+Require exact routes9093/9092, separate AUDs and owner policy; no public9090/9091.
+Browser automation unavailable. User requested manual instructions. SSH8022 still
+intermittently unavailable despite foreground sshd loop. LAN Monitor remains200;
+7/8services reported running, mhs-db supervision reportedfalse while actual Node
+SQL health stayed200. Investigate orphan/supervisor state after SSH recovery;
+do not claim all services or reboot accepted. Termux:Boot installed, MHS Boot entry
+created; final Boot-script invocation and physical reboot NOT RUN.
+Next: bind two exact Access apps via mhs cloudflare, validate authenticated remote
+Panel/Monitor and negative JWT cases, reconcile SQL supervision and verify Boot.

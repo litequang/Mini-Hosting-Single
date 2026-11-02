@@ -37,8 +37,9 @@ Bundle SHA256 `0d2dc27679429bfa2763135d5a868fc0566acf58d0cbb140ed3b3e9ee9fa6321`
 PC tests, Chrome workflow, package smoke and public pinned checksums PASS.
 Earlier RC7 targeted11T source upgrade, npm install, .env upload, SQL import and
 Node/public HTTPS checks passed. RC10 installer/upgrade regressions and package
-smoke pass; native MariaDB initialization and Nginx hostname probes pass. Full RC10 website
-migration and physical reboot acceptance remain pending.
+smoke pass; native MariaDB initialization and Nginx hostname probes pass. X7B fresh RC10, SQL/media migration, native Panel and public website Chrome
+checks pass. Remote Access setup, SQL supervisor reconciliation and physical
+reboot acceptance remain pending.
 
 ---
 
