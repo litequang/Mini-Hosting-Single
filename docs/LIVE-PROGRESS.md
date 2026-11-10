@@ -2,6 +2,40 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 10 November 2026 — RC18 completed on X7B; QR public verification
+
+Source4ee1bba6218cf39b4e41a849c8a161cd78a85e21; artifact
+ac4e8581da61720e7e6ffa19a7054d7515227fe3; tagv2.1.0-rc.18 pushed.
+Exact immutable package fresh-install PC fixture/remote403, shell syntax, public
+commit/tag bundle+bootstrap SHA256 and pinned installer PC refusal PASS. Final
+ZIP/Node/Files Chrome targeted checks15 PASS;99 JS syntax PASS. The new ZIP
+lifecycle and delayed-dashboard regressions both failed on the old implementation
+before their fixes. No new dependency/vendor rebuild or old artifact replacement.
+
+Authorized X7B upgraded from published verified bytes. Complete111-file installed
+source manifest PASS; selected private config/credentials, original registry/site
+entries and Nginx config bytes preserved. Native original Files: uploaded fixture
+ZIPs, updated dist, removed stale asset, actual app/Nginx200, explicit rollback200
+with old content, then a deliberate503 build produced502 NODE_BUILD_HTTP_FAILED
+and automatically restored old code/HTTP200. Root package/libraries/sheets/storage
+and private fixture env unchanged.12 further native ZIP previews plus a real
+pro dist.zip preview181 files/42,576,709 bytes passed with the same Panel PID and
+authenticated session; Chrome JS errors0. No pro build applied. Retired only the
+owned temporary Node fixture through Panel; original four-site registry restored.
+Temporary native authentication session logged out; evidence/private files stay
+outside Git. All8MHS services running; original pro local200, beta301, test200,
+QR200. Private/config/pro-entry/QR-index hashes still match the RC15 baseline
+captured before these source upgrades.
+
+Internet after final upgrade: qr/pro/beta200, Panel302 to existing Access. QR
+public index SHA256 matches the PC build exactly. Earlier actual public Chrome
+desktop/mobile, URL/text/Wi-Fi generation, PNG/SVG/PDF downloads and independent
+PNG decode PASS. QR's normal on-phone Node HTTPS verifier still returns null;
+Panel honestly remains DNS published rather than manually claiming verified.
+Fresh physical Android installation, reboot/autostart and overall system
+acceptance remain separate; no additional Cluster/device/Cloudflare resources
+were operated. Current pinned installation instructions now select RC18.
+
 ## 10 November 2026 — native RC17 ZIP descriptor discovery; RC18 fix
 
 RC17 sourced578192a91838c6520da1572fe17af48b640df98, artifact

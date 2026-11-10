@@ -5,8 +5,36 @@ fixes a double-close ZIP descriptor race reproduced on X7B: archive processing
 must not restart Panel or close an unrelated reused descriptor. Use the immutable
 RC18 artifacts/checksums in
 [`releases/2.1.0-rc.18.json`](../releases/2.1.0-rc.18.json).
-The latest pinned command and native results are maintained in the
-[repository installer guide](https://github.com/litequang/Mini-Hosting-Single/blob/main/docs/INSTALL.md).
+
+Run this pinned block in standard Termux on an independent MHS phone.
+
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr || { echo MHS_STANDARD_TERMUX_REQUIRED; exit 1; }
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/ac4e8581da61720e7e6ffa19a7054d7515227fe3/releases/install-2.1.0-rc.18.sh' -o "$HOME/mhs-install-2.1.0-rc.18.sh"
+  printf '%s  %s\n' 'ea802faa45ee864fc5301d043c2f791a0151360d07b19482f41102a2cbbe1167' "$HOME/mhs-install-2.1.0-rc.18.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.18.sh"
+)
+```
+
+Source `4ee1bba6218cf39b4e41a849c8a161cd78a85e21`; artifact
+`ac4e8581da61720e7e6ffa19a7054d7515227fe3`; tag `v2.1.0-rc.18`.
+Bundle SHA256 `93402881f9178f5441633fe5a2364a990a0683c64fc5e2bcc941e3eb629af069`.
+PC targeted tests, original Files Chrome, immutable package/shell syntax and public
+commit/tag SHA256 PASS. Native results are recorded in LIVE-PROGRESS.md.
+Older pinned commands keep installing their historical versions.
+
+Honor X7B RC18 source upgrade and original Files Node update/rollback/failed-build
+recovery PASS on an owned temporary site. Twelve repeated ZIP previews preserved
+the Panel PID/session; the real pro ZIP was previewed without deployment. QR is
+public and its normal device verifier may still show DNS published; see
+LIVE-PROGRESS.md. Fresh physical installation/reboot remain separate acceptance.
 
 ---
 
