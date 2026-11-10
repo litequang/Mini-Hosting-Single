@@ -2,6 +2,38 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 10 November 2026 — RC15 deployed on Honor X7B
+
+Final source e6bedc2b4fdc0d2adc128fc3900fddb2dea0a49a; artifact
+6874cc24def00367492e801a1c1c65a43607337e; tag v2.1.0-rc.15 pushed. Corrected
+Chrome wizard test, module syntax, immutable package install/remote-denial fixture,
+shell syntax and public commit/tag SHA256 PASS. Pinned RC15 command added to
+INSTALL.md; PC execution refuses before mutation. RC13/RC14 artifacts unchanged.
+
+X7B RC15 source upgrade DONE; full installed source manifest/checksums PASS.
+Selected original private config/credential/entrypoint hashes and original site
+registry entries unchanged. All8MHS services running. Native Chrome over the SSH
+forward verified RC15, static/Node form controls, accurate manual-domain wording,
+test-site HTML editor save and one-time API setup link; JS errors0. Temporary test
+authentication session logged out. Test site web-mhs-rc14-test retained for owner:
+mhs-rc14-test.thophuong.com returns local200 with the RC15 HTML page, /.env403.
+Original pro public homepage/API200 and beta homepage200 after the final upgrade.
+No application data, SQL, owner identity, credentials or live Cloudflare changed.
+
+LAN Monitor metrics returned200 with a longer request allowance and its service
+is running; doctor's2-second LAN probe still failed before/after this deployment.
+That diagnostic limitation is not reported as full doctor PASS or fixed here.
+Physical reboot/autostart and overall acceptance remain separate.
+
+Domain API still absent at verification, so fresh test hostname not Internet
+published. Owner chose to enter the scoped token privately through Panel.
+Confirmed remote config is panel.thophuong.com/9093 and public request302 to its
+configured Cloudflare Access team; actual owner login remains owner acceptance.
+Local Admin credentials were verified unchanged and native authenticated login
+succeeded; no password reset. Pending: owner reports API setup complete and the
+fresh hostname to publish, then run actual preview/apply/HTTPS without touching
+existing manual DNS/routes or management Access configuration.
+
 ## 10 November 2026 — X7B RC14 native results and RC15 wording correction
 
 RC14 source de79e04fc7796f3c87b14bc0fb8798d4cd6d1e0f; artifact

@@ -5,6 +5,34 @@ already configured manually. Missing API records do not prove that an existing
 site is offline. Use the immutable RC15 artifacts in
 [`releases/2.1.0-rc.15.json`](../releases/2.1.0-rc.15.json).
 
+Run this pinned block in standard Termux on an independent MHS phone. It supports
+fresh installation, same-release resume and source upgrade of an installed MHS.
+
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr || { echo MHS_STANDARD_TERMUX_REQUIRED; exit 1; }
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/6874cc24def00367492e801a1c1c65a43607337e/releases/install-2.1.0-rc.15.sh' -o "$HOME/mhs-install-2.1.0-rc.15.sh"
+  printf '%s  %s\n' '68b52511220b425229948fe435aa9ed2454b2f3c5b21c284fc027cfc5e66ac5c' "$HOME/mhs-install-2.1.0-rc.15.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.15.sh"
+)
+```
+
+Source `e6bedc2b4fdc0d2adc128fc3900fddb2dea0a49a`; artifact
+`6874cc24def00367492e801a1c1c65a43607337e`; tag `v2.1.0-rc.15`.
+Bundle SHA256 `45d4e8466bd25f15783b0c75cd3871c6fc8959c97294b2e27a429634e9dfb2cf`.
+PC package/installer/Chrome/SDK-mock and public commit/tag SHA256 checks PASS.
+
+Authorized Honor X7B source upgrade and native original-Panel wizard/editor checks
+PASS; existing sites and selected private configuration stayed unchanged. Fresh
+DNS/HTTPS automation awaits owner API setup; source installation alone does not
+publish a hostname. See LIVE-PROGRESS.md for native details and remaining checks.
+
 ---
 
 # Historical RC14 instructions
