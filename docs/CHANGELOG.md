@@ -1,3 +1,12 @@
+# MHS 2.1.0-rc.18
+
+- Transfer a raw no-follow file descriptor to the ZIP reader and await its single
+  close. Remove the competing FileHandle close/GC ownership that caused native
+  EBADF, Panel restart/session loss and possible descriptor reuse races.
+- Isolated child-process regression delays native close callbacks on valid and
+  rejected ZIPs, checks no pending close on return and preserves a reused sentinel.
+  Existing ZIP/Node/frontend/Chrome targeted checks PASS.
+
 # MHS 2.1.0-rc.17
 
 - Ignore delayed dashboard data/errors after the user navigates away, preserving

@@ -1,11 +1,42 @@
-# Install Mini Hosting Single 2.1 RC17
+# Install Mini Hosting Single 2.1 RC18
+
+RC18 includes safe Node build updates/rollback and the navigation fix. It also
+fixes a double-close ZIP descriptor race reproduced on X7B: archive processing
+must not restart Panel or close an unrelated reused descriptor. Use the immutable
+RC18 artifacts/checksums in
+[`releases/2.1.0-rc.18.json`](../releases/2.1.0-rc.18.json).
+The latest pinned command and native results are maintained in the
+[repository installer guide](https://github.com/litequang/Mini-Hosting-Single/blob/main/docs/INSTALL.md).
+
+---
+
+# Historical RC17 instructions
 
 RC17 includes the RC16 Node build updater and fixes a native-discovered late
 dashboard response replacing Files after a fast tab change. Use the immutable
 RC17 artifacts/checksums in
 [`releases/2.1.0-rc.17.json`](../releases/2.1.0-rc.17.json).
-The latest pinned command and native results are maintained in the
-[repository installer guide](https://github.com/litequang/Mini-Hosting-Single/blob/main/docs/INSTALL.md).
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr || { echo MHS_STANDARD_TERMUX_REQUIRED; exit 1; }
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/c86ee754922b3ce2e8d8e43967e4cf03394e30dc/releases/install-2.1.0-rc.17.sh' -o "$HOME/mhs-install-2.1.0-rc.17.sh"
+  printf '%s  %s\n' '4afde4c782870eeb45312a60aad162bc89f57ca9421bfde477c2cc7eb9322f65' "$HOME/mhs-install-2.1.0-rc.17.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.17.sh"
+)
+```
+
+Source `d578192a91838c6520da1572fe17af48b640df98`; artifact
+`c86ee754922b3ce2e8d8e43967e4cf03394e30dc`; tag `v2.1.0-rc.17`.
+Bundle SHA256 `2f77c221af593de6f0185448eb0982526f248b5259b85fe0019ae09d43841b41`.
+PC targeted tests, original Files Chrome, immutable package/shell syntax and public
+commit/tag SHA256 PASS. Native results are recorded in LIVE-PROGRESS.md.
+Older pinned commands keep installing their historical versions.
 
 ---
 

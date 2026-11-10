@@ -2,6 +2,24 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 10 November 2026 — native RC17 ZIP descriptor discovery; RC18 fix
+
+RC17 sourced578192a91838c6520da1572fe17af48b640df98, artifact
+c86ee754922b3ce2e8d8e43967e4cf03394e30dc, tagv2.1.0-rc.17 pushed;
+package/shell/public commit+tag SHA checks PASS. Native upgrade111 file checks
+and selected hashes PASS. Original Files retained its view across actual update
+and manual rollback, both HTTP200 with expected contents. Later ZIP preview lost
+the session because Panel restarted: owned service log shows uncaught EBADF close
+in the vendored ZIP fd reader, not an application migration or data problem.
+
+Source inspection found extractZipFile closes the fd through ZipFile and also
+through FileHandle. Reproduced deterministically in an isolated child by delaying
+native close callbacks: extraction returned with a pending close (FAIL). Raw fd
+ownership plus awaited ZIP close makes this PASS across12 accepted/refused ZIPs
+and a sentinel fd. Node build10, ZIP lifecycle1, files/unzip/frontend3 and original
+Files Chrome1 targeted checks PASS. Earlier artifacts remain immutable. RC18
+packaging/native completion follows; no production pro build was replaced.
+
 ## 10 November 2026 — RC16 native discovery and RC17 correction
 
 RC16 source466d8cf67c659e7b5b5671029d7e795d89e969aa, artifact

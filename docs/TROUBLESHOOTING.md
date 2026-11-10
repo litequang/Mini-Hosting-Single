@@ -1,5 +1,9 @@
 # Troubleshooting
 
+- Panel restarts/loses sessions during repeated ZIP operations, log EBADF close:
+  upgrade to RC18. It fixes competing ZIP/FileHandle closes; no archive guard or
+  checksum check is disabled. Reopen status before repeating any interrupted action.
+
 - Files disappears while an update finishes, with Files selected but dashboard
   content showing: upgrade to RC17. It fixes a delayed overview response replacing
   the newer view. Reopen Files → Bản cập nhật / Rollback Node.js and read the

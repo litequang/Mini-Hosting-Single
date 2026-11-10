@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import {Transform} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
+import {once} from 'node:events';
 import {yauzl} from '../vendor/runtime.mjs';
 import {DATA,atomicJson,readJson} from './config.mjs';
 import {requireSite,siteRoot} from './sites.mjs';
@@ -15,10 +16,10 @@ import {hashFile} from './uploads.mjs';
 // distinguishes TVCHH from tvchh; a typical Windows filesystem does not.
 export function zipCaseSensitive(dir){const probe=fs.mkdtempSync(path.join(dir,'zip-case-'));try{fs.writeFileSync(path.join(probe,'Probe'),'',{mode:0o600,flag:'wx'});return !fs.existsSync(path.join(probe,'probe'));}finally{fs.rmSync(probe,{recursive:true,force:true});}}
 export async function extractZipFile(file,target,{maxBytes=LIMITS.expanded,maxFiles=LIMITS.files,space=DATA}={}){
- requireSpace(space,0);const caseSensitive=zipCaseSensitive(space),key=name=>caseSensitive?name:name.toLowerCase();const handle=await fs.promises.open(file,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW||0));let zip;
+ requireSpace(space,0);const caseSensitive=zipCaseSensitive(space),key=name=>caseSensitive?name:name.toLowerCase();const fd=fs.openSync(file,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW||0));let zip;
  try{
-  const stat=await handle.stat();if(!stat.isFile()||stat.nlink!==1)throw Error('ZIP_LINK_OR_TYPE_REFUSED');
-  zip=await yauzl.fromFdPromise(handle.fd,{autoClose:false,lazyEntries:true,strictFileNames:true,validateEntrySizes:true});
+  const stat=fs.fstatSync(fd);if(!stat.isFile()||stat.nlink!==1)throw Error('ZIP_LINK_OR_TYPE_REFUSED');
+  zip=await yauzl.fromFdPromise(fd,{autoClose:false,lazyEntries:true,strictFileNames:true,validateEntrySizes:true});
   if(zip.entryCount<1||zip.entryCount>maxFiles)throw new HttpError(413,'ZIP_FILE_COUNT_LIMIT');
   const seen=new Map(),entries=[];let total=0;
   for await(const e of zip.eachEntry()){const dir=e.fileName.endsWith('/'),name=publicPath(dir?e.fileName.slice(0,-1):e.fileName),mode=(e.externalFileAttributes>>>16)&0xf000;
@@ -33,7 +34,13 @@ export async function extractZipFile(file,target,{maxBytes=LIMITS.expanded,maxFi
    if(bytes!==e.uncompressedSize||crc!==e.crc32)throw new HttpError(400,'ZIP_CRC_OR_SIZE_MISMATCH');
   }
   assertIndependentTree(target);return {files:entries.length,bytes:written,entries:entries.map(({path,dir})=>({path,dir}))};
- }finally{zip?.close();await handle.close().catch(()=>{});}
+ }finally{
+  // fromFd transfers descriptor ownership to ZipFile. autoClose:false only
+  // disables closing on end-of-entries; explicit zip.close() still closes fd.
+  // Await that close before another operation can reuse the descriptor number.
+  if(zip){const closed=once(zip,'close');zip.close();await closed;}
+  else fs.closeSync(fd);
+ }
 }
 const journal=slug=>path.join(DATA,'unzip-'+slug+'.json');
 function noPending(slug){const j=readJson(journal(slug),null);if(j&&!['DONE','ROLLED_BACK'].includes(j.phase))throw new HttpError(409,'UNZIP_RECOVERY_REQUIRED');}

@@ -1,5 +1,10 @@
 # Decisions — 30 October 2026
 
+10 November, RC18: yauzl autoClose:false disables end-of-entry automatic close;
+explicit ZipFile.close still owns/closes the supplied descriptor. Use one raw fd
+owner and await the close event, including failure cleanup. Do not suppress EBADF
+or retain a competing FileHandle/GC owner; this could close a later reused fd.
+
 10 November, RC16: separate Node build replacement from frontend-only and full
 app deployment. A backend inside dist cannot use frontend replacement, while
 whole-root replacement loses sibling dependencies/data. Do not weaken that

@@ -1,5 +1,10 @@
 # Code map
 
+RC18: zip-stream.mjs gives yauzl sole ownership of a raw no-follow fd, awaits
+its close/error and closes directly only if opening the ZIP failed. No FileHandle
+can later close the same/reused fd. zip-lifecycle.test delays native close in a
+child process across accepted/refused archives; it failed before the fix.
+
 RC17: app.js tracks navigation generations so delayed dashboard telemetry or
 old navigation errors cannot replace a newer Files view. node-build-browser.test
 holds the actual overview response until after Files opens to reproduce the
