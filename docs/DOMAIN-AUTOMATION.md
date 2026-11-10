@@ -1,5 +1,13 @@
 # Auto Publish Domain — V2.1
 
+Luồng tích hợp mới trong source (chưa có trong gói RC13): **Websites → Website
+mới** nhận subdomain ngắn trong zone đã kết nối, tự cấp mã thư mục và mở bản xem
+trước sau khi tạo. Nhập lại hostname, bấm **Xuất bản website** để gọi cùng API
+preview/apply bên dưới. Nút **Xuất bản / HTTPS** của từng site tiếp tục thao tác
+hoặc kiểm tra HTTPS. Không có API token thì có hướng dẫn kết nối một lần ngay tại
+đây. Lỗi DNS/route giữ site trên máy; RECOVERY REQUIRED không đưa nút apply lại.
+Kiểm tra PC/browser dùng fixture, không xác nhận Cloudflare hay X7B thật.
+
 Website tạo Nginx/local trước. Trong Cloudflare → Auto Publish chọn site, **Preview**
 để xem hostname/zone/Tunnel/origin/CNAME; chưa ghi gì. Apply cần nhập lại đúng domain
 và là lệnh thay đổi Cloudflare thật của chủ tài khoản. Không cần Codex SSH từng máy.

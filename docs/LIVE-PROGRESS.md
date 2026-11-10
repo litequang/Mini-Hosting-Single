@@ -2,6 +2,32 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 10 November 2026 — easier website creation and publishing (source checkpoint)
+
+Original Panel Websites now accepts a short subdomain in the configured zone,
+generates an unused folder slug, hides entrypoint unless Node is selected, and
+opens the existing domain preview after creation. Typed hostname confirmation
+still precedes Cloudflare apply. Each site/workspace has Publish/HTTPS with honest
+local/DNS/HTTPS/recovery status and upload/Node/WordPress next steps. Missing API
+links directly to one-time config. Conflicts preserve the site; published/recovery
+states cannot offer a second apply. Existing backend ownership/conflict/rollback,
+Access routes and operation/auth boundaries are unchanged.
+
+PC verification: 9 unique targeted tests PASS (domain SDK mock, website-v2, new
+Chrome wizard, existing Chrome Files/workspace/manual domain smoke); 93 JavaScript
+syntax checks PASS. Mobile390px preview inspected. Browser uses isolated local
+HTTP and injected domain operations with outbound Internet blocked. A test import
+initially resolved DATA before its isolation variables; fixed to dynamic import,
+verified and removed only its newly created synthetic default-path fixture, then
+reran both Chrome tests successfully. No existing runtime was overwritten.
+
+This checkpoint is source only: no new release package, X7B upgrade, device test,
+live DNS/Tunnel write or Internet acceptance. RC13 artifacts remain immutable;
+the last recorded X7B state still has no Domain API configured. Next deployment
+requires a new immutable release and an authorized independent MHS device scope;
+owner supplies a scoped API token privately in Panel and verifies its dedicated
+MHS Tunnel/zone before publishing a fresh unused hostname.
+
 ## Xiaomi 11T install findings ? 31 October 2026
 
 User authorized fixes in the original GitHub installer after the independent MHS

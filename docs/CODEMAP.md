@@ -1,5 +1,13 @@
 # Code map
 
+Site onboarding (source after RC13): public/site-wizard.js integrates short
+subdomain/site creation, automatic unused folder slug, existing domain preview/
+typed apply and HTTPS status into original Websites/workspace. app.js owns modal
+actions and list status; server.mjs only adds the static module allowlist entry.
+Domain API/auth/ownership/rollback behavior is unchanged. site-wizard-browser.test
+uses real Chrome + isolated HTTP Panel with injected domain operations, not a
+phone or Internet API. Existing domains.test covers official SDK mock boundaries.
+
 RC13: monitor.js hides unavailable resource cards/details on each refresh while
 retaining valid zero values and temperature-only battery readings. doctor.mjs
 checks whether the Android Termux:Boot app is installed/enabled separately from

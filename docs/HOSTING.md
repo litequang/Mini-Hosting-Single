@@ -1,7 +1,18 @@
 # Hosting trên original Panel
 
-Tạo website: Websites → Website mới → slug/hostname → Static, Node.js, PHP hoặc
-WordPress. Mỗi site có thư mục riêng, Node có port/service riêng. Database chỉ
+Luồng mới trong source (chưa đóng gói vào RC13): Websites → Website mới → nhập
+subdomain/tên miền → chọn Static, Node.js, PHP hoặc WordPress. Nếu đã kết nối API
+cho `example.com`, chỉ cần nhập `shop` để tạo `shop.example.com`. Mã thư mục tự
+sinh, có thể sửa trong Tùy chọn nâng cao; entrypoint chỉ hiện khi chọn Node.js.
+Sau khi tạo, Panel đưa thẳng tới cấu hình xuất bản; nhập lại tên miền rồi bấm
+**Xuất bản website** để tự tạo DNS CNAME và route Tunnel. Xem
+[kết nối Cloudflare một lần](DOMAIN-AUTOMATION.md). Chưa có API thì site vẫn được
+tạo trên máy và có nút kết nối; không báo đã public. Từ danh sách hoặc workspace,
+**Xuất bản / HTTPS** tiếp tục site đã tạo, kiểm tra lại HTTPS hoặc xem lỗi cần xử lý.
+Lỗi publish không yêu cầu tạo lại site. Site mới có trang mẫu, cần upload/cài ứng
+dụng riêng; HTTPS trả thành công không thay cho kiểm thử ứng dụng.
+
+Mỗi site có thư mục riêng, Node có port/service riêng. Database chỉ
 socket trong điện thoại, không public3306. Nginx chọn site bằng hostname.
 
 - Static/React: build trên PC, ZIP chứa index.html ở root hoặc dist/index.html.
