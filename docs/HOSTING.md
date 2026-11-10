@@ -1,6 +1,6 @@
 # Hosting trên original Panel
 
-Luồng mới trong source (chưa đóng gói vào RC13): Websites → Website mới → nhập
+Từ RC14: Websites → Website mới → nhập
 subdomain/tên miền → chọn Static, Node.js, PHP hoặc WordPress. Nếu đã kết nối API
 cho `example.com`, chỉ cần nhập `shop` để tạo `shop.example.com`. Mã thư mục tự
 sinh, có thể sửa trong Tùy chọn nâng cao; entrypoint chỉ hiện khi chọn Node.js.

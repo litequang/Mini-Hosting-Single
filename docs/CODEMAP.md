@@ -1,6 +1,6 @@
 # Code map
 
-Site onboarding (source after RC13): public/site-wizard.js integrates short
+RC14 site onboarding: public/site-wizard.js integrates short
 subdomain/site creation, automatic unused folder slug, existing domain preview/
 typed apply and HTTPS status into original Websites/workspace. app.js owns modal
 actions and list status; server.mjs only adds the static module allowlist entry.

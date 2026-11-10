@@ -1,4 +1,21 @@
-# Install Mini Hosting Single 2.1 RC13
+# Install Mini Hosting Single 2.1 RC14
+
+RC14 integrates website creation and Cloudflare publishing in the original Panel.
+With a configured domain API, enter a short subdomain, choose the website type,
+review the DNS/route plan and type the hostname to publish. Without API setup,
+the new site stays local with a link to one-time Cloudflare configuration.
+Each website has Publish/HTTPS to continue or inspect its state. See
+[hosting](HOSTING.md) and [domain automation](DOMAIN-AUTOMATION.md).
+
+Use the immutable RC14 bundle/bootstrap and checksums recorded in
+[`releases/2.1.0-rc.14.json`](../releases/2.1.0-rc.14.json). Older commands below
+remain pinned to their historical releases. Source upgrade preserves website
+files, database and credentials. Android/live Cloudflare results are recorded
+separately in LIVE-PROGRESS.md; publishing needs its own scoped API token.
+
+---
+
+# Historical RC13 instructions
 
 Current release **2.1.0-rc.13** includes guided Node deployment, direct private
 `.env` file upload/loading, locked production dependencies, database binding,

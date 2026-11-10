@@ -1,6 +1,6 @@
 # Auto Publish Domain — V2.1
 
-Luồng tích hợp mới trong source (chưa có trong gói RC13): **Websites → Website
+Luồng tích hợp từ RC14: **Websites → Website
 mới** nhận subdomain ngắn trong zone đã kết nối, tự cấp mã thư mục và mở bản xem
 trước sau khi tạo. Nhập lại hostname, bấm **Xuất bản website** để gọi cùng API
 preview/apply bên dưới. Nút **Xuất bản / HTTPS** của từng site tiếp tục thao tác

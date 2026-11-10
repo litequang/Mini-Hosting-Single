@@ -2,6 +2,15 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 10 November 2026 — RC14 release and X7B deployment preparation
+
+Owner explicitly requested release/install on the independent Honor X7B to test
+the new website flow. RC14 version/source/docs ready; 8 targeted domain/upgrade/
+Chrome tests PASS and 93 JavaScript syntax checks PASS. No dependency rebuild.
+Next: immutable package/smoke, publish exact source/artifact/tag and install on
+that X7B only. PC currently lists no ADB devices; X7B SSH details requested.
+No device or live Cloudflare write has occurred in this deployment turn yet.
+
 ## 10 November 2026 — easier website creation and publishing (source checkpoint)
 
 Original Panel Websites now accepts a short subdomain in the configured zone,

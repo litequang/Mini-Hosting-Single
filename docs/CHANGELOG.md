@@ -1,3 +1,15 @@
+# MHS 2.1.0-rc.14
+
+- Add a website from a short subdomain in the configured zone; generate its unused
+  folder code and show Node entrypoint only when relevant.
+- Continue directly to the existing DNS/Tunnel preview and typed hostname apply.
+  Reopen Publish/HTTPS from each site, with clear local/published/verified/recovery
+  states, deployment next steps and one-time API setup guidance.
+- Preserve the site after publishing errors and re-read state after a lost apply
+  response. Do not offer another apply for published or recovery states.
+- Reuse the original Panel and existing domain/auth/ownership/rollback logic.
+  No new dependencies, runtime imports or changes to older immutable releases.
+
 # MHS 2.1.0-rc.2 ? Xiaomi 11T installation fixes
 
 - Install `php-gd`; require GD/mysqli/curl/mbstring/zip during native install health
