@@ -12,7 +12,12 @@ test('Chrome original Files: dist preview, typed update, rollback, lost response
  const buildOps=nodeBuildOperations({service:async()=>{},status:async()=>({ok:true,out:'run: fixture'}),health:async()=>({ok:!fs.readFileSync(path.join(root,site.entry),'utf8').includes('bad')}),pause:async()=>{}});
  const server=createPanelServer({buildOps});await new Promise(r=>server.listen(Number(process.env.MHS_PORT),'127.0.0.1',r));let browser;
  try{const {chromium}=await import('playwright-core');browser=await chromium.launch({executablePath:exe,headless:true});const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
-  await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());await page.goto('http://127.0.0.1:'+process.env.MHS_PORT);await page.locator('#password').fill('synthetic-node-build-password-123456');await page.locator('#loginForm button').click();await page.locator('#shell').waitFor({state:'visible'});await page.locator('[data-tab="files"]').click();
+  await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+  let releaseOverview;const overviewGate=new Promise(r=>releaseOverview=r);
+  await page.route('**/api/overview',async route=>{const response=await route.fetch();await overviewGate;await route.fulfill({response});});
+  await page.goto('http://127.0.0.1:'+process.env.MHS_PORT);await page.locator('#password').fill('synthetic-node-build-password-123456');await page.locator('#loginForm button').click();await page.locator('#shell').waitFor({state:'visible'});await page.locator('[data-tab="files"]').click();await page.locator('#v21Site').waitFor();
+  const lateOverview=page.waitForResponse(r=>r.url().endsWith('/api/overview'));releaseOverview();await lateOverview;await page.waitForTimeout(100);
+  assert.equal(await page.locator('#v21Site').count(),1,'late dashboard response must not replace Files');
   assert.equal(await page.locator('[data-fm="full-deploy"]').count(),0);assert.equal(await page.locator('[data-fm="frontend"]').count(),0);
   const preview=async archive=>{await page.locator('[data-fm="node-build"][data-value="'+archive+'"]').click();await page.locator('[data-node-build-form="deploy"]').waitFor();};
   const apply=async()=>{await page.locator('[data-node-build-form="deploy"] input').fill(site.slug);await page.locator('[data-node-build-form="deploy"] button').click();};

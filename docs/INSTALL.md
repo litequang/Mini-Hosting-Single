@@ -1,12 +1,46 @@
-# Install Mini Hosting Single 2.1 RC16
+# Install Mini Hosting Single 2.1 RC17
+
+RC17 includes the RC16 Node build updater and fixes a native-discovered late
+dashboard response replacing Files after a fast tab change. Use the immutable
+RC17 artifacts/checksums in
+[`releases/2.1.0-rc.17.json`](../releases/2.1.0-rc.17.json).
+The latest pinned command and native results are maintained in the
+[repository installer guide](https://github.com/litequang/Mini-Hosting-Single/blob/main/docs/INSTALL.md).
+
+---
+
+# Historical RC16 instructions
 
 RC16 adds safe updates for Node entrypoints such as dist/server.cjs: replace
 the build directory, keep sibling dependencies/data, restart/HTTP-check and
 rollback/recover through original Files. See [Node deployment](NODE-DEPLOY.md).
 Use the immutable RC16 artifacts/checksums in
 [`releases/2.1.0-rc.16.json`](../releases/2.1.0-rc.16.json).
-The latest pinned command and native results are maintained in the
-[repository installer guide](https://github.com/litequang/Mini-Hosting-Single/blob/main/docs/INSTALL.md).
+
+Run this pinned block in standard Termux on an independent MHS phone. It supports
+fresh installation, same-release resume and source upgrade of an installed MHS.
+
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr || { echo MHS_STANDARD_TERMUX_REQUIRED; exit 1; }
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/d715b0dcdb7c66624a7d74d92bb3f14a07c4aa37/releases/install-2.1.0-rc.16.sh' -o "$HOME/mhs-install-2.1.0-rc.16.sh"
+  printf '%s  %s\n' '7d77071341d9230fd7a82ddfaff97fadd97bfeb7123e43044c72716816a84ffe' "$HOME/mhs-install-2.1.0-rc.16.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.16.sh"
+)
+```
+
+Source `466d8cf67c659e7b5b5671029d7e795d89e969aa`; artifact
+`d715b0dcdb7c66624a7d74d92bb3f14a07c4aa37`; tag `v2.1.0-rc.16`.
+Bundle SHA256 `2df7ae585a395608bea5fc44f281c7f7fb43ca3671e52e49eb5f80522e49fdd1`.
+PC targeted tests, original Files Chrome, immutable package/shell syntax and public
+commit/tag SHA256 PASS. Native results are recorded in LIVE-PROGRESS.md.
+Older pinned commands keep installing their historical versions.
 
 ---
 

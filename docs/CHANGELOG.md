@@ -1,3 +1,10 @@
+# MHS 2.1.0-rc.17
+
+- Ignore delayed dashboard data/errors after the user navigates away, preserving
+  Files and its ongoing update/result controls on slower Android telemetry.
+- Reproduce with a delayed real Chrome response; Node update/rollback and website
+  wizard regressions PASS. Keep RC16 artifacts immutable.
+
 # MHS 2.1.0-rc.16
 
 - Replace only dist for nested Node backends; preserve dependencies/env/media/SQL,

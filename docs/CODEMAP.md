@@ -1,5 +1,10 @@
 # Code map
 
+RC17: app.js tracks navigation generations so delayed dashboard telemetry or
+old navigation errors cannot replace a newer Files view. node-build-browser.test
+holds the actual overview response until after Files opens to reproduce the
+native-discovered race. No Node build/backend/Cloudflare algorithm change.
+
 RC16: node-build.mjs owns nested Node build staging/preview, syntax, hashes,
 directory swap, bounded HTTP startup checks and conservative rollback/recovery.
 node-build-state.mjs supplies the pending journal gate without blocking the

@@ -2,6 +2,26 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 10 November 2026 — RC16 native discovery and RC17 correction
+
+RC16 source466d8cf67c659e7b5b5671029d7e795d89e969aa, artifact
+d715b0dcdb7c66624a7d74d92bb3f14a07c4aa37, tagv2.1.0-rc.16 pushed and
+public commit/tag bytes independently checked. Exact package fresh-install PC
+fixture/remote403 and shell syntax PASS. X7B upgrade verified111 source files;
+four existing registry entries and selected private/site/Nginx hashes unchanged.
+Real pro dist.zip preview PASS without applying it. Native fresh Node fixture
+upload/update reached DONE/HTTP200, and manual rollback returned200 with the old
+build restored. First env fixture accidentally used a reserved MHS_ variable;
+the expected400 guard refused it, then an ordinary fixture key was used.
+
+The native GUI failed to show the completed result: delayed initial dashboard
+telemetry replaced Files after navigation, leaving its result controls detached.
+Captured native screenshot confirms Files selected with dashboard content. Added
+the delayed-response Chrome reproduction: FAIL before fix, PASS after guarding
+dashboard/navigation generations. Node update/rollback/lost-response/editor and
+website wizard Chrome regressions PASS. RC17 packages this correction; RC16 files
+are immutable. Final native RC17 update/rollback checks follow.
+
 ## 10 November 2026 — QR website published on X7B
 
 Built owner source E:/CODE/QR as a static React/Vite app. Fixed its Vite/esbuild

@@ -1,5 +1,10 @@
 # Troubleshooting
 
+- Files disappears while an update finishes, with Files selected but dashboard
+  content showing: upgrade to RC17. It fixes a delayed overview response replacing
+  the newer view. Reopen Files → Bản cập nhật / Rollback Node.js and read the
+  actual journal before repeating an update.
+
 - Node entry dist/server.cjs: use Files → Cập nhật Node.js / dist for a build ZIP
   uploaded beside dist. Frontend-only cannot replace a backend directory. Mixed
   full-app ZIPs are refused by the build updater; prepare dependencies separately.
