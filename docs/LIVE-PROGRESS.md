@@ -2,6 +2,36 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 10 November 2026 — live domain setup and first X7B publication
+
+Owner entered the API token privately in Panel. Zone/account/connector UUID all
+matched; CF_SCOPE_OR_MHS_TUNNEL_OWNERSHIP_FAILED was the Tunnel name requirement:
+the active Tunnel was named thophuong. Read-only checks showed exactly the known
+X7B Panel/pro/Monitor/beta routes plus404 and one remote connector client whose
+ID matched the latest generated ID in the owned X7B service log. After this
+dedicated-MHS proof, renamed only its display name to mhs-honor-x7b. Re-read
+confirmed UUID and complete route configuration unchanged; no guards relaxed.
+
+Live RC15 original Panel through SSH forwarding: Preview and typed Apply for the
+fresh mhs-rc14-test.thophuong.com site PASS, Chrome JS errors0. Created one owned
+proxied CNAME and one exact8080 route. Official SDK readback verified the owned
+DNS hash and complete remote configuration; removing only the new rule reproduces
+the entire prior configuration, including all Access/unknown fields. Private API
+config remains0600, no secrets in Git/log/tool output. Temporary native test
+session logged out. Existing pro homepage/API200, beta homepage200 and Panel302
+to its existing Access team after publication.
+
+Cloudflare and Google public DNS both resolve the fresh hostname. Real Internet
+HTTPS using its public DoH A result returned200, valid TLS and expected RC15 HTML.
+Default resolver verification remains distinct: PC initially returned ENOTFOUND;
+X7B system lookup returned AAAA addresses but default Node fetch still returned
+ENOTFOUND for the new name while pro returned200; the PC's configured LAN DNS
+resolver also returned NXDOMAIN for A, unlike both public DoH resolvers. Panel honestly retains DNS
+published/HTTPS status null pending its normal verification path. Do not manually
+mark HTTPS verified, change device DNS or toggle the phone network to force PASS.
+This is live account/native publication evidence, not a claim of full system or
+physical reboot acceptance. Private operation evidence stays on the owner device.
+
 ## 10 November 2026 — RC15 deployed on Honor X7B
 
 Final source e6bedc2b4fdc0d2adc128fc3900fddb2dea0a49a; artifact

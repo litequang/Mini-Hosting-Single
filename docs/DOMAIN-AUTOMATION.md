@@ -69,7 +69,10 @@ remote config còn đúng expected hash; nếu actor khác đổi thì yêu cầ
 SDK7.3.0 được bundle local≈673KB/lazy load, retry1/timeout5s; không poll API/Worker
 định kỳ để website chạy. Quyền API/rate limit tách biệt Worker quota. Cloudflare
 Free giới hạn body mỗi request, không phải tổng file; upload MHS dùng Tus8MiB.
-Live API/HTTPS từ điện thoại thật **NOT RUN**; PC dùng official SDK với fetch mock.
+PC tests dùng official SDK với fetch mock. Lần test X7B ngày10/11 đã chạy Preview/
+Apply thật qua Panel, tạo DNS/route và kiểm tra cấu hình cũ giữ nguyên; HTTPS từ
+Internet trả200 với TLS hợp lệ qua public DNS. Kiểm tra HTTPS bằng resolver mặc
+định trên máy là bước riêng; xem LIVE-PROGRESS.md để biết trạng thái gần nhất.
 
 Tài liệu chính thức đã đối chiếu31/10/2026:
 [Tunnel config replacement/permissions](https://developers.cloudflare.com/api/typescript/resources/zero_trust/subresources/tunnels/subresources/cloudflared/subresources/configurations/methods/update/),
