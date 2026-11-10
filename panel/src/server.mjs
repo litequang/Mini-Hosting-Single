@@ -26,8 +26,10 @@ import {schedules,saveSchedule,backupJobs,enqueueBackupJob,retryBackupJob} from 
 import {domains,domainStatus,configureDomainApi} from './domains.mjs';
 import {sqlImports} from './sql-imports.mjs';
 import {nodeSetup} from './node-setup.mjs';
+import {nodeBuild} from './node-build.mjs';
+import {assertNodeBuildSettled} from './node-build-state.mjs';
 const PUBLIC=path.join(ROOT,'public');
-export function createPanelServer({remote=false,port=PORT,fetcher=fetch,readConfig=config,adminerProxy=proxyAdminer,domainOps=domains,sqlOps=sqlImports,nodeOps=nodeSetup}={}){
+export function createPanelServer({remote=false,port=PORT,fetcher=fetch,readConfig=config,adminerProxy=proxyAdminer,domainOps=domains,sqlOps=sqlImports,nodeOps=nodeSetup,buildOps=nodeBuild}={}){
 const sessions=new Map(),attempts=new Map();let mutations=Promise.resolve();
 const sessionName=remote?'__Host-mhs_sso':'mhs_session';
 const revokedFile=path.join(DATA,'revoked-access.json');
@@ -55,6 +57,16 @@ function prune(){const now=Date.now();for(const [k,s] of sessions)if(s.expires<n
 const pruneTimer=setInterval(prune,60000);pruneTimer.unref();
 async function api(req,res,url){
  const route=url.pathname,method=req.method;
+ // Recheck pending recovery when a queued operation actually starts. Requests
+ // already waiting behind a failed deployment must not mutate its live tree.
+ const mutate=f=>queueMutate(()=>{
+  if(method!=='GET'){
+   const scoped=route.match(/^\/api\/(sites|files|services)\/([^/]+)(?:\/(.*))?$/),upload=route.match(/^\/api\/uploads\/([^/]+)/);
+   if(scoped){const [,kind,name,action='']=scoped;if(['sites','files'].includes(kind)&&action!=='node-build-rollback')assertNodeBuildSettled(name);if(kind==='services'&&name.startsWith('mhs-site-'))assertNodeBuildSettled(name.slice(9));}
+   if(upload&&!['HEAD','OPTIONS'].includes(method))assertNodeBuildSettled(upload[1]);
+  }
+  return f();
+ });
  if(route==='/api/login'&&method==='POST'){
   if(remote)throw new HttpError(403,'Use Cloudflare Access on the remote Panel');
   guardOrigin(req);const ip=req.socket.remoteAddress||'local',old=attempts.get(ip)||{count:0,until:0};
@@ -72,27 +84,28 @@ async function api(req,res,url){
  const tus=route.match(/^\/api\/uploads\/([a-z][a-z0-9-]{1,30})(?:\/([a-f0-9]{32}))?$/);
  if(tus){
   mutual(req,s);
+  if(!['HEAD','OPTIONS','GET'].includes(method))assertNodeBuildSettled(tus[1]);
   // Same-origin HEAD/OPTIONS do not carry Origin in browsers. They still need
   // the private session CSRF header; no CORS endpoint can obtain it.
   if(['HEAD','OPTIONS'].includes(method)&&!req.headers.origin){if(req.headers['x-requested-with']!=='XMLHttpRequest'||req.headers['sec-fetch-site']&&req.headers['sec-fetch-site']!=='same-origin')throw new HttpError(403,'Upload origin denied');}
   else guardOrigin(req);
-  return queueMutate(()=>handleUpload(req,res,tus[1],tus[2],remote?req.mhsAccess.identity:'local-admin'));
+  return mutate(()=>handleUpload(req,res,tus[1],tus[2],remote?req.mhsAccess.identity:'local-admin'));
  }
  const dbAdmin=route.match(/^\/api\/sites\/([a-z][a-z0-9-]{1,30})\/database-admin$/);
  if(dbAdmin){
   if(!['GET','POST'].includes(method))throw new HttpError(405,'ADMINER_METHOD_REFUSED');
   let body=null;
-  try{if(method==='POST'){guardOrigin(req);body=await stageAdminerBody(req);mutual({headers:{...req.headers,'x-csrf-token':req.headers['x-csrf-token']||body.csrf}},s);}return await queueMutate(()=>adminerProxy(req,res,dbAdmin[1],{csrf:s.csrf,principal:remote?req.mhsAccess.identity:'local-admin',body}));}
+  try{if(method==='POST'){guardOrigin(req);body=await stageAdminerBody(req);mutual({headers:{...req.headers,'x-csrf-token':req.headers['x-csrf-token']||body.csrf}},s);}return await mutate(()=>adminerProxy(req,res,dbAdmin[1],{csrf:s.csrf,principal:remote?req.mhsAccess.identity:'local-admin',body}));}
   finally{if(body)fs.rmSync(body.file,{force:true});}
  }
  if(method!=='GET'){guardOrigin(req);mutual(req,s);}
  const sqlRoute=route.match(/^\/api\/databases\/([a-z][a-z0-9_]{2,29})\/imports(?:\/([a-f0-9]{32}))?(?:\/(start))?$/);
  if(sqlRoute){const [,name,id,start]=sqlRoute,owner=remote?req.mhsAccess.identity:'local-admin';
   if(method==='GET'&&!start)return send(res,200,id?{job:sqlOps.get(name,id,owner)}:{jobs:sqlOps.list(name,owner)});
-  if(method==='POST'&&!id){const b=jsonBody(await readBody(req,4096));return send(res,201,{job:await queueMutate(()=>sqlOps.create(name,b,owner))});}
-  if(method==='PATCH'&&id&&!start)return send(res,200,{job:await queueMutate(()=>sqlOps.chunk(name,id,owner,req))});
-  if(method==='DELETE'&&id&&!start)return send(res,200,{job:await queueMutate(()=>sqlOps.cancel(name,id,owner))});
-  if(method==='POST'&&id&&start){const b=jsonBody(await readBody(req,4096)),job=await queueMutate(()=>sqlOps.prepare(name,id,owner,b.confirm));void sqlOps.launch(name,id,owner,queueMutate).catch(()=>{});return send(res,202,{job});}
+  if(method==='POST'&&!id){const b=jsonBody(await readBody(req,4096));return send(res,201,{job:await mutate(()=>sqlOps.create(name,b,owner))});}
+  if(method==='PATCH'&&id&&!start)return send(res,200,{job:await mutate(()=>sqlOps.chunk(name,id,owner,req))});
+  if(method==='DELETE'&&id&&!start)return send(res,200,{job:await mutate(()=>sqlOps.cancel(name,id,owner))});
+  if(method==='POST'&&id&&start){const b=jsonBody(await readBody(req,4096)),job=await mutate(()=>sqlOps.prepare(name,id,owner,b.confirm));void sqlOps.launch(name,id,owner,mutate).catch(()=>{});return send(res,202,{job});}
   throw new HttpError(405,'SQL_IMPORT_METHOD_REFUSED');
  }
  if(route==='/api/remote-access'&&method==='GET')return send(res,200,publicStatus());
@@ -101,92 +114,98 @@ async function api(req,res,url){
  if(route==='/api/sites'&&method==='GET')return send(res,200,{sites:listSites()});
  // Direct mutation routes are handled below to guarantee one request body per action.
  if(route==='/api/nginx'&&method==='GET')return send(res,200,{configured:registry().nginxIntegrated,test:await nginxTest()});
- if(route==='/api/nginx/integrate'&&method==='POST')return send(res,200,await queueMutate(()=>integrateNginx()));
+ if(route==='/api/nginx/integrate'&&method==='POST')return send(res,200,await mutate(()=>integrateNginx()));
  if(route==='/api/services'&&method==='GET'){const status=await systemStats();return send(res,200,{services:status.services});}
  if(route==='/api/databases'&&method==='GET')return send(res,200,{databases:await listDatabases()});
  if(route==='/api/backups'&&method==='GET')return send(res,200,{backups:listBackups()});
  if(route==='/api/backup-policy'&&method==='GET')return send(res,200,{restic:resticStatus(),schedules:schedules(),jobs:backupJobs()});
- if(route==='/api/restic/config'&&method==='POST'){const b=jsonBody(await readBody(req,16384));return send(res,200,await queueMutate(()=>configureRestic(b)));}
- if(route==='/api/backup-jobs'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,202,await queueMutate(()=>enqueueBackupJob(b)));}
- if(route==='/api/backup-jobs/retry'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,202,await queueMutate(()=>retryBackupJob(b.id,b.confirm)));}
- if(route==='/api/backup-schedules'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>saveSchedule(b)));}
- if(route==='/api/restic/recovery-kit'&&method==='POST'){const b=jsonBody(await readBody(req,4096)),kit=await queueMutate(()=>exportRecoveryKit(b.passphrase));res.setHeader('content-disposition','attachment; filename="mhs-recovery.encrypted.json"');return send(res,200,kit);}
+ if(route==='/api/restic/config'&&method==='POST'){const b=jsonBody(await readBody(req,16384));return send(res,200,await mutate(()=>configureRestic(b)));}
+ if(route==='/api/backup-jobs'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,202,await mutate(()=>enqueueBackupJob(b)));}
+ if(route==='/api/backup-jobs/retry'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,202,await mutate(()=>retryBackupJob(b.id,b.confirm)));}
+ if(route==='/api/backup-schedules'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>saveSchedule(b)));}
+ if(route==='/api/restic/recovery-kit'&&method==='POST'){const b=jsonBody(await readBody(req,4096)),kit=await mutate(()=>exportRecoveryKit(b.passphrase));res.setHeader('content-disposition','attachment; filename="mhs-recovery.encrypted.json"');return send(res,200,kit);}
  if(route==='/api/backups/upload'&&method==='POST'){
   const file=path.join(DATA,'backup-upload-'+crypto.randomUUID());const out=fs.createWriteStream(file,{mode:0o600,flags:'wx'});let bytes=0;let writeError=null;out.on('error',e=>writeError=e);
-  try{for await(const chunk of req){bytes+=chunk.length;if(bytes>256*1024*1024)throw new HttpError(413,'BACKUP_UPLOAD_LIMIT');if(writeError)throw writeError;if(!out.write(chunk))await once(out,'drain');}const done=once(out,'finish');out.end();await done;return send(res,201,await queueMutate(()=>importBackup(file,url.searchParams.get('sha256'))));}finally{out.destroy();fs.rmSync(file,{force:true});}
+  try{for await(const chunk of req){bytes+=chunk.length;if(bytes>256*1024*1024)throw new HttpError(413,'BACKUP_UPLOAD_LIMIT');if(writeError)throw writeError;if(!out.write(chunk))await once(out,'drain');}const done=once(out,'finish');out.end();await done;return send(res,201,await mutate(()=>importBackup(file,url.searchParams.get('sha256'))));}finally{out.destroy();fs.rmSync(file,{force:true});}
  }
  if(route==='/api/backups/download'&&method==='GET'){
   const file=backupFile(url.searchParams.get('name')||'');res.writeHead(200,{'content-type':'application/octet-stream','content-disposition':`attachment; filename="${path.basename(file)}"`,'cache-control':'no-store'});fs.createReadStream(file).pipe(res);return;
  }
  if(route==='/api/domains'&&method==='GET')return send(res,200,{sites:listSites().map(x=>({hostname:x.hostname,serviceUrl:'http://127.0.0.1:8080'})),manual:true});
  if(route==='/api/domain-status'&&method==='GET')return send(res,200,domainStatus());
- if(route==='/api/domain-api'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>configureDomainApi(b)));}
- if(route==='/api/domain-apply'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>domainOps.apply(b.id,b.confirm)));}
+ if(route==='/api/domain-api'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>configureDomainApi(b)));}
+ if(route==='/api/domain-apply'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>domainOps.apply(b.id,b.confirm)));}
  const m=route.match(/^\/api\/(sites|files|services|databases)\/([a-zA-Z0-9_-]+)(?:\/(.*))?$/);
  if(m){const [,kind,name,action='']=m;
+  if(method!=='GET'&&['sites','files'].includes(kind)&&action!=='node-build-rollback')assertNodeBuildSettled(name);
+  if(method!=='GET'&&kind==='services'&&name.startsWith('mhs-site-'))assertNodeBuildSettled(name.slice(9));
   if(kind==='sites'){
+   if(action==='node-build-status'&&method==='GET')return send(res,200,buildOps.status(name));
+   if(action==='node-build-preview'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>buildOps.preview(name,b.archive)));}
+   if(action==='node-build-deploy'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await mutate(()=>buildOps.deploy(name,b)));}
+   if(action==='node-build-rollback'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await mutate(()=>buildOps.rollback(name,b.confirm)));}
    if(action==='node-setup'&&method==='GET')return send(res,200,nodeOps.status(name));
-   if(action==='node-setup'&&method==='POST'){const b=jsonBody(await readBody(req,4096)),result=await queueMutate(()=>nodeOps.prepare(name,b.confirm));void nodeOps.launch(name,queueMutate).catch(()=>{});return send(res,202,result);}
+   if(action==='node-setup'&&method==='POST'){const b=jsonBody(await readBody(req,4096)),result=await mutate(()=>nodeOps.prepare(name,b.confirm));void nodeOps.launch(name,mutate).catch(()=>{});return send(res,202,result);}
    if(action==='node-config'&&method==='GET')return send(res,200,await nodeOps.configuration(name));
    if(action==='node-env-editor'&&method==='GET')return send(res,200,nodeOps.environmentEditor(name));
-   if(action==='node-env-editor'&&method==='POST'){const text=(await readBody(req,64*1024)).toString('utf8');return send(res,200,await queueMutate(()=>nodeOps.saveEnvironmentEditor(name,text,url.searchParams.get('confirm'))));}
-   if(action==='node-env-file'&&method==='POST'){const text=(await readBody(req,64*1024)).toString('utf8');return send(res,200,await queueMutate(()=>nodeOps.environmentFile(name,text,url.searchParams.get('confirm'))));}
-   if(action==='node-config'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>{if(b.database)sqlOps.assertReady(b.database);return nodeOps.configure(name,b);}));}
-   if(action==='node-start'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>nodeOps.start(name,b.confirm)));}
-   if(action==='domain-preview'&&method==='POST'){await readBody(req,4096);return send(res,200,await queueMutate(()=>domainOps.preview(name)));}
-   if(action==='domain-verify'&&method==='POST'){await readBody(req,4096);return send(res,200,await queueMutate(()=>domainOps.verifyHttps(name)));}
-   if(action==='domain-remove'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>domainOps.remove(name,b.confirm)));}
-   if(!action&&method==='PATCH'){const b=jsonBody(await readBody(req,128*1024));return send(res,200,await queueMutate(()=>updateSite(name,b)));}
-   if(action==='wordpress'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>installWordPress(name,b)));}
-   if(action==='database'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,201,await queueMutate(()=>attachDatabase(name,b)));}
-   if(!action&&method==='DELETE'){const {confirm}=jsonBody(await readBody(req,4096));if(confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>deleteSite(name)));}
-   if(action==='zip'&&method==='POST'){const buf=await readBody(req,64*1024*1024);return send(res,200,await queueMutate(()=>deployZip(name,buf,req.headers['x-content-sha256']||null)));}
-   if(action==='deploy-stored'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name||!/^[a-f0-9]{64}$/.test(b.sha256||''))throw new HttpError(400,'FULL_DEPLOY_CONFIRM_REQUIRED');return send(res,200,await queueMutate(()=>deployZip(name,guarded(siteRoot(requireSite(name)),b.archive),b.sha256)));}
-   if(action==='frontend'&&method==='PUT'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>configureFrontend(name,b.target,b.confirm)));}
-   if(action==='frontend-preview'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>previewFrontend(name,b.archive)));}
-   if(action==='frontend-deploy'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>deployFrontend(name,b)));}
-   if(action==='frontend-rollback'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>rollbackFrontend(name,b.confirm)));}
-   if(action==='rollback'&&method==='POST'){const b=jsonBody(await readBody(req,4096));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>rollbackDeploy(name)));}
+   if(action==='node-env-editor'&&method==='POST'){const text=(await readBody(req,64*1024)).toString('utf8');return send(res,200,await mutate(()=>nodeOps.saveEnvironmentEditor(name,text,url.searchParams.get('confirm'))));}
+   if(action==='node-env-file'&&method==='POST'){const text=(await readBody(req,64*1024)).toString('utf8');return send(res,200,await mutate(()=>nodeOps.environmentFile(name,text,url.searchParams.get('confirm'))));}
+   if(action==='node-config'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await mutate(()=>{if(b.database)sqlOps.assertReady(b.database);return nodeOps.configure(name,b);}));}
+   if(action==='node-start'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await mutate(()=>nodeOps.start(name,b.confirm)));}
+   if(action==='domain-preview'&&method==='POST'){await readBody(req,4096);return send(res,200,await mutate(()=>domainOps.preview(name)));}
+   if(action==='domain-verify'&&method==='POST'){await readBody(req,4096);return send(res,200,await mutate(()=>domainOps.verifyHttps(name)));}
+   if(action==='domain-remove'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await mutate(()=>domainOps.remove(name,b.confirm)));}
+   if(!action&&method==='PATCH'){const b=jsonBody(await readBody(req,128*1024));return send(res,200,await mutate(()=>updateSite(name,b)));}
+   if(action==='wordpress'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>installWordPress(name,b)));}
+   if(action==='database'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,201,await mutate(()=>attachDatabase(name,b)));}
+   if(!action&&method==='DELETE'){const {confirm}=jsonBody(await readBody(req,4096));if(confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await mutate(()=>deleteSite(name)));}
+   if(action==='zip'&&method==='POST'){const buf=await readBody(req,64*1024*1024);return send(res,200,await mutate(()=>deployZip(name,buf,req.headers['x-content-sha256']||null)));}
+   if(action==='deploy-stored'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name||!/^[a-f0-9]{64}$/.test(b.sha256||''))throw new HttpError(400,'FULL_DEPLOY_CONFIRM_REQUIRED');return send(res,200,await mutate(async()=>{const site=requireSite(name);if(site.type==='node'&&site.entry.includes('/')){const plan=await buildOps.preview(name,b.archive);if(plan.sha256!==b.sha256)throw new HttpError(409,'ZIP_CHANGED_SINCE_PREVIEW');return buildOps.deploy(name,{id:plan.id,confirm:b.confirm});}return deployZip(name,guarded(siteRoot(site),b.archive),b.sha256);}));}
+   if(action==='frontend'&&method==='PUT'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>configureFrontend(name,b.target,b.confirm)));}
+   if(action==='frontend-preview'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>previewFrontend(name,b.archive)));}
+   if(action==='frontend-deploy'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>deployFrontend(name,b)));}
+   if(action==='frontend-rollback'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>rollbackFrontend(name,b.confirm)));}
+   if(action==='rollback'&&method==='POST'){const b=jsonBody(await readBody(req,4096));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await mutate(()=>rollbackDeploy(name)));}
    if(action==='health'&&method==='GET')return send(res,200,await siteHealth(requireSite(name)));
-   if(action==='backup'&&method==='POST')return send(res,200,await queueMutate(()=>backupSiteArchive(name)));
-   if(action==='snapshots'&&method==='GET')return send(res,200,{snapshots:await queueMutate(()=>restic.snapshots(name))});
-   if(action==='restore'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>restoreSiteArchive(name,b.backup,b)));}
-   if(action==='recover-restore'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await queueMutate(()=>recoverSiteRestore(name,b.confirm)));}
+   if(action==='backup'&&method==='POST')return send(res,200,await mutate(()=>backupSiteArchive(name)));
+   if(action==='snapshots'&&method==='GET')return send(res,200,{snapshots:await mutate(()=>restic.snapshots(name))});
+   if(action==='restore'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await mutate(()=>restoreSiteArchive(name,b.backup,b)));}
+   if(action==='recover-restore'&&method==='POST'){const b=jsonBody(await readBody(req,4096));return send(res,200,await mutate(()=>recoverSiteRestore(name,b.confirm)));}
   }
   if(kind==='files'){
    const rel=url.searchParams.get('path')||'';
    if(action==='list'&&method==='GET')return send(res,200,{files:fileList(name,rel,url.searchParams.get('q')||'')});
    if(action==='search'&&method==='GET')return send(res,200,searchFiles(name,url.searchParams.get('q')));
    if(action==='upload-journals'&&method==='GET')return send(res,200,{items:pendingUploads(name,remote?req.mhsAccess.identity:'local-admin')});
-   if(action==='upload-recover'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>recoverUpload(name,b.id,remote?req.mhsAccess.identity:'local-admin',b.confirm)));}
+   if(action==='upload-recover'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>recoverUpload(name,b.id,remote?req.mhsAccess.identity:'local-admin',b.confirm)));}
    if(action==='trash'&&method==='GET')return send(res,200,{items:listTrash(name)});
-   if(action==='trash-restore'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>restoreTrash(name,b.id)));}
-   if(action==='move'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>moveFile(name,b.source,b.dest,{copy:b.copy===true})));}
+   if(action==='trash-restore'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await mutate(()=>restoreTrash(name,b.id)));}
+   if(action==='move'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await mutate(()=>moveFile(name,b.source,b.dest,{copy:b.copy===true})));}
    if(action==='download'&&method==='GET')return downloadFiles(name,rel,res,{zip:url.searchParams.get('zip')==='1'});
-   if(action==='unzip-preview'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>unzipPreview(name,b.archive,b.dest,b.mode)));}
-   if(action==='unzip'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>unzipApply(name,b)));}
-   if(action==='unzip-recover'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>recoverUnzip(name,b.confirm)));}
+   if(action==='unzip-preview'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>unzipPreview(name,b.archive,b.dest,b.mode)));}
+   if(action==='unzip'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>unzipApply(name,b)));}
+   if(action==='unzip-recover'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>recoverUnzip(name,b.confirm)));}
    if(action==='read'&&method==='GET')return send(res,200,{text:readFileForSite(name,rel)});
-   if(action==='write'&&method==='PUT'){const buf=await readBody(req,20*1024*1024);return send(res,200,await queueMutate(()=>writeSiteFile(name,rel,buf)));}
-   if(action==='mkdir'&&method==='POST'){const {path:dir}=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>mkdirSite(name,dir)));}
-   if(action==='delete'&&method==='POST'){const {path:dest,confirm}=jsonBody(await readBody(req,8192));if(confirm!==dest)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await queueMutate(()=>trashFile(name,dest)));}
+   if(action==='write'&&method==='PUT'){const buf=await readBody(req,20*1024*1024);return send(res,200,await mutate(()=>writeSiteFile(name,rel,buf)));}
+   if(action==='mkdir'&&method==='POST'){const {path:dir}=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>mkdirSite(name,dir)));}
+   if(action==='delete'&&method==='POST'){const {path:dest,confirm}=jsonBody(await readBody(req,8192));if(confirm!==dest)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await mutate(()=>trashFile(name,dest)));}
   }
   if(kind==='services'){
    if(action==='log'&&method==='GET')return send(res,200,{log:getLog(name)});
-   if(action==='action'&&method==='POST'){const {action:op}=jsonBody(await readBody(req,8192));return send(res,200,await queueMutate(()=>serviceAction(name,op)));}
+   if(action==='action'&&method==='POST'){const {action:op}=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>serviceAction(name,op)));}
   }
   if(kind==='databases'){
    if(action==='tables'&&method==='GET')return send(res,200,{tables:await listTables(name)});
-   if(action==='backup'&&method==='POST')return send(res,200,await queueMutate(()=>backupDatabase(name)));
+   if(action==='backup'&&method==='POST')return send(res,200,await mutate(()=>backupDatabase(name)));
    if(action==='restore'&&method==='POST'){
     const confirm=url.searchParams.get('confirm');if(confirm!==name)throw new HttpError(400,'Explicit database confirmation required');
-    const owner=remote?req.mhsAccess.identity:'local-admin',uploaded=await queueMutate(()=>sqlOps.raw(name,owner,req,confirm));
-    const job=await queueMutate(()=>sqlOps.prepare(name,uploaded.id,owner,confirm));void sqlOps.launch(name,job.id,owner,queueMutate).catch(()=>{});return send(res,202,{job});
+    const owner=remote?req.mhsAccess.identity:'local-admin',uploaded=await mutate(()=>sqlOps.raw(name,owner,req,confirm));
+    const job=await mutate(()=>sqlOps.prepare(name,uploaded.id,owner,confirm));void sqlOps.launch(name,job.id,owner,mutate).catch(()=>{});return send(res,202,{job});
    }
   }
  }
- if(route==='/api/sites'&&method==='POST'){const body=jsonBody(await readBody(req,8192));return send(res,201,await queueMutate(()=>addSite(body)));}
- if(route==='/api/databases'&&method==='POST'){const {name}=jsonBody(await readBody(req,8192));return send(res,201,await queueMutate(()=>createDatabase(name)));}
+ if(route==='/api/sites'&&method==='POST'){const body=jsonBody(await readBody(req,8192));return send(res,201,await mutate(()=>addSite(body)));}
+ if(route==='/api/databases'&&method==='POST'){const {name}=jsonBody(await readBody(req,8192));return send(res,201,await mutate(()=>createDatabase(name)));}
  throw new HttpError(404,'API endpoint not found');
 }
 async function handle(req,res){try{
@@ -195,7 +214,7 @@ async function handle(req,res){try{
  if(url.pathname.startsWith('/api/'))return await api(req,res,url);
  if(req.method!=='GET')throw new HttpError(405,'Not allowed');
  const file=url.pathname==='/'?'index.html':url.pathname.slice(1);
- if(!['index.html','style.css','app.js','files-v21.js','backup-v21.js','domains-v21.js','sql-import.js','node-setup.js','site-wizard.js','vendor/browser.mjs'].includes(file))throw new HttpError(404,'Not found');
+ if(!['index.html','style.css','app.js','files-v21.js','backup-v21.js','domains-v21.js','sql-import.js','node-setup.js','site-wizard.js','node-build.js','vendor/browser.mjs'].includes(file))throw new HttpError(404,'Not found');
  let content=fs.readFileSync(path.join(PUBLIC,file));if(file==='index.html')content=Buffer.from(content.toString('utf8').replace('<head>','<head><meta name="mhs-auth-mode" content="'+(remote?'access-sso':'local-password')+'">'));res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream','content-length':content.length,'cache-control':'no-store','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",'x-frame-options':'DENY','referrer-policy':'no-referrer'});res.end(content);
  }catch(e){const status=e instanceof HttpError?e.status:500;console.error('MHS_REQUEST_FAILED',status);if(!res.headersSent)send(res,status,{error:status===500?'Operation failed':e.message});else res.destroy();}}
 const server=http.createServer(handle);server.on('close',()=>clearInterval(pruneTimer));server.requestTimeout=120000;server.headersTimeout=15000;return server;

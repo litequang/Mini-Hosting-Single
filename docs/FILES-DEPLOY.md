@@ -40,7 +40,14 @@ Journal PREPARED do mất điện cần kiểm tra/recovery, không được xó
    Restart mặc định OFF. Khi Nginx đã tích hợp, kiểm HTTP; lỗi chỉ rollback frontend.
    Nút Rollback frontend độc lập rollback code toàn ứng dụng và database.
 
-**Deploy toàn app** là thao tác khác, có typed slug/warning; dùng cho backend release
+**Cập nhật Node.js / dist** (RC16): với entry `dist/server.cjs`, upload ZIP bên
+cạnh dist, preview rồi nhập slug để thay riêng dist, tự restart/kiểm HTTP và
+rollback khi lỗi. Giữ thư viện/env/data ở ngoài dist, xóa asset cũ cùng bản build.
+Nút **Bản cập nhật / Rollback Node.js** hiển thị trạng thái và khôi phục khi
+gián đoạn. ZIP có thể flat, bọc dist hoặc một project/dist; không nhận full app
+kèm package.json, node_modules hay dữ liệu. Xem NODE-DEPLOY.md.
+
+**Deploy toàn app** cho static/PHP/WordPress hoặc Node entry ở root là thao tác khác, có typed slug/warning; dùng cho backend release
 đã có kế hoạch, không chạy npm install/build hoặc SQL migration tự động. Code rollback
 không rollback SQL. Chức năng WordPress core/backup cũ vẫn giữ nguyên.
 

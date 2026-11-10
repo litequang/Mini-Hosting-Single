@@ -6,6 +6,33 @@ example `dist/server.cjs`. Upload the production build plus `package.json` and
 dump do not provide a Node backend or runtime dependencies. Build on a PC;
 do not upload Windows `node_modules` to Android.
 
+## Update an already running build (RC16)
+
+For entry `dist/server.cjs`, upload the build ZIP to the **app root**, beside
+`dist`, then choose **Cập nhật Node.js / dist**. Review the preview, type the site
+slug and submit. No manual rename or unzip is needed. Flat `server.cjs` + assets,
+`dist/server.cjs`, or one project wrapper containing `dist` are accepted. Files
+outside that selected build, dependency manifests, persistent folders and SQL
+are refused. Public nested asset folders named Data remain valid.
+
+MHS checks the ZIP/hash, entry syntax (without executing it), unchanged site/build
+and a healthy running app before stopping that site's service. It keeps the old
+directory privately, replaces the entire build (removing stale assets), starts
+Node and retries real application/Nginx HTTP. Failure restores and checks the old
+build. **Bản cập nhật / Rollback Node.js** also recovers an interrupted update;
+pending recovery blocks further file/config/service mutations for that site.
+After a lost response, read status before taking another action.
+
+Root package.json/package-lock.json, node_modules, private env, sibling storage,
+sheets and SQL are preserved. Keep persistent data outside the replaceable build.
+This does not install new dependencies or run migrations. Update dependencies
+explicitly when a release requires them. Initial setup still uses the preparation
+steps below; the update action requires an already healthy application. Root-level
+Node entrypoints keep the existing full-app flow. The frontend-only action remains
+for a separate directory that does not contain the backend.
+
+## Initial preparation
+
 Open **Files → Triển khai Node.js** (also in the site workspace):
 
 1. Type the site slug and install/update libraries. MHS runs locked production

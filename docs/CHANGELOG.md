@@ -1,3 +1,12 @@
+# MHS 2.1.0-rc.16
+
+- Replace only dist for nested Node backends; preserve dependencies/env/media/SQL,
+  remove stale assets, restart with HTTP retries, auto rollback and durable recovery.
+- Add original Files preview/typed update/status/rollback. Re-read status after
+  a lost response and block queued site mutations while recovery is pending.
+- Keep frontend backend-overlap protection; route cached legacy deploy-stored
+  through the safe updater. No runtime dependency or historical artifact changes.
+
 # MHS 2.1.0-rc.15
 
 - Native X7B verification found that existing manually published websites have

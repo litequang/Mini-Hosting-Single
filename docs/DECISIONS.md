@@ -1,5 +1,13 @@
 # Decisions — 30 October 2026
 
+10 November, RC16: separate Node build replacement from frontend-only and full
+app deployment. A backend inside dist cannot use frontend replacement, while
+whole-root replacement loses sibling dependencies/data. Do not weaken that
+frontend guard. Require a healthy initial app; preserve the old build and retry
+startup HTTP. Refuse mixed app/dependency/data ZIPs, and stop for recovery if
+known code hashes no longer match. Public nested Data asset names are not root
+persistent storage. Existing static deployment remains unchanged.
+
 31 October, V2.1 M5: ship PC-verified2.1 RC1, not a native Android acceptance claim.
 Use optional Playwright core with an existing PC browser; no browser downloaded or
 included on device. Lazy split old FastCGI dependency to avoid normal startup RAM

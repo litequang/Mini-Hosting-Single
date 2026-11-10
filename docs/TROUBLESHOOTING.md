@@ -1,5 +1,17 @@
 # Troubleshooting
 
+- Node entry dist/server.cjs: use Files → Cập nhật Node.js / dist for a build ZIP
+  uploaded beside dist. Frontend-only cannot replace a backend directory. Mixed
+  full-app ZIPs are refused by the build updater; prepare dependencies separately.
+- NODE_BUILD_RECOVERY_REQUIRED: Files → Bản cập nhật / Rollback Node.js, read
+  status and type the site slug to restore the known previous build. Do not edit
+  live code, remove journals or delete previous releases to bypass recovery.
+- NODE_BUILD_CHANGED_REPREVIEW / ZIP_CHANGED_SINCE_PREVIEW: obtain a fresh preview.
+  NODE_BUILD_SYNTAX_FAILED / ENTRY_MISSING: fix the PC build and its ZIP layout.
+- NODE_BUILD_START_SITE_FIRST / CURRENT_HTTP_NOT_READY: finish initial preparation
+  and verify the app before updating. Failed new HTTP restores the old build;
+  read the resulting journal and application log before retrying.
+
 - Monitor omits unavailable CPU/RAM/disk/battery/network readings starting RC13.
   Android may deny telemetry access; missing readings are not reported as zero.
   Cards return automatically when subsequent samples contain real numbers.

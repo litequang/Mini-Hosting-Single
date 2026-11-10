@@ -10,12 +10,14 @@ import {extractZipFile} from './zip-stream.mjs';
 import {hashFile} from './uploads.mjs';
 import {createDatabase} from './databases.mjs';
 import {assertIndependentTree,wpConfig,siteHealth} from './hosting.mjs';
+import {assertNodeBuildSettled} from './node-build-state.mjs';
 export function requireSite(slug){const site=registry().sites.find(s=>s.slug===slug);if(!site)throw new HttpError(404,'WEBSITE_NOT_FOUND');if(!slugOK(site.slug))throw Error('INVALID_REGISTRY');return site;}
 export const listSites=()=>registry().sites.map(s=>({...s,directory:siteRoot(s),deployPhase:readJson(deployFile(s.slug),null)?.phase||null,restorePhase:readJson(path.join(DATA,'restore-'+s.slug+'.json'),null)?.phase||null}));
 export const siteRoot=site=>path.join(SITES,site.slug,site.type==='node'?'app':'public');
 export function entryOK(entry){try{cleanRel(entry);return /^[a-zA-Z0-9][a-zA-Z0-9._/-]{0,150}\.(?:mjs|cjs|js)$/.test(entry);}catch{return false;}}
 export function validateEnvironment(values){if(!values||Array.isArray(values)||typeof values!=='object'||Object.keys(values).length>50)throw Error('INVALID_NODE_ENV');for(const [k,v] of Object.entries(values)){if(!/^[A-Z_][A-Z0-9_]{0,63}$/.test(k)||/^(?:PORT|NODE_OPTIONS|NODE_PATH|LD_.*|DYLD_.*|PATH|HOME|PREFIX|MHS_.*)$/.test(k)||typeof v!=='string'||v.length>8192||v.includes('\0'))throw Error('INVALID_NODE_ENV');}return values;}
 export async function updateSite(slug,{hostname,entry,port,environment}){
+ assertNodeBuildSettled(slug);
  const site=requireSite(slug),r=registry(),next={...site};
  if(hostname&&hostname!==site.hostname&&readJson(path.join(DATA,'domain-state.json'),{})[slug]?.dnsId)throw new HttpError(409,'UNPUBLISH_OWNED_DOMAIN_BEFORE_RENAME');
  if(hostname!==undefined){if(!hostOK(hostname)||r.sites.some(s=>s.slug!==slug&&s.hostname===hostname))throw Error('INVALID_OR_DUPLICATE_HOSTNAME');next.hostname=hostname;}
@@ -47,7 +49,7 @@ export async function addSite({slug,hostname,type='static',entry='server.mjs'}){
   atomicJson(path.join(DATA,'failed-create-'+slug+'.json'),{site,error:'CREATE_INCOMPLETE',at:new Date().toISOString()});throw e;
  }
 }
-export async function deleteSite(slug){if(readJson(path.join(DATA,'domain-state.json'),{})[slug]?.dnsId)throw new HttpError(409,'UNPUBLISH_OWNED_DOMAIN_BEFORE_DELETE');const r=registry(),site=requireSite(slug);const remaining=r.sites.filter(s=>s.slug!==slug);if(site.type==='node')await removeService(site);await regenerateNginx(remaining);const dest=path.join(TRASH,`${Date.now()}-${slug}`);fs.mkdirSync(TRASH,{recursive:true});fs.renameSync(path.join(SITES,slug),dest);r.sites=remaining;saveRegistry(r);return {trash:path.basename(dest),databasePreserved:site.database||null};}
+export async function deleteSite(slug){assertNodeBuildSettled(slug);if(readJson(path.join(DATA,'domain-state.json'),{})[slug]?.dnsId)throw new HttpError(409,'UNPUBLISH_OWNED_DOMAIN_BEFORE_DELETE');const r=registry(),site=requireSite(slug);const remaining=r.sites.filter(s=>s.slug!==slug);if(site.type==='node')await removeService(site);await regenerateNginx(remaining);const dest=path.join(TRASH,`${Date.now()}-${slug}`);fs.mkdirSync(TRASH,{recursive:true});fs.renameSync(path.join(SITES,slug),dest);r.sites=remaining;saveRegistry(r);return {trash:path.basename(dest),databasePreserved:site.database||null};}
 export function listFiles(slug,rel=''){const dir=guarded(siteRoot(requireSite(slug)),rel,{rootAllowed:true});return fs.readdirSync(dir,{withFileTypes:true}).filter(e=>{try{publicPath(e.name);return !e.isSymbolicLink();}catch{return false;}}).map(e=>{const s=fs.statSync(path.join(dir,e.name));return {name:e.name,dir:e.isDirectory(),size:s.size,mtime:s.mtime.toISOString()};}).sort((a,b)=>Number(b.dir)-Number(a.dir)||a.name.localeCompare(b.name));}
 export function readFileForSite(slug,rel){const {fd,stat}=safeOpen(siteRoot(requireSite(slug)),rel);try{if(stat.size>2*1024*1024)throw new HttpError(413,'EDITOR_LIMIT');const b=fs.readFileSync(fd);if(b.includes(0))throw new HttpError(400,'BINARY_FILE_EDITOR_REFUSED');return b.toString('utf8');}finally{fs.closeSync(fd);}}
 export function writeSiteFile(slug,rel,bytes){requireTransferGuard(slug,rel);if(!rel||bytes.length>2*1024*1024)throw new HttpError(400,'EDITOR_SIZE_OR_PATH');const root=siteRoot(requireSite(slug)),dest=guarded(root,rel);fs.mkdirSync(path.dirname(dest),{recursive:true});guarded(root,rel);if(fs.existsSync(dest)&&(!fs.lstatSync(dest).isFile()||fs.lstatSync(dest).nlink!==1))throw new HttpError(400,'NOT_REGULAR_FILE');const fd=fs.openSync(dest,fs.constants.O_WRONLY|fs.constants.O_CREAT|(fs.constants.O_NOFOLLOW||0),0o600);try{if(fs.fstatSync(fd).nlink!==1)throw new HttpError(403,'FILE_LINK_REFUSED');fs.ftruncateSync(fd,0);fs.writeFileSync(fd,bytes);}finally{fs.closeSync(fd);}return {path:rel,bytes:bytes.length};}
@@ -55,7 +57,9 @@ export function mkdirSite(slug,rel){const root=siteRoot(requireSite(slug));fs.mk
 export function deleteSiteFile(slug,rel){const file=guarded(siteRoot(requireSite(slug)),rel);if(fs.statSync(file).isDirectory()){if(fs.readdirSync(file).length)throw new HttpError(409,'DIRECTORY_NOT_EMPTY');fs.rmdirSync(file);}else fs.unlinkSync(file);return {deleted:rel};}
 const deployFile=slug=>path.join(DATA,'deploy-'+slug+'.json');
 export async function deployZip(slug,buf,expectedSha=null){
+ assertNodeBuildSettled(slug);
  const site=requireSite(slug),target=siteRoot(site),id=crypto.randomUUID(),stage=path.join(DATA,'staging-'+id),previous=target+'-previous-'+id;
+ if(site.type==='node'&&site.entry.includes('/'))throw new HttpError(409,'NODE_BUILD_USE_SAFE_UPDATE');
  const sha256=typeof buf==='string'?await hashFile(buf):crypto.createHash('sha256').update(buf).digest('hex');if(expectedSha&&expectedSha!==sha256)throw new HttpError(400,'ZIP_CHECKSUM_MISMATCH');
  const old=readJson(deployFile(slug),null);if(old&&old.phase!=='DONE'&&old.phase!=='ROLLED_BACK')throw new HttpError(409,'DEPLOY_RECOVERY_REQUIRED');
  let moved=false,installed=false,paused=false;
@@ -84,4 +88,4 @@ export async function deployZip(slug,buf,expectedSha=null){
   if(moved||paused)atomicJson(deployFile(slug),{id,slug,phase:'ROLLED_BACK'});throw e;
  }finally{fs.rmSync(stage,{force:true,recursive:true});}
 }
-export async function rollbackDeploy(slug){const site=requireSite(slug),j=readJson(deployFile(slug),null);if(j?.phase!=='DONE'||!j.previous||!/^[-a-z0-9.]+$/.test(j.previous))throw Error('NO_DEPLOY_ROLLBACK');const root=siteRoot(site),prev=path.join(path.dirname(root),j.previous);if(!fs.existsSync(prev))throw Error('ROLLBACK_FILES_MISSING');if(site.type==='node')await serviceAction('mhs-site-'+slug,'down');const saved=root+'-rollback-'+crypto.randomUUID();fs.renameSync(root,saved);fs.renameSync(prev,root);if(site.type==='node')await serviceAction('mhs-site-'+slug,'up');atomicJson(deployFile(slug),{...j,phase:'ROLLED_BACK',saved:path.basename(saved)});return {ok:true,databaseUnchanged:true};}
+export async function rollbackDeploy(slug){assertNodeBuildSettled(slug);const site=requireSite(slug),j=readJson(deployFile(slug),null);if(j?.phase!=='DONE'||!j.previous||!/^[-a-z0-9.]+$/.test(j.previous))throw Error('NO_DEPLOY_ROLLBACK');const root=siteRoot(site),prev=path.join(path.dirname(root),j.previous);if(!fs.existsSync(prev))throw Error('ROLLBACK_FILES_MISSING');if(site.type==='node')await serviceAction('mhs-site-'+slug,'down');const saved=root+'-rollback-'+crypto.randomUUID();fs.renameSync(root,saved);fs.renameSync(prev,root);if(site.type==='node')await serviceAction('mhs-site-'+slug,'up');atomicJson(deployFile(slug),{...j,phase:'ROLLED_BACK',saved:path.basename(saved)});return {ok:true,databaseUnchanged:true};}

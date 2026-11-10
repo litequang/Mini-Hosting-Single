@@ -1,5 +1,13 @@
 # Code map
 
+RC16: node-build.mjs owns nested Node build staging/preview, syntax, hashes,
+directory swap, bounded HTTP startup checks and conservative rollback/recovery.
+node-build-state.mjs supplies the pending journal gate without blocking the
+Node launcher. server.mjs rechecks the site gate inside the mutation queue and
+adapts legacy deploy-stored to the safe nested-build updater. node-build.js
+extends Files with typed preview/update/status/recovery, rereading after errors.
+Tests cover isolated PC filesystem/HTTP/Chrome; native evidence is separate.
+
 RC14 site onboarding: public/site-wizard.js integrates short
 subdomain/site creation, automatic unused folder slug, existing domain preview/
 typed apply and HTTPS status into original Websites/workspace. app.js owns modal

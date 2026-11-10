@@ -2,6 +2,34 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 10 November 2026 — QR website published on X7B
+
+Built owner source E:/CODE/QR as a static React/Vite app. Fixed its Vite/esbuild
+peer mismatch, set the default QR URL and Vietnamese lang, and made SVG preview
+fit mobile. TypeScript/build PASS. Through the installed original RC15 Panel API,
+created fresh static site qr, deployed its checksummed build, local Nginx200,
+previewed and explicitly published qr.thophuong.com. Readback confirmed one owned
+proxied CNAME/8080 rule and every preexisting Tunnel configuration field unchanged.
+Existing registry entries, Nginx config bytes, pro entry/private env and immutable
+source remained unchanged. QR source/build/private evidence are outside this repo.
+
+Cloudflare/Google public DNS resolve the hostname. Actual public Chrome (including
+normal resolver) rendered desktop/mobile with no JS errors and generated URL/text/
+Wi-Fi QR; PNG/SVG/PDF downloads PASS. Independently decoded downloaded PNG to the
+exact test URL. Public QR/pro/beta200, Panel302 to existing Access. Device normal
+HTTPS verifier initially returned status null; its state was not manually changed.
+This is targeted native/public evidence, not physical reboot acceptance.
+
+## 10 November 2026 — RC16 Node build updater PC checkpoint
+
+Observed pro entry dist/server.cjs, a dist-wrapped ZIP, installed sibling libraries/
+media and an old full-app ROLLED_BACK journal. Kept frontend overlap guard and
+implemented a separate nested build updater. Tests cover staging/hash/syntax,
+flat/wrapped ZIPs, stale assets, unchanged dependencies/media/env, automatic HTTP
+rollback, interrupted moves, failed startup/recovery, queued writes and auth/CSRF.
+Chrome original Files checks preview/typed update/rollback, failed app, lost response
+and subsequent editor save. PC checks PASS; packaging/native RC16 checks follow.
+
 ## 10 November 2026 — live domain setup and first X7B publication
 
 Owner entered the API token privately in Panel. Zone/account/connector UUID all

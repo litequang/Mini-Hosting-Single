@@ -1,5 +1,14 @@
 # Architecture
 
+RC16 nested Node updates replace only the first directory of the configured
+entry (dist for dist/server.cjs). Private expiring plans bind site, ZIP and old/
+new content hashes. Parse-only checks run in matching package module scope.
+Old code stays in a private release directory; owned stop/swap/start and real
+HTTP verification have durable phases. Recovery validates both versions before
+moving files and refuses unknown modifications. Pending recovery gates queued
+site mutations, but never the Node launcher needed to verify recovered code.
+SQL, private env, dependencies and sibling media are outside the swap scope.
+
 M5 retains immutable source/current and separate private data. Explicit reset
 requires verified remote restic backups/recovery kit, stops only owned MHS services,
 then quarantines data by rename; it never deletes hosting/Termux or mutates Cluster.

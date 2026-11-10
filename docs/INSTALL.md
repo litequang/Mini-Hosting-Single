@@ -1,4 +1,16 @@
-# Install Mini Hosting Single 2.1 RC15
+# Install Mini Hosting Single 2.1 RC16
+
+RC16 adds safe updates for Node entrypoints such as dist/server.cjs: replace
+the build directory, keep sibling dependencies/data, restart/HTTP-check and
+rollback/recover through original Files. See [Node deployment](NODE-DEPLOY.md).
+Use the immutable RC16 artifacts/checksums in
+[`releases/2.1.0-rc.16.json`](../releases/2.1.0-rc.16.json).
+The latest pinned command and native results are maintained in the
+[repository installer guide](https://github.com/litequang/Mini-Hosting-Single/blob/main/docs/INSTALL.md).
+
+---
+
+# Historical RC15 instructions
 
 RC15 keeps the RC14 website wizard and corrects the publication label for sites
 already configured manually. Missing API records do not prove that an existing
