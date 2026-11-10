@@ -1,4 +1,13 @@
-# Install Mini Hosting Single 2.1 RC14
+# Install Mini Hosting Single 2.1 RC15
+
+RC15 keeps the RC14 website wizard and corrects the publication label for sites
+already configured manually. Missing API records do not prove that an existing
+site is offline. Use the immutable RC15 artifacts in
+[`releases/2.1.0-rc.15.json`](../releases/2.1.0-rc.15.json).
+
+---
+
+# Historical RC14 instructions
 
 RC14 integrates website creation and Cloudflare publishing in the original Panel.
 With a configured domain API, enter a short subdomain, choose the website type,
@@ -6,6 +15,29 @@ review the DNS/route plan and type the hostname to publish. Without API setup,
 the new site stays local with a link to one-time Cloudflare configuration.
 Each website has Publish/HTTPS to continue or inspect its state. See
 [hosting](HOSTING.md) and [domain automation](DOMAIN-AUTOMATION.md).
+
+Run this pinned block in standard Termux on an independent MHS phone. It supports
+fresh installation, same-release resume and source upgrade of an installed MHS.
+
+```sh
+(
+  set -eu
+  test "${PREFIX:-}" = /data/data/com.termux/files/usr || { echo MHS_STANDARD_TERMUX_REQUIRED; exit 1; }
+  for p in .config/mhc-full-installer .local/share/mhc-full-installer android-hosting-panel .config/mini-hosting-cluster apps .nginx .cloudflared; do
+    test ! -e "$HOME/$p" || { echo MHS_EXISTING_HOSTING_REFUSED; exit 1; }
+  done
+  command -v curl >/dev/null || pkg install -y curl
+  command -v sha256sum >/dev/null || pkg install -y coreutils
+  curl --fail --location --proto '=https' --proto-redir '=https' --silent --show-error 'https://raw.githubusercontent.com/litequang/Mini-Hosting-Single/7910c87c695c462e297fe7c863c8664d8c2e9e47/releases/install-2.1.0-rc.14.sh' -o "$HOME/mhs-install-2.1.0-rc.14.sh"
+  printf '%s  %s\n' '96702be5da16dce0e5f9d504e01518b1903b1132529a8555ed2d5ef3785bf26e' "$HOME/mhs-install-2.1.0-rc.14.sh" | sha256sum -c -
+  bash "$HOME/mhs-install-2.1.0-rc.14.sh"
+)
+```
+
+Source `de79e04fc7796f3c87b14bc0fb8798d4cd6d1e0f`; artifact
+`7910c87c695c462e297fe7c863c8664d8c2e9e47`; tag `v2.1.0-rc.14`.
+Bundle SHA256 `ca0301ffb11e92d96a208f7d183f2c9a8a14487b41816804c1feff3ae0e13abc`.
+PC package/installer/Chrome/SDK-mock and public commit/tag SHA256 checks PASS.
 
 Use the immutable RC14 bundle/bootstrap and checksums recorded in
 [`releases/2.1.0-rc.14.json`](../releases/2.1.0-rc.14.json). Older commands below

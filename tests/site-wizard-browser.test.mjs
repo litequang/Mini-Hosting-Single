@@ -27,7 +27,8 @@ test('Chrome PC: create site, scoped subdomain, explicit publish, retry and hone
   await page.locator('[data-tab="sites"]').click();await page.locator('[data-action="create-site"]').click();
   assert.equal(await page.locator('[data-node-entry]').isVisible(),false);
   await page.locator('#siteForm input[name="hostname"]').fill('manual.example.com');await page.locator('#siteForm button').click();
-  await page.locator('#sitePublish').getByText('Chưa tạo DNS hoặc route Internet.',{exact:false}).waitFor();assert.equal(previews,0);assert.equal(applies,0);
+  await page.locator('#sitePublish').getByText('website đã cấu hình thủ công có thể vẫn đang public.',{exact:false}).waitFor();assert.equal(previews,0);assert.equal(applies,0);
+  await page.locator('#content').getByText('web-manual · Chưa ghi nhận DNS qua API',{exact:true}).waitFor();
   assert.equal(c.registry().sites.length,1);assert.equal(c.registry().sites[0].slug,'web-manual');
   await page.locator('#modalBody [data-action="site-cloudflare"]').click();await page.locator('#domainApiConfig').waitFor();
   // Private synthetic API scope only. The browser cannot reach the Internet;

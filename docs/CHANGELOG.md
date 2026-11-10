@@ -1,3 +1,10 @@
+# MHS 2.1.0-rc.15
+
+- Native X7B verification found that existing manually published websites have
+  no API ownership journal. Label that state as unrecorded via API rather than
+  local-only; do not infer Internet availability from missing API configuration.
+  Keep existing manual DNS/routes and RC14 artifacts unchanged.
+
 # MHS 2.1.0-rc.14
 
 - Add a website from a short subdomain in the configured zone; generate its unused

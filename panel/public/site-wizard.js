@@ -1,5 +1,5 @@
 // Site creation and publishing reuse the existing authenticated Panel APIs.
-const labels={'local only':'Chỉ chạy trên máy',planned:'Chưa xuất bản','DNS published':'Đã tạo DNS · chờ kiểm tra HTTPS','HTTPS verified':'HTTPS đã kiểm tra','RECOVERY REQUIRED':'Cần kiểm tra cấu hình Cloudflare'};
+const labels={'local only':'Chưa ghi nhận DNS qua API',planned:'Chưa áp dụng DNS qua API','DNS published':'Đã tạo DNS · chờ kiểm tra HTTPS','HTTPS verified':'HTTPS đã kiểm tra','RECOVERY REQUIRED':'Cần kiểm tra cấu hình Cloudflare'};
 export const domainStateLabel=value=>labels[value]||labels['local only'];
 export function siteWizardUi({req,modal,esc,input,btn,toast,loadSites}){
  const post=(url,body={})=>req(url,{method:'POST',body});
@@ -38,7 +38,7 @@ export function siteWizardUi({req,modal,esc,input,btn,toast,loadSites}){
   const section=document.querySelector('#sitePublish');
   if(recovery){section.innerHTML=problem(Error('CF_RECOVERY_INSPECTION_REQUIRED'))+btn('Kiểm tra Cloudflare','site-cloudflare');return;}
   if(published){section.innerHTML=`<p>${domain.state==='HTTPS verified'?'Lần kiểm tra gần nhất nhận được phản hồi HTTPS.':'DNS và route đã tạo. HTTPS chưa được xác nhận; kiểm tra Tunnel, Nginx và ứng dụng rồi thử lại.'}</p><div class="btnrow"><a href="https://${esc(site.hostname)}/" target="_blank" rel="noopener noreferrer">Mở website ↗</a>${btn('Kiểm tra lại HTTPS','site-verify:'+slug)}</div>`;return;}
-  if(!status.configured){section.innerHTML=`<div class="info">Chưa tạo DNS hoặc route Internet. Kết nối API Cloudflare một lần, sau đó mở lại Xuất bản cho site này.</div><p class="help">Cần API token riêng với quyền DNS Edit, Zone Read và Tunnel Edit cho đúng domain/account. Connector token chạy Tunnel không có quyền tạo DNS. Nhập token tại Panel, không gửi vào chat.</p><div class="btnrow">${btn('Kết nối Cloudflare','site-cloudflare')}${btn('Tiếp tục sau','site-done')}</div>`;return;}
+  if(!status.configured){section.innerHTML=`<div class="info">Chưa kết nối API Cloudflare. Panel chưa ghi nhận DNS/route do API tạo cho site này; website đã cấu hình thủ công có thể vẫn đang public.</div><p class="help">Site mới cần được xuất bản riêng. Kết nối API một lần rồi mở lại Xuất bản. Cần token riêng với quyền DNS Edit, Zone Read và Tunnel Edit cho đúng domain/account. Connector token chạy Tunnel không có quyền tạo DNS. Nhập token tại Panel, không gửi vào chat.</p><div class="btnrow">${btn('Kết nối Cloudflare','site-cloudflare')}${btn('Tiếp tục sau','site-done')}</div>`;return;}
   // Creating a site may prepare a read-only plan, but never applies it.
   if(!preview){section.innerHTML=btn('Xem cấu hình xuất bản','site-preview:'+slug,'primary');return;}
   try{const plan=await post('/api/sites/'+slug+'/domain-preview');

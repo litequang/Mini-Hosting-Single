@@ -2,6 +2,31 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 10 November 2026 — X7B RC14 native results and RC15 wording correction
+
+RC14 source de79e04fc7796f3c87b14bc0fb8798d4cd6d1e0f; artifact
+7910c87c695c462e297fe7c863c8664d8c2e9e47; tag v2.1.0-rc.14 pushed.
+Immutable package/shell/install fixture/public commit+tag SHA checks PASS.
+Owner supplied the X7B SSH endpoint; host key matched the previously trusted
+device at another IP. Verified HONOR/CLK-LX2/u0_a210 and active MHS RC13 before
+upgrade. Native source upgrade DONE, Panel reports RC14, selected private config/
+credential/app-entry hashes and both original registry entries unchanged.
+
+Actual original Panel via SSH forwarding: create a fresh static site, Files HTML
+edit/save, reopen publishing and connect-to-API form PASS, Chrome JS errors0.
+New site mhs-rc14-test.thophuong.com, slug web-mhs-rc14-test, returns local HTTP200
+with edited test page; /.env403. Existing pro public homepage/API200 and beta
+homepage200 before upgrade; native pro200/beta301 after upgrade. No DNS/API token
+configured, no Cloudflare account writes; new test hostname is not Internet
+published. Owner asked to enter a scoped token privately in Panel to continue.
+Doctor54PASS/1FAIL/2NOT RUN; the LAN-monitor FAIL was present before upgrade and
+remains after. Source/website tests are not physical reboot acceptance.
+
+Native inspection found manual public sites were described as local-only when
+they lacked an API journal. RC15 corrects this to unrecorded via API and explains
+that manual publication may already exist; it does not adopt or mutate DNS.
+Prepare a new immutable release rather than patching the installed RC14 files.
+
 ## 10 November 2026 — RC14 release and X7B deployment preparation
 
 Owner explicitly requested release/install on the independent Honor X7B to test
