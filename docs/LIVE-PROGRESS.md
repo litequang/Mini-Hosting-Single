@@ -2,6 +2,41 @@
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.
 
+## 11 November 2026 — GPLX deployed; MHS form fixes deferred by owner
+
+Owner supplied new X7B IP192.168.1.41. Verified the previously trusted Ed25519
+key, HONOR/CLK-LX2 and installed RC18 complete111-file source manifest. No failed
+create journals or stray site directories. Actual original Panel create form with
+GPLX.thophuong.com/static returned201, slug web-gplx. Owner describes no visible
+response when entering/creating a domain. Began local form/input/response recovery
+changes and tests; owner then explicitly prioritized publishing GPLX and deferred
+MHS fixes. Those source edits remain uncommitted and are NOT installed/published.
+New parser/API tests pass; the new browser test needs its list-visibility check
+investigated before any release. Installed X7B remains immutable RC18.
+
+Deployed exact owner E:/CODE/GPLX/gplx-pwa/dist (source b69b84e65af68006274644897c8f036f372f6f39):
+656files/28,599,444bytes, ZIP SHA256
+d761401b43452154aace5960b9425230b5e81ab60716aa344c5faac564f44a26.
+GPLX nine data/worker fixture tests, syntax and check:deploy PASS; no build needed.
+Original authenticated RC18 ZIP deployment verified local200. Preview/typed apply
+created gplx.thophuong.com CNAME and exact8080 route. Full SDK readback preserves
+every prior Tunnel field/rule and all original site entries/private/Nginx hashes.
+All656 installed files independently match source SHA256.
+
+Public normal-resolver HTTPS200; exact hashes for HTML, JS, CSS, dataset, offline
+manifest, worker and icons match source. Dataset600 questions/332 signs. This is
+HTTP/native deployment evidence, not browser or installed-PWA/offline acceptance.
+GPLX documentation records a prior Computer Use URL-verification block; no alternate
+browser control was used to bypass it for GPLX. MHS Panel UI alone was exercised.
+
+Deployment-specific PWA issue: Termux Nginx served .webmanifest as octet-stream,
+which this app's worker rejects. Backed up ONLY owned web-gplx.conf privately,
+added an exact manifest MIME location and nginx-tested/reloaded. Public response
+now application/manifest+json; source files unchanged. Follow-up MHS work must put
+this MIME support in the generator, because future regenerateNginx can replace
+the site override. Private evidence/backups remain outside Git. No MHS source
+upgrade or other phone/Cluster operation during this deployment.
+
 ## 10 November 2026 — RC18 completed on X7B; QR public verification
 
 Source4ee1bba6218cf39b4e41a849c8a161cd78a85e21; artifact
