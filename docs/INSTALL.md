@@ -1,3 +1,12 @@
+# Install Mini Hosting Single 2.1 RC20
+
+RC20 retains guided unzip/creation and closes the Files site-switch upload race.
+Pinned artifact references will be recorded after package/native verification.
+
+---
+
+# Historical RC19 checkpoint
+
 # Install Mini Hosting Single 2.1 RC19
 
 RC19 adds guided ZIP extraction and reliable website creation feedback within the

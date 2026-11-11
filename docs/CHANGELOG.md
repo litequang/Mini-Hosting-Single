@@ -1,3 +1,12 @@
+# MHS 2.1.0-rc.20
+
+- Remove old Files upload/actions synchronously when switching site/directory,
+  before registry/list network waits. Capture the requested site/path and ignore
+  stale Files responses after a newer location/tab is selected.
+- A delayed real Chrome registry response verifies no old upload control remains;
+  a delayed Files response cannot replace the newer Websites tab. Guided unzip,
+  creation and Node build Chrome targeted regressions PASS. Keep RC19 immutable.
+
 # MHS 2.1.0-rc.19
 
 - Replace chained unzip prompts with a destination/preview/overwrite form, inline

@@ -1,3 +1,8 @@
+RC20: app.js clears Files immediately before loading registry, tracks Files and
+navigation generations and captures site/path per render. files-v21.js checks
+isCurrent after list HTTP before mounting controls. unzip-ui.test delays registry
+and list responses to verify old-site upload and stale-tab races are closed.
+
 RC19 additions: public/unzip.js owns the inline Files ZIP form, progress/status,
 conflict selection and lost-response reconciliation. zip-stream.mjs normalizes
 root destinations and stores operation-bound private receipts; server.mjs exposes

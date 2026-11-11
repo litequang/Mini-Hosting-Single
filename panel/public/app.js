@@ -56,12 +56,18 @@ async function dashboard(){const generation=navigation;const s=await req('/api/o
 
 async function loadSites(){state.sites=(await req('/api/sites')).sites;return state.sites;}
 let selectedPath='';
-async function filesPage(){const list=await loadSites();if(!state.selectedSite||!list.some(s=>s.slug===state.selectedSite)){state.selectedSite=list[0]?.slug||'';state.dir='';state.selectedFile='';}
- if(!state.selectedSite){page('File Manager','<div class="empty">Chưa có website được nhận diện.</div>');return;}
- page('File Manager','<p>Đang tải File Manager...</p>');
- const {renderFiles}=await import('/files-v21.js');
- await renderFiles({container:$('#content'),sites:list,slug:state.selectedSite,dir:state.dir,request:req,getCsrf:()=>state.csrf,notify:toast,onLocation:async(slug,dir)=>{state.selectedSite=slug;state.dir=dir;await filesPage();}});
- if(list.find(s=>s.slug===state.selectedSite)?.type==='node')$('#content').insertAdjacentHTML('afterbegin',`<div class="toolbar">${btn('Triển khai Node.js: thư viện · database · khởi động','node-setup:'+state.selectedSite,'primary')}</div>`);
+let filesNavigation=0;
+async function filesPage(){const generation=++filesNavigation,navGeneration=navigation;
+ const isCurrent=()=>generation===filesNavigation&&navGeneration===navigation&&state.tab==='files';
+ // Remove the old site's upload controls before the first network wait. A quick
+ // file selection after changing sites must never target the previous site.
+ page('File Manager','<p role="status">?ang t?i File Manager...</p>');
+ const list=await loadSites();if(!isCurrent())return;
+ if(!state.selectedSite||!list.some(s=>s.slug===state.selectedSite)){state.selectedSite=list[0]?.slug||'';state.dir='';state.selectedFile='';}
+ if(!state.selectedSite){page('File Manager','<div class="empty">Ch?a c? website ???c nh?n di?n.</div>');return;}
+ const slug=state.selectedSite,dir=state.dir,{renderFiles}=await import('/files-v21.js');if(!isCurrent())return;
+ await renderFiles({container:$('#content'),sites:list,slug,dir,isCurrent,request:req,getCsrf:()=>state.csrf,notify:toast,onLocation:async(slug,dir)=>{state.selectedSite=slug;state.dir=dir;await filesPage();}});
+ if(isCurrent()&&list.find(s=>s.slug===slug)?.type==='node')$('#content').insertAdjacentHTML('afterbegin',`<div class="toolbar">${btn('Tri?n khai Node.js: th? vi?n ? database ? kh?i ??ng','node-setup:'+slug,'primary')}</div>`);
 }
 async function editFile(filename){state.selectedFile=state.dir?state.dir+'/'+filename:filename;const content=await req(`/api/files/${state.selectedSite}/read?${qs({path:state.selectedFile})}`);const ro=state.sites.find(s=>s.slug===state.selectedSite)?.external&&['dist/server.cjs','package.json','package-lock.json'].includes(state.selectedFile);const el=$('#editor');el.innerHTML=`<div class="sectionhead" style="margin-top:0"><h2 class="mono">${esc(state.selectedFile)}</h2></div><textarea id="editText" spellcheck="false" ${ro?'readonly':''}></textarea>${ro?'<p class="help">File hệ thống được bảo vệ; dùng Deploy ZIP để cập nhật backend.</p>':`<div class="btnrow" style="margin-top:10px">${btn('Lưu thay đổi','file-save','primary')}${btn('Xóa file','file-delete','warn')}</div>`}`;$('#editText').value=content.text;}
 async function databases(){const {databases:list}=await req('/api/databases');page('Databases',`<div class="sectionhead"><div><h2>MariaDB</h2><p>Database được quản lý cục bộ, không mở cổng 3306 ra Internet.</p></div>${btn('+ Database mới','create-database','primary')}</div><div class="tablewrap"><table><thead><tr><th>Database</th><th>Hành động</th></tr></thead><tbody>${list.map(name=>`<tr><td class="titlecell mono">${esc(name)}</td><td><div class="btnrow">${btn('Xem tables','db-tables:'+name)}${btn('Backup SQL','db-backup:'+name)}${btn('Restore SQL','db-restore:'+name,'tiny warn')}</div></td></tr>`).join('')||'<tr><td colspan="2" class="empty">Chưa có database ứng dụng</td></tr>'}</tbody></table></div><div class="info" style="margin-top:18px">Khi tạo database mới, tên người dùng và mật khẩu được hiển thị <b>một lần duy nhất</b>. Root MariaDB được dùng qua socket nội bộ cho các tác vụ quản trị.</div>`);}

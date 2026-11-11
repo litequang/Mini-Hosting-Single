@@ -1,3 +1,18 @@
+## 11 November 2026 ? RC20 closes native-discovered Files site-switch race
+
+RC19 immutable source/package/commit+tag SHA and source upgrade PASS on Honor X7B.
+All113 installed manifest entries and1337 protected file hashes PASS; remote
+anonymous Panel/Monitor403. Creation via the real form PASS. Native quick site
+selection followed by upload exposed old-site callbacks still active while the
+new registry was loading. The synthetic fixture.zip was stored beside the old
+Node app, never extracted/deployed there; verified exact synthetic SHA and moved
+it to private operator quarantine. No existing application file was replaced.
+The empty owned fixture was moved to MHS trash.
+
+RC20 removes old controls synchronously, captures site/path and refuses late
+Files renders after navigation. Isolated real Chrome delayed-registry/list
+regressions and creation/Node/unzip checks PASS. RC20 package/native retest pending.
+
 ## 11 November 2026 ? RC19 ZIP/creation workflow fixes in preparation
 
 Owner reports hoclaixe unzip eventually works after many attempts. Native read-only

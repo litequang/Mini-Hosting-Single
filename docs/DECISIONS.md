@@ -1,3 +1,8 @@
+11 November, RC20: the site selector must remove old upload controls before the
+first network wait. A changing selector value alone does not rebind existing
+callbacks. Mount a new view only when its site/path/navigation generation still
+matches; do not let an old list response overwrite a newer location.
+
 11 November, RC19: use an inline ZIP form instead of prompts after asynchronous
 preview. Display progress and inspect the durable operation result after a lost
 reply. A repeated UUID must match every original parameter and return the saved
