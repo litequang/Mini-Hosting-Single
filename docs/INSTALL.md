@@ -1,3 +1,13 @@
+# Install Mini Hosting Single 2.1 RC19
+
+RC19 adds guided ZIP extraction and reliable website creation feedback within the
+original Panel. Immutable artifact references and native results will be recorded
+in the current GitHub version of this guide after packaging/verification.
+
+---
+
+# Historical RC18 instructions
+
 # Install Mini Hosting Single 2.1 RC18
 
 RC18 includes safe Node build updates/rollback and the navigation fix. It also

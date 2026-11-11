@@ -1,3 +1,10 @@
+11 November, RC19: use an inline ZIP form instead of prompts after asynchronous
+preview. Display progress and inspect the durable operation result after a lost
+reply. A repeated UUID must match every original parameter and return the saved
+result; it must never silently extract a second time. Root aliases are normalized
+before planning. Website input normalization accepts only hostnames/root URLs;
+ambiguous credentials, ports, paths and query strings are refused.
+
 # Decisions — 30 October 2026
 
 10 November, RC18: yauzl autoClose:false disables end-of-entry automatic close;

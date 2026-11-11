@@ -1,7 +1,8 @@
 // Site creation and publishing reuse the existing authenticated Panel APIs.
+import {siteHostname,siteSlug,siteInputMessage} from './site-input.js';
 const labels={'local only':'Chưa ghi nhận DNS qua API',planned:'Chưa áp dụng DNS qua API','DNS published':'Đã tạo DNS · chờ kiểm tra HTTPS','HTTPS verified':'HTTPS đã kiểm tra','RECOVERY REQUIRED':'Cần kiểm tra cấu hình Cloudflare'};
 export const domainStateLabel=value=>labels[value]||labels['local only'];
-export function siteWizardUi({req,modal,esc,input,btn,toast,loadSites}){
+export function siteWizardUi({req,modal,esc,input,btn,toast,loadSites,onCreated=async()=>{}}){
  const post=(url,body={})=>req(url,{method:'POST',body});
  const next=site=>`<div class="btnrow">${btn('Upload mã web / dist','site-files:'+site.slug)}${site.type==='node'?btn('Cài thư viện và khởi động Node.js','node-setup:'+site.slug):''}${site.type==='wordpress'?btn('Cài WordPress','wp-install:'+site.slug):''}${btn('Quản lý website','manage-site:'+site.slug)}</div><p class="help">Site mới có trang mẫu. Upload ứng dụng và kiểm tra chức năng riêng; kiểm tra HTTPS chưa xác nhận ứng dụng hoạt động đầy đủ.</p>`;
  function problem(error){const code=error.message;const messages={
@@ -17,18 +18,32 @@ export function siteWizardUi({req,modal,esc,input,btn,toast,loadSites}){
  };return `<div class="info danger" role="alert">${esc(messages[code]||'Chưa hoàn tất thao tác: '+code)}</div><p class="help">Website đã tạo vẫn được giữ trên máy. Có thể tiếp tục từ nút Xuất bản trong Websites.</p>`;}
  async function open(){
   const status=await req('/api/domain-status');
-  modal('Thêm website',`<form id="siteForm" data-zone="${esc(status.zone||'')}">${input('hostname',status.zone?'Subdomain hoặc tên miền đầy đủ':'Tên miền đầy đủ',status.zone?'shop → shop.'+status.zone:'shop.example.com')}<p class="help">${status.configured?'Domain đã kết nối: '+esc(status.zone)+'. Panel sẽ chuẩn bị DNS và route Tunnel sau khi tạo site.':'Chưa kết nối API Cloudflare. Bạn vẫn tạo được site trên máy; kết nối một lần để xuất bản tự động.'}</p><div class="inputgroup"><label>Loại website</label><select name="type"><option value="static">Static / React dist</option><option value="node">Node.js</option><option value="php">PHP</option><option value="wordpress">WordPress</option></select></div><div class="inputgroup hide" data-node-entry>${input('entry','Node entrypoint','server.mjs','server.mjs')}</div><details><summary>Tùy chọn nâng cao</summary><div class="inputgroup"><label>Mã thư mục website (để trống để tự tạo)</label><input name="slug" placeholder="shop-web" pattern="[a-z][a-z0-9-]{1,30}"></div></details><p class="help">Tự cấp thư mục riêng và port Node.js. Bạn sẽ xem và xác nhận tên miền trước khi Panel ghi Cloudflare.</p><button class="primary wide">${status.configured?'Tạo website và xem cấu hình xuất bản':'Tạo website trên máy'}</button></form><div class="btnrow">${btn('Kết nối Cloudflare một lần','site-cloudflare')}</div>`);
-  const form=document.querySelector('#siteForm');form.elements.type.onchange=()=>{const node=form.elements.type.value==='node';form.querySelector('[data-node-entry]').classList.toggle('hide',!node);form.elements.entry.disabled=!node;};form.elements.type.onchange();
+  modal('Thêm website',`<form id="siteForm" novalidate data-zone="${esc(status.zone||'')}">${input('hostname',status.zone?'Subdomain hoặc tên miền đầy đủ':'Tên miền đầy đủ',status.zone?'shop → shop.'+status.zone:'shop.example.com')}<p class="help">${status.configured?'Domain đã kết nối: '+esc(status.zone)+'. Panel sẽ chuẩn bị DNS và route Tunnel sau khi tạo site.':'Chưa kết nối API Cloudflare. Bạn vẫn tạo được site trên máy; kết nối một lần để xuất bản tự động.'}</p><div class="inputgroup"><label>Loại website</label><select name="type"><option value="static">Static / React dist</option><option value="node">Node.js</option><option value="php">PHP</option><option value="wordpress">WordPress</option></select></div><div class="inputgroup hide" data-node-entry>${input('entry','Node entrypoint','server.mjs','server.mjs')}</div><details><summary>Tùy chọn nâng cao</summary><div class="inputgroup"><label>Mã thư mục website (để trống để tự tạo)</label><input name="slug" placeholder="shop-web" pattern="[a-z][a-z0-9-]{1,30}"></div></details><p class="help">Tự cấp thư mục riêng và port Node.js. Bạn sẽ xem và xác nhận tên miền trước khi Panel ghi Cloudflare.</p><button class="primary wide">${status.configured?'Tạo website và xem cấu hình xuất bản':'Tạo website trên máy'}</button></form><div class="btnrow">${btn('Kết nối Cloudflare một lần','site-cloudflare')}</div>`);
+  const form=document.querySelector('#siteForm');form.elements.hostname.autocapitalize='none';form.elements.hostname.spellcheck=false;form.elements.slug.autocapitalize='none';form.elements.type.onchange=()=>{const node=form.elements.type.value==='node';form.querySelector('[data-node-entry]').classList.toggle('hide',!node);form.elements.entry.disabled=!node;};form.elements.type.onchange();
  }
  async function create(form,data){
-  let hostname=data.hostname.trim().toLowerCase();if(!hostname.includes('.')&&form.dataset.zone)hostname+='.'+form.dataset.zone;
-  const sites=await loadSites(),used=new Set(sites.map(s=>s.slug));
-  let slug=data.slug.trim();if(!slug){let base=('web-'+hostname.split('.')[0]).replace(/[^a-z0-9-]/g,'-').slice(0,26);slug=base;let n=2;while(used.has(slug))slug=base+'-'+n++;}
-  const site=await post('/api/sites',{hostname,slug,type:data.type,entry:data.type==='node'?data.entry.trim():'server.mjs'});
+  if(form.dataset.submitting==='true')return;form.dataset.submitting='true';form.setAttribute('aria-busy','true');
+  let status=form.querySelector('[data-create-status]');if(!status){status=document.createElement('div');status.dataset.createStatus='';form.prepend(status);}status.className='info';status.setAttribute('role','status');status.textContent='Đang kiểm tra và tạo website…';
+  let site,existing=false;
+  try{
+   const hostname=siteHostname(data.hostname,form.dataset.zone),custom=siteSlug(data.slug,{optional:true});form.elements.hostname.value=hostname;if(custom)form.elements.slug.value=custom;
+   const sites=await loadSites();site=sites.find(s=>s.hostname===hostname);
+   if(site)existing=true;
+   else{
+    const used=new Set(sites.map(s=>s.slug));if(custom&&used.has(custom))throw Error('SITE_SLUG_ALREADY_USED');
+    let slug=custom||form.dataset.pendingHost===hostname&&form.dataset.pendingSlug;
+    if(!slug){const base=('web-'+hostname.split('.')[0]).replace(/[^a-z0-9-]/g,'-').slice(0,26);slug=base;let n=2;while(used.has(slug))slug=base+'-'+n++;}
+    form.dataset.pendingHost=hostname;form.dataset.pendingSlug=slug;
+    try{site=await post('/api/sites',{hostname,slug,type:data.type,entry:data.type==='node'?(data.entry||'').trim():'server.mjs'});}
+    catch(error){try{site=(await loadSites()).find(s=>s.slug===slug&&s.hostname===hostname&&s.type===data.type);}catch{}if(!site)throw error;}
+   }
+  }catch(error){status.className='info danger';status.setAttribute('role','alert');status.textContent=siteInputMessage(error);status.scrollIntoView({block:'nearest'});throw error;}
+  finally{delete form.dataset.submitting;form.removeAttribute('aria-busy');}
   // Remove the create form immediately: a later network failure must not offer
   // another POST /api/sites for the site that has already been created.
-  modal('Đã tạo · '+site.hostname,`<div class="info">Website đã tạo trên máy.</div>${next(site)}${btn('Tiếp tục xuất bản','site-publish:'+site.slug)}`);
-  toast('Đã tạo website trên máy');
+  modal((existing?'Website đã có · ':'Đã tạo · ')+site.hostname,`<div class="info">${existing?'Website này đã có trên máy. Mở lại để tiếp tục; không tạo trùng.':'Website đã tạo trên máy.'}</div>${next(site)}${btn('Tiếp tục xuất bản','site-publish:'+site.slug)}`);
+  toast(existing?'Đã mở website có sẵn':'Đã tạo website trên máy');
+  await onCreated(site);
   try{await publish(site.slug,{preview:true});}catch(error){toast('Đã tạo site; chưa tải được trạng thái xuất bản: '+error.message,true);}
  }
  async function publish(slug,{preview=false}={}){

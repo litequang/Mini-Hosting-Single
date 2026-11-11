@@ -1,3 +1,4 @@
+import {showUnzip} from './unzip.js';
 import {showNodeBuild} from './node-build.js';
 import {Uppy,Tus,sha256,EditorView,EditorState,basicSetup,javascript,html} from './vendor/browser.mjs';
 const CHUNK=8*1024*1024,esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -32,7 +33,8 @@ export async function renderFiles({container,sites,slug,dir,request,getCsrf,onLo
  container.querySelector('#fileFilter').oninput=e=>{for(const row of container.querySelectorAll('tr[data-name]'))row.hidden=!row.dataset.name.includes(e.target.value.toLowerCase());};
  container.querySelector('#siteSearch').onclick=async()=>{try{const q=container.querySelector('#fileFilter').value,result=await request(api+'/search?'+new URLSearchParams({q}));container.querySelector('#searchResults').innerHTML=result.results.map(f=>button(f.path,f.dir?'cd':'edit',f.path)).join(' ');}catch(e){notify(e.message,true);}};
  container.onclick=async e=>{const b=e.target.closest('[data-fm]');if(!b)return;e.stopPropagation();const action=b.dataset.fm,value=b.dataset.value;b.disabled=true;
-  if(!['node-build','node-build-status'].includes(action)){const area=container.querySelector('#v21Editor');area.onclick=null;area.onsubmit=null;}
+  delete container.querySelector('#v21Editor').dataset.unzipId;
+  if(!['node-build','node-build-status'].includes(action)){const area=container.querySelector('#v21Editor');area.onclick=null;area.onsubmit=null;area.oninput=null;delete area.dataset.unzipId;}
   try{
    if(action==='cd')return onLocation(slug,value);
    if(action==='node-build'||action==='node-build-status'){editor?.destroy();editor=null;return showNodeBuild({area:container.querySelector('#v21Editor'),slug,archive:action==='node-build'?value:null,request,notify});}
@@ -46,8 +48,7 @@ export async function renderFiles({container,sites,slug,dir,request,getCsrf,onLo
    if(action==='trash'){const r=await request(api+'/trash');container.querySelector('#v21Editor').innerHTML='<h3>Thùng rác (chỉ site này)</h3>'+r.items.map(i=>`<p>${esc(i.original)} ${button('Khôi phục','restore-trash',i.id)}</p>`).join('');return;}
    if(action==='restore-trash'){await post(api+'/trash-restore',{id:value,confirm:slug});return refresh();}
    if(action==='recover-upload'){const r=await request(api+'/upload-journals');if(!r.items.length){notify('Không có upload cần recovery.');return;}const id=prompt(r.items.map(i=>i.id+' · '+i.path+' · '+i.phase).join('\n')+'\nNhập ID cần xác minh/khôi phục:');if(!id)return;if(prompt('Nhập '+slug+' để xác nhận recovery')===slug)await post(api+'/upload-recover',{id,confirm:slug});return refresh();}
-   if(action==='recover-unzip'){if(prompt('Nhập '+slug+' để rollback unzip bị gián đoạn')===slug)await post(api+'/unzip-recover',{confirm:slug});return refresh();}
-   if(action==='unzip'){const dest=prompt('Thư mục đích (từ root site, trống = root)',dir);if(dest===null)return;const preview=await post(api+'/unzip-preview',{archive:value,dest,mode:'cancel'});const choice=preview.conflicts?prompt(preview.files+' mục, '+preview.conflicts+' file thay thế. Nhập overwrite hoặc skip; Cancel để dừng.','skip'):'cancel';if(choice===null||preview.conflicts&&!['skip','overwrite'].includes(choice))return;if(!confirm('Giải nén '+value+' → /'+dest+'? Không restart hoặc xóa file khác.'))return;await post(api+'/unzip',{archive:value,dest,sha256:preview.sha256,mode:choice,confirm:slug});return refresh();}
+   if(action==='recover-unzip'||action==='unzip'){editor?.destroy();editor=null;return showUnzip({area:container.querySelector('#v21Editor'),slug,archive:action==='unzip'?value:null,dir,request,refresh});}
    if(action==='frontend'){if(!site.frontend){const target=prompt('Thư mục frontend riêng (không được chứa backend/data)','dist');if(!target)return;await request('/api/sites/'+slug+'/frontend',{method:'PUT',body:{target,confirm:slug}});site.frontend=target;}const plan=await post('/api/sites/'+slug+'/frontend-preview',{archive:value});if(!confirm('Thay riêng /'+plan.target+' bằng '+plan.files+' mục, '+plan.bytes+' bytes? Backend '+plan.backendEntry+' và SQL giữ nguyên.'))return;const restart=confirm('Restart Node sau cập nhật? Cancel = không restart (mặc định).');await post('/api/sites/'+slug+'/frontend-deploy',{archive:value,sha256:plan.sha256,confirm:slug,restart});return refresh();}
    if(action==='rollback-front'){if(prompt('Nhập '+slug+' để rollback riêng frontend')===slug)await post('/api/sites/'+slug+'/frontend-rollback',{confirm:slug});return refresh();}
    if(action==='full-deploy'){if(prompt('Deploy toàn ứng dụng có thể thay backend. Database migration không rollback được bằng code. Nhập '+slug+' để tiếp tục')!==slug)return;const plan=await post(api+'/unzip-preview',{archive:value,dest:'.full-deploy-preview',mode:'cancel'});await post('/api/sites/'+slug+'/deploy-stored',{archive:value,sha256:plan.sha256,confirm:slug});return refresh();}

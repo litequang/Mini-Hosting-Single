@@ -1,3 +1,12 @@
+- Unzip takes several attempts or seems unresponsive: RC19 uses Files ? Gi?i n?n
+  ? leave destination blank for site root ? Xem tr??c ZIP ? choose keep/overwrite
+  for existing files ? Gi?i n?n. Wait for the persistent success result, then
+  Xem danh s?ch file m?i. Check ??c l?i tr?ng th?i after a lost connection before
+  starting another operation. ZIP with a dist/ wrapper keeps that wrapper.
+- Creation appears to do nothing: RC19 shows input errors/busy state in the form,
+  accepts a pasted root URL or uppercase hostname, and refreshes Websites as soon
+  as the site is created. Creation and DNS publication are separate outcomes.
+
 # Troubleshooting
 
 - Panel restarts/loses sessions during repeated ZIP operations, log EBADF close:

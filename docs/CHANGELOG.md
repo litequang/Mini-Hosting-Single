@@ -1,3 +1,17 @@
+# MHS 2.1.0-rc.19
+
+- Replace chained unzip prompts with a destination/preview/overwrite form, inline
+  progress, durable result and explicit Files refresh. Accept blank, dot and slash
+  as site root. Destination changes invalidate the preview.
+- Give unzip requests operation IDs and private terminal receipts. Lost-response
+  retries return the original result without extracting again. Read authenticated,
+  sanitized status; interrupted preparation remains recoverable. Keep CRC, path,
+  private/Cluster guards, overwrite confirmation and per-file rollback.
+- Normalize pasted root URLs/case in website creation, show validation in the form,
+  refresh the site list immediately and reconcile a lost successful create reply.
+- PC isolated filesystem/HTTP and mobile-width Chrome checks PASS. Android and
+  Internet verification are recorded separately in LIVE-PROGRESS.md.
+
 # MHS 2.1.0-rc.18
 
 - Transfer a raw no-follow file descriptor to the ZIP reader and await its single

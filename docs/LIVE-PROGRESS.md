@@ -1,3 +1,20 @@
+## 11 November 2026 ? RC19 ZIP/creation workflow fixes in preparation
+
+Owner reports hoclaixe unzip eventually works after many attempts. Native read-only
+inspection shows RC18 Panel alive, hoclaixe journal DONE/661 files; no current
+EBADF crash reproduced. The old UI chains several native dialogs around an awaited
+preview and has no progress/result reconciliation. This is verified workflow
+friction; a particular browser dialog rejection was not reproduced.
+
+Implemented inline ZIP preview/conflicts/status/results, root aliases, operation
+receipts/replay refusal and recoverable preparation. Completed the previously
+deferred creation input/inline feedback/list refresh/lost-response fixes.
+PC targeted guards/rollback, receipt replay, interrupted preparation, create
+parser/API/Chrome, wizard, Node build Chrome, ZIP descriptor lifecycle and syntax
+PASS. No full-suite/large Tus stress rerun: upload transport/vendor unchanged.
+Android release upgrade/new UI and Internet checks are PENDING at this checkpoint.
+Existing hoclaixe files are already extracted; do not overwrite them just to test.
+
 # Live progress — Mini Hosting Single
 
 Only this file records execution status. Source provenance: b2f04f9 MHC, read-only.

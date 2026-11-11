@@ -24,7 +24,7 @@ function closeModal(){$('#modal').classList.add('hide');$('#modalBody').innerHTM
 function input(name,label,placeholder='',val='',type='text'){return `<div class="inputgroup"><label>${esc(label)}</label><input name="${esc(name)}" placeholder="${esc(placeholder)}" value="${esc(val)}" type="${esc(type)}" required></div>`;}
 const sqlUi=sqlImportUi({req,modal,esc,input,toast});
 const nodeUi=nodeSetupUi({req,modal,esc,input,toast});
-const siteUi=siteWizardUi({req,modal,esc,input,btn,toast,loadSites});
+const siteUi=siteWizardUi({req,modal,esc,input,btn,toast,loadSites,onCreated:()=>nav('sites')});
 function busy(button,func){if(!button)return func();button.disabled=true;const old=button.textContent;button.textContent='Đang xử lý...';return Promise.resolve().then(func).catch(e=>{toast(e.message,true);throw e;}).finally(()=>{button.disabled=false;button.textContent=old;});}
 function page(title,html){$('#pageTitle').textContent=title;$('#content').innerHTML=html;}
 function btn(s,a,cls='tiny'){return `<button class="${cls}" data-action="${a}">${esc(s)}</button>`;}
@@ -128,7 +128,7 @@ $('#modalBody').addEventListener('submit',async e=>{e.preventDefault();const f=e
  if(f.id==='wpInstallForm'){const v=await req('/api/sites/'+f.dataset.site+'/wordpress',{method:'POST',body:{...d,confirm:f.dataset.site}});modal('WordPress đã cài',`<p>Đăng nhập: ${esc(v.login)}</p><p class="help">Chỉ truy cập được qua Internet sau khi bạn cấu hình Tunnel/hostname riêng.</p>`);return;}
  if(f.id==='siteRestoreForm'){await req('/api/sites/'+f.dataset.site+'/restore',{method:'POST',body:{backup:f.dataset.name,sha256:f.dataset.sha,confirm:d.confirm}});closeModal();toast('Đã restore website');return backups();}
  if(f.id==='backupUploadForm'){if(d.file.size>256*1024*1024)throw Error('Backup quá256MiB');const sum=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await d.file.arrayBuffer()))).map(n=>n.toString(16).padStart(2,'0')).join('');await req('/api/backups/upload?sha256='+sum,{method:'POST',body:d.file,raw:true});closeModal();return backups();}
- if(f.id==='siteForm'){await siteUi.create(f,d);return nav('sites');}
+ if(f.id==='siteForm')return siteUi.create(f,d);
  if(f.id==='sitePublishForm'){await siteUi.apply(f,d);return nav('sites');}
  if(f.id==='dbForm'){const v=await req('/api/databases',{method:'POST',body:d});return modal('Lưu credentials ngay',`<pre>${esc(JSON.stringify(v,null,2))}</pre>`);}
  if(f.id==='zipForm'){await req(`/api/sites/${f.dataset.site}/zip`,{method:'POST',body:d.file,raw:true});closeModal();return sites();}

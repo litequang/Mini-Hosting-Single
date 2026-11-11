@@ -11,6 +11,7 @@ import {hashFile} from './uploads.mjs';
 import {createDatabase} from './databases.mjs';
 import {assertIndependentTree,wpConfig,siteHealth} from './hosting.mjs';
 import {assertNodeBuildSettled} from './node-build-state.mjs';
+import {siteHostname,siteSlug} from '../public/site-input.js';
 export function requireSite(slug){const site=registry().sites.find(s=>s.slug===slug);if(!site)throw new HttpError(404,'WEBSITE_NOT_FOUND');if(!slugOK(site.slug))throw Error('INVALID_REGISTRY');return site;}
 export const listSites=()=>registry().sites.map(s=>({...s,directory:siteRoot(s),deployPhase:readJson(deployFile(s.slug),null)?.phase||null,restorePhase:readJson(path.join(DATA,'restore-'+s.slug+'.json'),null)?.phase||null}));
 export const siteRoot=site=>path.join(SITES,site.slug,site.type==='node'?'app':'public');
@@ -27,8 +28,9 @@ export async function updateSite(slug,{hostname,entry,port,environment}){
  catch(e){saveRegistry({...r,sites:r.sites.map(s=>s.slug===slug?site:s)});if(oldEnv)atomicJson(envFile,oldEnv);else fs.rmSync(envFile,{force:true});await regenerateNginx(registry().sites);throw e;}
 }
 export async function addSite({slug,hostname,type='static',entry='server.mjs'}){
+ try{hostname=siteHostname(hostname);slug=siteSlug(slug);}catch(e){throw new HttpError(400,e.message);}
  if(!slugOK(slug)||!hostOK(hostname)||!['static','node','php','wordpress'].includes(type))throw new HttpError(400,'Invalid site config');
- if(!entryOK(entry))throw new HttpError(400,'Invalid Node entrypoint');
+ if(type==='node'&&!entryOK(entry))throw new HttpError(400,'Invalid Node entrypoint');
  const r=registry();if(r.sites.some(s=>s.slug===slug||s.hostname===hostname))throw new HttpError(409,'Site slug or hostname already exists');
  if(fs.existsSync(path.join(SITES,slug)))throw new HttpError(409,'SITE_DIRECTORY_EXISTS');
  const used=new Set(r.sites.map(s=>s.port));let port=3200;while(used.has(port)&&port<=3399)port++;if(port>3399)throw new HttpError(409,'NO_NODE_PORT');

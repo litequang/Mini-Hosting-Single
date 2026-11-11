@@ -17,7 +17,7 @@ import {listBackups,backupSiteArchive,restoreSiteArchive,recoverSiteRestore,back
 import {withOperation} from './operation.mjs';
 import {handleUpload,pendingUploads,recoverUpload} from './uploads.mjs';
 import {fileList,searchFiles,listTrash,trashFile,restoreTrash,moveFile,downloadFiles} from './file-manager.mjs';
-import {unzipPreview,unzipApply,recoverUnzip} from './zip-stream.mjs';
+import {unzipPreview,unzipApply,recoverUnzip,unzipStatus} from './zip-stream.mjs';
 import {configureFrontend,previewFrontend,deployFrontend,rollbackFrontend} from './frontend.mjs';
 import {guarded} from './file-policy.mjs';
 import {proxyAdminer,stageAdminerBody,attachDatabase} from './adminer.mjs';
@@ -182,6 +182,7 @@ async function api(req,res,url){
    if(action==='trash-restore'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await mutate(()=>restoreTrash(name,b.id)));}
    if(action==='move'&&method==='POST'){const b=jsonBody(await readBody(req,8192));if(b.confirm!==name)throw new HttpError(400,'Confirmation mismatch');return send(res,200,await mutate(()=>moveFile(name,b.source,b.dest,{copy:b.copy===true})));}
    if(action==='download'&&method==='GET')return downloadFiles(name,rel,res,{zip:url.searchParams.get('zip')==='1'});
+   if(action==='unzip-status'&&method==='GET')return send(res,200,unzipStatus(name,url.searchParams.get('id')??undefined));
    if(action==='unzip-preview'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>unzipPreview(name,b.archive,b.dest,b.mode)));}
    if(action==='unzip'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>unzipApply(name,b)));}
    if(action==='unzip-recover'&&method==='POST'){const b=jsonBody(await readBody(req,8192));return send(res,200,await mutate(()=>recoverUnzip(name,b.confirm)));}
@@ -214,7 +215,7 @@ async function handle(req,res){try{
  if(url.pathname.startsWith('/api/'))return await api(req,res,url);
  if(req.method!=='GET')throw new HttpError(405,'Not allowed');
  const file=url.pathname==='/'?'index.html':url.pathname.slice(1);
- if(!['index.html','style.css','app.js','files-v21.js','backup-v21.js','domains-v21.js','sql-import.js','node-setup.js','site-wizard.js','node-build.js','vendor/browser.mjs'].includes(file))throw new HttpError(404,'Not found');
+ if(!['index.html','style.css','app.js','files-v21.js','unzip.js','backup-v21.js','domains-v21.js','sql-import.js','node-setup.js','site-wizard.js','site-input.js','node-build.js','vendor/browser.mjs'].includes(file))throw new HttpError(404,'Not found');
  let content=fs.readFileSync(path.join(PUBLIC,file));if(file==='index.html')content=Buffer.from(content.toString('utf8').replace('<head>','<head><meta name="mhs-auth-mode" content="'+(remote?'access-sso':'local-password')+'">'));res.writeHead(200,{'content-type':mime[path.extname(file)]||'application/octet-stream','content-length':content.length,'cache-control':'no-store','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",'x-frame-options':'DENY','referrer-policy':'no-referrer'});res.end(content);
  }catch(e){const status=e instanceof HttpError?e.status:500;console.error('MHS_REQUEST_FAILED',status);if(!res.headersSent)send(res,status,{error:status===500?'Operation failed':e.message});else res.destroy();}}
 const server=http.createServer(handle);server.on('close',()=>clearInterval(pruneTimer));server.requestTimeout=120000;server.headersTimeout=15000;return server;

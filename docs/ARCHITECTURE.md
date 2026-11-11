@@ -1,3 +1,10 @@
+RC19 keeps unzip within the original authenticated Files APIs. A preview hash
+binds ZIP bytes; a UUID binds site/archive/destination/mode/hash for one apply.
+PREPARING/APPLYING journals allow inspection and recovery; terminal private
+receipts survive later operations and prevent replay from reapplying old code.
+Status exposes relative paths/counts only. Existing mutation serialization, Node
+recovery gates, CRC/path/private/Cluster restrictions remain in force.
+
 # Architecture
 
 RC16 nested Node updates replace only the first directory of the configured

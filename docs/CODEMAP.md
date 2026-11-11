@@ -1,3 +1,11 @@
+RC19 additions: public/unzip.js owns the inline Files ZIP form, progress/status,
+conflict selection and lost-response reconciliation. zip-stream.mjs normalizes
+root destinations and stores operation-bound private receipts; server.mjs exposes
+authenticated unzip-status. public/site-input.js shares strict hostname/slug
+normalization with sites.mjs. site-wizard.js reports validation inline and updates
+the Websites list before Cloudflare preview. unzip-ui/site-create tests use real
+isolated Panel HTTP/Chrome plus filesystem checks; no live Cloudflare writes.
+
 # Code map
 
 RC18: zip-stream.mjs gives yauzl sole ownership of a raw no-follow fd, awaits
